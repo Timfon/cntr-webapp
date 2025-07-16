@@ -513,7 +513,7 @@ function TeamSection() {
                     fontFamily: 'Rubik',
                   }}
                 >
-                  {member.description}
+                  {/* {member.description} */}
                 </Typography>
               </Card>
             </Grid>

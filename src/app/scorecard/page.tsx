@@ -36,6 +36,7 @@ const definitions = {
 };
 
 // Create a reusable component for terms with definitions
+
 const DefinedTerm = ({ term, children, definition }) => {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>

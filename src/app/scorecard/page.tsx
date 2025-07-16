@@ -568,7 +568,12 @@ useEffect(() => {
 
   if (firstUnanswered) {
     setCurrentSection(firstUnanswered.sectionId);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+     setTimeout(() => {
+    const el = document.getElementById(`question-${firstUnanswered.id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 500); // adjust timing if needed
 
     alert(`Please answer all questions before submitting. Missing: ${firstUnanswered.id}`);
     return;

@@ -18,6 +18,7 @@ import {
   Paper
 } from '@mui/material';
 import Link from 'next/link';
+import { User } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
 
 import Footer from './Footer';
@@ -33,7 +34,7 @@ const pages = [
 ];
 
 export default function ResponsiveAppBar() {
-  const [user, setUser] = React.useState(null);
+  const [user, setUser] = React.useState<User | null>(null);
   const router = useRouter();
   const settings = user
   ? [

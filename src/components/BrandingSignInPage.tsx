@@ -54,35 +54,39 @@ export default function BrandingSignInPage() {
   const theme = useTheme();
   const router = useRouter();
 
-  const signIn: (provider: AuthProvider) => Promise<void> = async (provider) => {
-    if (provider.id === 'google') {
-      const googleProvider = new GoogleAuthProvider();
-      try {
-        const result = await signInWithPopup(auth, googleProvider);
-        console.log('Google sign-in success:', result.user);
-        router.push('/scorecard');
-      } catch (error) {
-        console.error('Google sign-in error:', error);
-      }
-    } else if (provider.id === 'credentials') {
-      const email = prompt('Enter your email:');
-      const password = prompt('Enter your password:');
-
-      if (!email || !password) {
-        console.warn('Email or password is empty.');
-        return;
-      }
-      try {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        console.log('Email sign-in success:', result.user);
-        router.push('/scorecard');
-      } catch (error) {
-        console.error('Email sign-in error:', error);
-      }
-    } else {
-      console.warn('Unknown provider:', provider.id);
+  const signIn = async (provider: AuthProvider, formData?: any, callbackUrl?: string) => {
+  if (provider.id === 'google') {
+    const googleProvider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log('Google sign-in success:', result.user);
+      router.push('/scorecard');
+      return { type: 'CredentialsSignin' }; // Return AuthResponse
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      return { error: 'Google sign-in failed' }; // Return error response
     }
-  };
+  } else if (provider.id === 'credentials') {
+    const email = prompt('Enter your email:');
+    const password = prompt('Enter your password:');
+    if (!email || !password) {
+      console.warn('Email or password is empty.');
+      return { error: 'Email or password is empty' };
+    }
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Email sign-in success:', result.user);
+      router.push('/scorecard');
+      return { type: 'CredentialsSignin' };
+    } catch (error) {
+      console.error('Email sign-in error:', error);
+      return { error: 'Email sign-in failed' };
+    }
+  } else {
+    console.warn('Unknown provider:', provider.id);
+    return { error: 'Unknown provider' };
+  }
+};
 
   const customTheme = {
     ...theme,

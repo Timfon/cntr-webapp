@@ -37,13 +37,15 @@ const definitions = {
 
 // Create a reusable component for terms with definitions
 
-const DefinedTerm = ({ term, children, definition }) => {
+const DefinedTerm = ({ term = '', children = null, definition = '' }) => {
+  const finalDefinition = definition || definitions?.[term] || 'Definition not available';
+
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
       <Tooltip 
         title={
           <Box sx={{ fontFamily: 'Rubik, sans-serif' }}>
-            <strong>Definition:</strong> {definition || definitions[term] || 'Definition not available'}
+            <strong>Definition:</strong> {finalDefinition}
           </Box>
         }
         arrow
@@ -70,22 +72,23 @@ const DefinedTerm = ({ term, children, definition }) => {
         }}
       >
         <InfoOutlineIcon 
-  sx={{ 
-    fontSize: '1.1rem', 
-    color: '#4CAF50', 
-    cursor: 'help',
-    position: 'relative',
-    top: '3px',
-    '&:hover': {
-      color: '#2e7d32'
-    }
-  }} 
-/>
+          sx={{ 
+            fontSize: '1.1rem', 
+            color: '#4CAF50', 
+            cursor: 'help',
+            position: 'relative',
+            top: '3px',
+            '&:hover': {
+              color: '#2e7d32'
+            }
+          }} 
+        />
       </Tooltip>
       {children}
     </span>
   );
 };
+
 
 const sections = [
   { id: 'general', name: 'General', color: '#4CAF50' },
@@ -113,9 +116,9 @@ const questionBank = {
     text: (
       <>
         Does the bill apply to
-        <DefinedTerm term="public-sector">
+        <DefinedTerm term="public-sector" definition="Government and publicly funded organizations">
         </DefinedTerm>
-          public-sector use 
+        public-sector use
         of AI / ADS?
       </>
     )

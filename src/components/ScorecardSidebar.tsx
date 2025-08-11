@@ -12,18 +12,36 @@ const ScorecardSidebar = ({
 }) => {
   return (
     <Paper sx={{ 
-      position: 'fixed',
-      left: 24,
+      mr: 6, 
+      position: 'sticky',
       top: 120,
+      left: 24,
       width: 300,
-      height: 'calc(100vh - 250px)',
+      height: 'calc(100vh - 230px)', //Adjust height to account for top offset and bottom margin
       backgroundColor: 'white',
       borderRadius: 3,
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
       overflow: 'hidden',
-      zIndex: 1000
+      zIndex: 1000,
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      <Box sx={{ mt: 2, overflowY: 'auto', height: 'calc(100% - 60px)' }}>
+      <Box sx={{ 
+        flex: 1,
+        overflowY: 'auto', 
+        mt: 2,
+        // Add padding to prevent content from touching edges during scroll
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          backgroundColor: 'transparent',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: 'rgba(0, 0, 0, 0.1)',
+          borderRadius: '3px',
+        }
+      }}>
         {sections.map((section) => (
           <Box
             key={section.id}

@@ -124,5 +124,8 @@ export const questionBank = {
     { id: 'L5', text: 'Does the bill call for the analysis of demographics that may be most vulnerable to AI displacement?' },
     { id: 'L6', text: 'Does the bill propose recommendations to alleviate work displacement as a result of AI?' },
     { id: 'L7', text: 'Does the bill propose compensation for workers who are being displaced, replaced or unemployed due to AI or automation?' }
+  ],
+  submit: [
+    // { id: 'L7', text: 'Does the bill propose compensation for workers who are being displaced, replaced or unemployed due to AI or automation?' }
   ]
 };

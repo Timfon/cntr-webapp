@@ -166,7 +166,8 @@ export default function ScorecardPage() {
         minHeight: '100vh',
         backgroundColor: '#F6FBF7',
         position: 'relative',
-        p: 3
+        p: 3,
+        display: 'flex',
       }}>
         <ScorecardSidebar 
           currentSection={currentSection}
@@ -177,7 +178,7 @@ export default function ScorecardPage() {
 
         {/* Main Content */}
         <Box sx={{ 
-          marginLeft: '350px',
+          // marginLeft: '350px',
           maxWidth: 800
         }}>
           <Typography variant="body2" sx={{ 
@@ -196,7 +197,6 @@ export default function ScorecardPage() {
           }}>
             {sections[currentIndex].name}
           </Typography>
-
           {currentQuestions.map((question) => (
             <QuestionCard
               key={question.id}

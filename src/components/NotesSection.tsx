@@ -4,7 +4,7 @@ import { Paper, TextField, Typography } from '@mui/material';
 
 const NotesSection = ({ notes, currentSection, onNotesChange }) => {
   return (
-    <Paper sx={{ p: 3, mt: 4, borderRadius: 3 }}>
+    <Paper sx={{ p: 3, mt: 4, borderRadius: 3, minWidth: 800}}>
       <Typography variant="h6" sx={{ 
         fontWeight: 'bold', 
         mb: 2,

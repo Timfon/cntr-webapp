@@ -1,59 +1,60 @@
 "use client";
-import React, { useState } from 'react';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '@/firebase';
+import React, { useState } from "react";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "@/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  TextField, 
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
   Paper,
   Divider,
   Alert,
   Tooltip,
-} from '@mui/material';
-import { useEffect} from 'react';
-import { useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
+} from "@mui/material";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged } from "firebase/auth";
 
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
-import { Flag, FlagOutlined, Warning } from '@mui/icons-material';
-import ResponsiveAppBar from '@/components/ResponsiveAppBar';
-import Footer from '@/components/Footer';
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
+import { Flag, FlagOutlined, Warning } from "@mui/icons-material";
+import ResponsiveAppBar from "@/components/ResponsiveAppBar";
+import Footer from "@/components/Footer";
 
-import ScorecardSidebar from '@/components/ScorecardSidebar';
-import QuestionCard from '@/components/QuestionCard';
-import NotesSection from '@/components/NotesSection';
-import NavigationButtons from '@/components/NavigationButtons';
+import ScorecardSidebar from "@/components/ScorecardSidebar";
+import QuestionCard from "@/components/QuestionCard";
+import NotesSection from "@/components/NotesSection";
+import NavigationButtons from "@/components/NavigationButtons";
 
-import { sections } from '../data/sections';
-import { questionBank } from '../data/questionBank';
-import { validateAllAnswers } from './scoreCardUtils';
+import { sections } from "../data/sections";
+import { questionBank } from "../data/questionBank";
+import { validateAllAnswers } from "./scoreCardUtils";
 // import "@fontsource/rubik/400.css";
 // import "@fontsource/rubik/500.css";
 // import "@fontsource/rubik/700.css";
 
 export default function ScorecardPage() {
-  const [currentSection, setCurrentSection] = useState('general');
+  const [currentSection, setCurrentSection] = useState("general");
   const [answers, setAnswers] = useState({});
+  // flags is a map from question number to boolean (whether it's filled out or not)
   const [flags, setFlags] = useState({});
   const [notes, setNotes] = useState({});
   const [loading, setLoading] = useState(true);
-  
+
   const router = useRouter();
-  const currentIndex = sections.findIndex(s => s.id === currentSection);
+  const currentIndex = sections.findIndex((s) => s.id === currentSection);
   const currentQuestions = questionBank[currentSection] || [];
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        router.push('/signin');
+        router.push("/signin");
       } else {
         // Fetch saved progress
-        const userDoc = doc(db, 'progress', user.uid);
+        const userDoc = doc(db, "progress", user.uid);
         const docSnap = await getDoc(userDoc);
 
         if (docSnap.exists()) {
@@ -61,7 +62,7 @@ export default function ScorecardPage() {
           setAnswers(data.answers || {});
           setFlags(data.flags || {});
           setNotes(data.notes || {});
-          setCurrentSection(data.currentSection || 'general');
+          setCurrentSection(data.currentSection || "general");
         }
 
         setLoading(false);
@@ -74,21 +75,21 @@ export default function ScorecardPage() {
     if (!loading) {
       const timeout = setTimeout(() => {
         saveProgress({ notes });
-      }, 500); 
+      }, 500);
 
-      return () => clearTimeout(timeout); 
+      return () => clearTimeout(timeout);
     }
   }, [notes, loading]);
 
   if (loading) {
-    return <div></div>; 
+    return <div></div>;
   }
 
   const saveProgress = async (newData) => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const userDoc = doc(db, 'progress', user.uid);
+    const userDoc = doc(db, "progress", user.uid);
     await setDoc(userDoc, {
       answers,
       flags,
@@ -99,7 +100,7 @@ export default function ScorecardPage() {
   };
 
   const handleAnswer = (questionId, answer) => {
-    setAnswers(prev => {
+    setAnswers((prev) => {
       const updated = { ...prev, [questionId]: answer };
       saveProgress({ answers: updated });
       return updated;
@@ -107,7 +108,7 @@ export default function ScorecardPage() {
   };
 
   const handleFlag = (questionId) => {
-    setFlags(prev => {
+    setFlags((prev) => {
       const updated = { ...prev, [questionId]: !prev[questionId] };
       saveProgress({ flags: updated });
       return updated;
@@ -132,15 +133,17 @@ export default function ScorecardPage() {
       setTimeout(() => {
         const el = document.getElementById(`question-${firstUnanswered.id}`);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }, 500);
-      alert(`Please answer all questions before submitting. Missing: ${firstUnanswered.id}`);
+      alert(
+        `Please answer all questions before submitting. Missing: ${firstUnanswered.id}`
+      );
       return;
     }
     const user = auth.currentUser;
     if (!user) return;
-    await addDoc(collection(db, 'submissions'), {
+    await addDoc(collection(db, "submissions"), {
       answers,
       flags,
       notes,
@@ -149,27 +152,29 @@ export default function ScorecardPage() {
       email: user.email,
     });
 
-    alert('Form submitted!');
+    alert("Form submitted!");
 
     setAnswers({});
     setFlags({});
     setNotes({});
-    setCurrentSection('general');
+    setCurrentSection("general");
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <Box>
       <ResponsiveAppBar />
-      <Box sx={{ 
-        minHeight: '100vh',
-        backgroundColor: '#F6FBF7',
-        position: 'relative',
-        p: 3,
-        display: 'flex',
-      }}>
-        <ScorecardSidebar 
+      <Box
+        sx={{
+          minHeight: "100vh",
+          backgroundColor: "#F6FBF7",
+          position: "relative",
+          p: 3,
+          display: "flex",
+        }}
+      >
+        <ScorecardSidebar
           currentSection={currentSection}
           onSectionChange={handleSectionChange}
           answers={answers}
@@ -177,24 +182,32 @@ export default function ScorecardPage() {
         />
 
         {/* Main Content */}
-        <Box sx={{ 
-          // marginLeft: '350px',
-          maxWidth: 800
-        }}>
-          <Typography variant="body2" sx={{ 
-            color: '#666', 
-            mb: 1,
-            mt: 4,
-            fontFamily: 'Rubik, sans-serif'
-          }}>
+        <Box
+          sx={{
+            // marginLeft: '350px',
+            maxWidth: 800,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#666",
+              mb: 2,
+              mt: 4,
+              fontFamily: "Rubik, sans-serif",
+            }}
+          >
             Section {currentIndex + 1} of {sections.length}
           </Typography>
 
-          <Typography variant="h4" sx={{ 
-            fontWeight: '100', 
-            mb: 1,
-            fontFamily: 'Rubik-Bold, sans-serif'
-          }}>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: "100",
+              mb: 2,
+              fontFamily: "Rubik-Bold, sans-serif",
+            }}
+          >
             {sections[currentIndex].name}
           </Typography>
           {currentQuestions.map((question) => (
@@ -207,12 +220,12 @@ export default function ScorecardPage() {
               onFlag={handleFlag}
             />
           ))}
-          <NotesSection 
+          <NotesSection
             notes={notes}
             currentSection={currentSection}
             onNotesChange={handleNotesChange}
           />
-          <NavigationButtons 
+          <NavigationButtons
             currentSection={currentSection}
             onSectionChange={handleSectionChange}
             onSubmit={handleSubmit}

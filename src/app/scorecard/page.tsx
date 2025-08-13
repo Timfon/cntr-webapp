@@ -65,6 +65,7 @@ export default function ScorecardPage() {
           setFlags(data.flags || {});
           setNotes(data.notes || {});
           setCurrentSection(data.currentSection || "general");
+          setSelectedBill(data.selectedBill || data.answers?.['00'] || ''); // fallback
         }
 
         setLoading(false);
@@ -109,6 +110,8 @@ export default function ScorecardPage() {
     });
      if (questionId === '00') {
       setSelectedBill(answer);
+      saveProgress({ selectedBill: answer });
+
     }
   };
 

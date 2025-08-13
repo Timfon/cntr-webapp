@@ -31,7 +31,7 @@ import NavigationButtons from "@/components/NavigationButtons";
 
 import { sections } from "../data/sections";
 import { questionBank } from "../data/questionBank";
-import { validateAllAnswers } from "./scoreCardUtils";
+import { validateAllAnswers, validateSectionAnswers } from "./scoreCardUtils";
 // import "@fontsource/rubik/400.css";
 // import "@fontsource/rubik/500.css";
 // import "@fontsource/rubik/700.css";
@@ -40,6 +40,7 @@ export default function ScorecardPage() {
   const [currentSection, setCurrentSection] = useState("general");
   const [answers, setAnswers] = useState({});
   const [selectedBill, setSelectedBill] = useState('');
+
   // flags is a map from question number to boolean (whether it's filled out or not)
   const [flags, setFlags] = useState({});
   const [notes, setNotes] = useState({});
@@ -133,17 +134,27 @@ export default function ScorecardPage() {
     setCurrentSection(sectionId);
   };
 
+  const handleNext = async () => {
+    const firstUnanswered = validateSectionAnswers(answers, currentSection);
+    if (firstUnanswered) {
+      const el = document.getElementById(`question-${firstUnanswered.id}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      alert(`Please answer all questions before proceeding. Missing: ${firstUnanswered.id}`);
+      return;
+    }
+    handleSectionChange(sections[currentIndex + 1].id);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+};
+
   const handleSubmit = async () => {
     const firstUnanswered = validateAllAnswers(answers);
 
     if (firstUnanswered) {
       setCurrentSection(firstUnanswered.sectionId);
       setTimeout(() => {
-        const el = document.getElementById(`question-${firstUnanswered.id}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 500);
+      const el = document.getElementById(`question-${firstUnanswered.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
       alert(
         `Please answer all questions before submitting. Missing: ${firstUnanswered.id}`
       );
@@ -159,7 +170,7 @@ export default function ScorecardPage() {
       uid: user.uid,
       email: user.email,
     });
-
+//go to homepage
     alert("Form submitted!");
 
     setAnswers({});
@@ -244,6 +255,7 @@ export default function ScorecardPage() {
           {currentQuestions.map((question) => (
             <QuestionCard
               key={question.id}
+              id={`question-${question.id}`}
               question={question}
               answer={answers[question.id]}
               flagged={flags[question.id]}
@@ -260,6 +272,7 @@ export default function ScorecardPage() {
             currentSection={currentSection}
             onSectionChange={handleSectionChange}
             onSubmit={handleSubmit}
+            onNext={handleNext}
           />
         </Box>
       </Box>

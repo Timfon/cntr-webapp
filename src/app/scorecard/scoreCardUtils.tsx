@@ -19,6 +19,10 @@ export const validateAllAnswers = (answers) => {
   const allQuestions = Object.entries(questionBank).flatMap(
     ([sectionId, questions]) => questions.map((q) => ({ ...q, sectionId }))
   );
-
   return allQuestions.find((q) => !(q.id in answers));
+};
+
+export const validateSectionAnswers = (answers, sectionId) => {
+  const sectionQuestions = questionBank[sectionId] || [];
+  return sectionQuestions.find((q) => !(q.id in answers));
 };

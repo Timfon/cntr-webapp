@@ -5,6 +5,7 @@ import {
 import { Flag, FlagOutlined } from '@mui/icons-material';
 
 const QuestionCard = ({ 
+  id,
   question, 
   answer, 
   flagged, 

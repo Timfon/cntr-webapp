@@ -5,7 +5,8 @@ import { sections } from '@/app/data/sections';
 const NavigationButtons = ({ 
   currentSection, 
   onSectionChange, 
-  onSubmit 
+  onSubmit,
+  onNext
 }) => {
   const currentIndex = sections.findIndex(s => s.id === currentSection);
 
@@ -56,13 +57,7 @@ const NavigationButtons = ({
       ) : (
         <Button 
           variant="contained" 
-          onClick={() => {
-            if (currentIndex < sections.length - 1) {
-              const nextSectionId = sections[currentIndex + 1].id;
-              onSectionChange(nextSectionId);
-              window.scrollTo({ top: 0, behavior: 'instant' });
-            }
-          }}
+          onClick={onNext}
           sx={{ 
             backgroundColor: '#2e7d32',
             fontFamily: 'Rubik, sans-serif',

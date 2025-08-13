@@ -206,7 +206,6 @@ export default function ScorecardPage() {
             onSectionChange={handleSectionChange}
             answers={answers}
             flags={flags}
-            selectedBill={selectedBill}
             />
         </Box>
 

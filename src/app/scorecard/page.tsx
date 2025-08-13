@@ -39,10 +39,12 @@ import { validateAllAnswers } from "./scoreCardUtils";
 export default function ScorecardPage() {
   const [currentSection, setCurrentSection] = useState("general");
   const [answers, setAnswers] = useState({});
+  const [selectedBill, setSelectedBill] = useState('');
   // flags is a map from question number to boolean (whether it's filled out or not)
   const [flags, setFlags] = useState({});
   const [notes, setNotes] = useState({});
   const [loading, setLoading] = useState(true);
+
 
   const router = useRouter();
   const currentIndex = sections.findIndex((s) => s.id === currentSection);
@@ -105,6 +107,9 @@ export default function ScorecardPage() {
       saveProgress({ answers: updated });
       return updated;
     });
+     if (questionId === '00') {
+      setSelectedBill(answer);
+    }
   };
 
   const handleFlag = (questionId) => {
@@ -174,12 +179,36 @@ export default function ScorecardPage() {
           display: "flex",
         }}
       >
-        <ScorecardSidebar
-          currentSection={currentSection}
-          onSectionChange={handleSectionChange}
-          answers={answers}
-          flags={flags}
-        />
+        <Box>
+          <Box
+      sx={{
+        p: 1.5,
+        mb: 2,
+        borderRadius: 2,
+        position: "sticky",
+        top: 30,
+        backgroundColor: '#ffffffff',
+        fontFamily: 'Rubik, sans-serif',
+        fontWeight: 500,
+        //drop shadow
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+
+        fontSize: '1rem',
+        maxWidth: 300,
+        whiteSpace: 'normal',
+        wordBreak: 'break-word'
+      }}
+      >
+      {selectedBill || 'No bill selected'}
+    </Box>
+          <ScorecardSidebar
+            currentSection={currentSection}
+            onSectionChange={handleSectionChange}
+            answers={answers}
+            flags={flags}
+            selectedBill={selectedBill}
+            />
+        </Box>
 
         {/* Main Content */}
         <Box

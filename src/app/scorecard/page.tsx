@@ -196,7 +196,7 @@ export default function ScorecardPage() {
             variant="body2"
             sx={{
               color: "#666",
-              mb: 1,
+              mb: 2,
               mt: 4,
               fontFamily: "Rubik, sans-serif",
             }}
@@ -208,7 +208,7 @@ export default function ScorecardPage() {
             variant="h4"
             sx={{
               fontWeight: "100",
-              mb: 1,
+              mb: 2,
               fontFamily: "Rubik-Bold, sans-serif",
             }}
           >

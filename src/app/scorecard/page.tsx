@@ -49,10 +49,6 @@ export default function ScorecardPage() {
   const currentQuestions = questionBank[currentSection] || [];
 
   useEffect(() => {
-    console.log("flags", flags);
-  }, [flags]);
-
-  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push("/signin");

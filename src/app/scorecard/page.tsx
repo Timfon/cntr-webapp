@@ -163,24 +163,38 @@ export default function ScorecardPage() {
     const user = auth.currentUser;
     if (!user) return;
     await addDoc(collection(db, "submissions"), {
-      answers,
-      flags,
-      notes,
-      submittedAt: new Date().toISOString(),
-      uid: user.uid,
-      email: user.email,
-    });
-//go to homepage
-    alert("Form submitted!");
+  answers,
+  flags,
+  notes,
+  submittedAt: new Date().toISOString(),
+  uid: user.uid,
+  email: user.email,
+});
 
-    setAnswers({});
-    setFlags({});
-    setNotes({});
-    window.location.href = "/";
+// Clear saved progress from Firestore
+const userDoc = doc(db, "progress", user.uid);
+await setDoc(userDoc, {
+  answers: {},
+  flags: {},
+  notes: {},
+  currentSection: "general",
+  selectedBill: '',
+});
 
-    //setCurrentSection("general");
+// Reset local state
+setAnswers({});
+setFlags({});
+setNotes({});
+setCurrentSection("general");
+setSelectedBill('');
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+alert("Form submitted!");
+window.scrollTo({ top: 0, behavior: "smooth" });
+
+setTimeout(() => {
+  router.push("/"); // next/navigation router is cleaner than window.location.href
+}, 300);
+
   };
 
   return (

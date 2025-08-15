@@ -11,6 +11,7 @@ const ScorecardSidebar = ({
   onSectionChange,
   answers,
   flags,
+  saveProgress,
 }) => {
   const getIcon = (section: any) => {
     const hasFlagged = getIsFlagged(section.id, flags);
@@ -108,6 +109,7 @@ const ScorecardSidebar = ({
             }}
             onClick={() => {
               onSectionChange(section.id);
+              saveProgress({ currentSection: section.id });
               window.scrollTo({ top: 0, behavior: "instant" });
             }}
           >

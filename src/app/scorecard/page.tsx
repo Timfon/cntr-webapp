@@ -137,8 +137,9 @@ export default function ScorecardPage() {
   const handleNext = async () => {
     const firstUnanswered = validateSectionAnswers(answers, currentSection);
     if (firstUnanswered) {
-      const el = document.getElementById(`question-${firstUnanswered.id}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      setCurrentSection(firstUnanswered.sectionId);
+
       alert(`Please answer all questions before proceeding. Missing: ${firstUnanswered.id}`);
       return;
     }
@@ -148,7 +149,6 @@ export default function ScorecardPage() {
 
   const handleSubmit = async () => {
     const firstUnanswered = validateAllAnswers(answers);
-
     if (firstUnanswered) {
       setCurrentSection(firstUnanswered.sectionId);
       setTimeout(() => {
@@ -176,7 +176,9 @@ export default function ScorecardPage() {
     setAnswers({});
     setFlags({});
     setNotes({});
-    setCurrentSection("general");
+    window.location.href = "/";
+
+    //setCurrentSection("general");
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -220,6 +222,7 @@ export default function ScorecardPage() {
             onSectionChange={handleSectionChange}
             answers={answers}
             flags={flags}
+            saveProgress={saveProgress}
             />
         </Box>
 

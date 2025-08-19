@@ -160,6 +160,20 @@ export default function ScorecardPage() {
       );
       return;
     }
+
+    if (flags) {
+  const flaggedQuestions = Object.entries(flags)
+    .filter(([_, value]) => value === true)
+    .map(([key, _]) => key);
+
+  if (flaggedQuestions.length > 0) {
+    console.log("Flagged questions:", flaggedQuestions);
+    alert(
+      `You have flagged the following question(s): ${flaggedQuestions.join(", ")}. Please review them before submitting.`
+    );
+    return;
+  }
+}
     const user = auth.currentUser;
     if (!user) return;
     await addDoc(collection(db, "submissions"), {
@@ -190,13 +204,9 @@ setSelectedBill('');
 
 alert("Form submitted!");
 window.scrollTo({ top: 0, behavior: "smooth" });
-
-setTimeout(() => {
-  router.push("/"); // next/navigation router is cleaner than window.location.href
-}, 300);
+router.push("/"); // next/navigation router is cleaner than window.location.href
 
   };
-
   return (
     <Box>
       <ResponsiveAppBar />

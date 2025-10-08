@@ -1,8 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "@/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { auth } from "@/firebase";
+import { backendFirebase } from "@/backend/firebase";
 
 import {
   Box,
@@ -57,11 +56,9 @@ export default function ScorecardPage() {
         router.push("/signin");
       } else {
         // Fetch saved progress
-        const userDoc = doc(db, "progress", user.uid);
-        const docSnap = await getDoc(userDoc);
+        const data = await backendFirebase.getProgress(user.uid);
 
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        if (data) {
           setAnswers(data.answers || {});
           setFlags(data.flags || {});
           setNotes(data.notes || {});
@@ -93,8 +90,7 @@ export default function ScorecardPage() {
     const user = auth.currentUser;
     if (!user) return;
 
-    const userDoc = doc(db, "progress", user.uid);
-    await setDoc(userDoc, {
+    await backendFirebase.saveProgress(user.uid, {
       answers,
       flags,
       notes,
@@ -176,24 +172,18 @@ export default function ScorecardPage() {
 }
     const user = auth.currentUser;
     if (!user) return;
-    await addDoc(collection(db, "submissions"), {
-  answers,
-  flags,
-  notes,
-  submittedAt: new Date().toISOString(),
-  uid: user.uid,
-  email: user.email,
-});
+    
+    await backendFirebase.submitForm({
+      answers,
+      flags,
+      notes,
+      submittedAt: new Date().toISOString(),
+      uid: user.uid,
+      email: user.email,
+    });
 
-// Clear saved progress from Firestore
-const userDoc = doc(db, "progress", user.uid);
-await setDoc(userDoc, {
-  answers: {},
-  flags: {},
-  notes: {},
-  currentSection: "general",
-  selectedBill: '',
-});
+    // Clear saved progress
+    await backendFirebase.clearProgress(user.uid);
 
 // Reset local state
 setAnswers({});
@@ -230,6 +220,7 @@ router.push("/"); // next/navigation router is cleaner than window.location.href
         backgroundColor: '#ffffffff',
         fontFamily: 'Rubik, sans-serif',
         fontWeight: 500,
+        color: '#333333',
         //drop shadow
         boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
 
@@ -260,7 +251,7 @@ router.push("/"); // next/navigation router is cleaner than window.location.href
           <Typography
             variant="body2"
             sx={{
-              color: "#666",
+              color: "#333333",
               mb: 2,
               mt: 4,
               fontFamily: "Rubik, sans-serif",
@@ -273,6 +264,7 @@ router.push("/"); // next/navigation router is cleaner than window.location.href
             variant="h4"
             sx={{
               fontWeight: "100",
+              color: "#333333",
               mb: 2,
               fontFamily: "Rubik-Bold, sans-serif",
             }}

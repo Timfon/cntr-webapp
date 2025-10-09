@@ -5,16 +5,8 @@ import { useTheme } from '@mui/material/styles';
 import { auth } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect } from 'react';
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  GithubAuthProvider,
-} from 'firebase/auth';
+import { backendAuth } from '@/backend/auth';
 import { useRouter } from 'next/navigation';
-
-import { Typography, Link } from '@mui/material';
-import NextLink from 'next/link';
 import '@fontsource/rubik';
 
 const providers = [
@@ -56,15 +48,13 @@ export default function BrandingSignInPage() {
 
   const signIn = async (provider: AuthProvider, formData?: any, callbackUrl?: string) => {
   if (provider.id === 'google') {
-    const googleProvider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
+    const result = await backendAuth.signInWithGoogle();
+    if (result.success) {
       console.log('Google sign-in success:', result.user);
       router.push('/scorecard');
-      return { type: 'CredentialsSignin' }; // Return AuthResponse
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      return { error: 'Google sign-in failed' }; // Return error response
+      return { type: 'CredentialsSignin' };
+    } else {
+      return { error: result.error };
     }
   } else if (provider.id === 'credentials') {
     const email = prompt('Enter your email:');
@@ -73,14 +63,13 @@ export default function BrandingSignInPage() {
       console.warn('Email or password is empty.');
       return { error: 'Email or password is empty' };
     }
-    try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+    const result = await backendAuth.signInWithEmail(email, password);
+    if (result.success) {
       console.log('Email sign-in success:', result.user);
       router.push('/scorecard');
       return { type: 'CredentialsSignin' };
-    } catch (error) {
-      console.error('Email sign-in error:', error);
-      return { error: 'Email sign-in failed' };
+    } else {
+      return { error: result.error };
     }
   } else {
     console.warn('Unknown provider:', provider.id);

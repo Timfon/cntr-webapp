@@ -27,6 +27,7 @@ import "@fontsource/rubik";
 import MenuIcon from '@mui/icons-material/Menu';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/firebase';
+import { backendAuth } from '@/backend/auth';
 
 const pages = [
   { name: 'Scorecard', href: '/scorecard' },
@@ -43,8 +44,12 @@ export default function ResponsiveAppBar() {
         label: 'Logout',
         onClick: async () => {
           try {
-            await signOut(auth);
-            router.push('/signin');
+            const result = await backendAuth.signOut();
+            if (result.success) {
+              router.push('/signin');
+            } else {
+              console.error("Error signing out:", result.error);
+            }
           } catch (error) {
             console.error("Error signing out:", error);
           }

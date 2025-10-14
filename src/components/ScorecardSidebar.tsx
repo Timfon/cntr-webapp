@@ -15,11 +15,14 @@ const ScorecardSidebar = ({
   saveProgress,
 }) => {
   const getIcon = (section: any) => {
+    if (section.id === "submit") {
+      return null;
+    }
+    
     const hasFlagged = getIsFlagged(section.id, flags);
     const inProgress = getIsInProgress(section.id, answers, flags);
     const sectionQuestions = questionBank[section.id] || [];
     const hasAnswers = sectionQuestions.some(q => answers[q.id] !== undefined);
-    const allAnswered = sectionQuestions.every(q => answers[q.id] !== undefined);
     
     // 1. If section has not been started yet, grey circle
     if (!hasAnswers) {
@@ -32,14 +35,11 @@ const ScorecardSidebar = ({
     }
     
     // 3. If user did not answer all questions, incomplete logo (progress icon)
-    if (!allAnswered) {
+    if (inProgress) {
       return <TbProgress size={20} color="#afafaf" />;
     }
     
     // 4. If all questions have been answered, green check
-    if (section.name === "Submission") {
-      return <div style={{ width: 20, height: 20 }}></div>;
-    }
     return <FaCheck size={20} color="#1d8f3b" />;
   };
   return (

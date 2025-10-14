@@ -140,7 +140,7 @@ const QuestionCard = ({
   };
 
   return (
-    <Paper key={question.id} sx={{ mb: 3, p: 3, borderRadius: 3 }}>
+    <Paper id={id} key={question.id} sx={{ mb: 3, p: 3, borderRadius: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
         <Typography
           variant="body1"

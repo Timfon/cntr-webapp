@@ -2,19 +2,15 @@ import * as React from 'react';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { SignInPage, type AuthProvider } from '@toolpad/core/SignInPage';
 import { useTheme } from '@mui/material/styles';
-import { auth } from '@/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Removed GoogleAuthProvider and signInWithPopup
 
 import { Typography, Link } from '@mui/material';
 import NextLink from 'next/link';
 import "@fontsource/rubik";
 
-// ❌ Removed Google from the provider list
 const providers = [
   { id: 'credentials', name: 'Email and Password' },
 ];
 
-// ✅ Branding object stays the same
 const BRANDING = {
   logo: (
     <img

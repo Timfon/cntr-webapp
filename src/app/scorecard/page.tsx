@@ -6,20 +6,11 @@ import { backendFirebase } from "@/backend/firebase";
 import {
   Box,
   Typography,
-  Button,
-  TextField,
-  Paper,
-  Divider,
-  Alert,
-  Tooltip,
 } from "@mui/material";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
-import { Flag, FlagOutlined, Warning } from "@mui/icons-material";
 import ResponsiveAppBar from "@/components/ResponsiveAppBar";
 import Footer from "@/components/Footer";
 
@@ -27,10 +18,11 @@ import ScorecardSidebar from "@/components/ScorecardSidebar";
 import QuestionCard from "@/components/QuestionCard";
 import NotesSection from "@/components/NotesSection";
 import NavigationButtons from "@/components/NavigationButtons";
+import SubmissionPage from "./submission";
 
 import { sections } from "../data/sections";
 import { questionBank } from "../data/questionBank";
-import { validateAllAnswers, validateSectionAnswers } from "./scoreCardUtils";
+import { validateAllAnswers } from "./scoreCardUtils";
 // import "@fontsource/rubik/400.css";
 // import "@fontsource/rubik/500.css";
 // import "@fontsource/rubik/700.css";
@@ -48,6 +40,7 @@ export default function ScorecardPage() {
 
   const router = useRouter();
   const currentIndex = sections.findIndex((s) => s.id === currentSection);
+  const currentSectionData = sections[currentIndex];
   const currentQuestions = questionBank[currentSection] || [];
 
   useEffect(() => {
@@ -130,46 +123,48 @@ export default function ScorecardPage() {
     setCurrentSection(sectionId);
   };
 
-  const handleNext = async () => {
-    const firstUnanswered = validateSectionAnswers(answers, currentSection);
-    if (firstUnanswered) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      setCurrentSection(firstUnanswered.sectionId);
+  const handleNavigateToQuestion = (sectionId, questionId) => {
+    setCurrentSection(sectionId);
+    // Scroll to the specific question after a short delay to allow section to load
+    setTimeout(() => {
+      const element = document.getElementById(`question-${questionId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
 
-      alert(`Please answer all questions before proceeding. Missing: ${firstUnanswered.id}`);
-      return;
+  const handleNext = async () => {
+    if (currentIndex >= 0 && currentIndex < sections.length - 1) {
+      handleSectionChange(sections[currentIndex + 1].id);
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
-    handleSectionChange(sections[currentIndex + 1].id);
-    window.scrollTo({ top: 0, behavior: 'instant' });
-};
+  };
 
   const handleSubmit = async () => {
+    // Check if all questions are answered
     const firstUnanswered = validateAllAnswers(answers);
-    if (firstUnanswered) {
-      setCurrentSection(firstUnanswered.sectionId);
-      setTimeout(() => {
-      const el = document.getElementById(`question-${firstUnanswered.id}`);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
-      alert(
-        `Please answer all questions before submitting. Missing: ${firstUnanswered.id}`
-      );
+    const flaggedQuestions = Object.entries(flags)
+      .filter(([_, value]) => value === true)
+      .map(([key, _]) => key);
+
+    // If there are unanswered questions or flagged questions, show error
+    if (firstUnanswered || flaggedQuestions.length > 0) {
+      let errorMessage = "Cannot submit. Please address the following issues:\n\n";
+      
+      if (firstUnanswered) {
+        errorMessage += `• Unanswered questions: ${firstUnanswered.id}\n`;
+      }
+      
+      if (flaggedQuestions.length > 0) {
+        errorMessage += `• Flagged questions: ${flaggedQuestions.join(", ")}\n`;
+      }
+      
+      errorMessage += "\nPlease review and complete all questions before submitting.";
+      
+      alert(errorMessage);
       return;
     }
-
-    if (flags) {
-  const flaggedQuestions = Object.entries(flags)
-    .filter(([_, value]) => value === true)
-    .map(([key, _]) => key);
-
-  if (flaggedQuestions.length > 0) {
-    console.log("Flagged questions:", flaggedQuestions);
-    alert(
-      `You have flagged the following question(s): ${flaggedQuestions.join(", ")}. Please review them before submitting.`
-    );
-    return;
-  }
-}
     const user = auth.currentUser;
     if (!user) return;
     
@@ -248,51 +243,64 @@ router.push("/"); // next/navigation router is cleaner than window.location.href
             maxWidth: 800,
           }}
         >
-          <Typography
-            variant="body2"
-            sx={{
-              color: "#333333",
-              mb: 2,
-              mt: 4,
-              fontFamily: "Rubik, sans-serif",
-            }}
-          >
-            Section {currentIndex + 1} of {sections.length}
-          </Typography>
-
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: "100",
-              color: "#333333",
-              mb: 2,
-              fontFamily: "Rubik-Bold, sans-serif",
-            }}
-          >
-            {sections[currentIndex].name}
-          </Typography>
-          {currentQuestions.map((question) => (
-            <QuestionCard
-              key={question.id}
-              id={`question-${question.id}`}
-              question={question}
-              answer={answers[question.id]}
-              flagged={flags[question.id]}
-              onAnswer={handleAnswer}
-              onFlag={handleFlag}
+          {currentSection === 'submit' ? (
+            <SubmissionPage
+              answers={answers}
+              flags={flags}
+              notes={notes}
+              onNavigateToQuestion={handleNavigateToQuestion}
+              onSubmit={handleSubmit}
+              selectedBill={selectedBill}
             />
-          ))}
-          <NotesSection
-            notes={notes}
-            currentSection={currentSection}
-            onNotesChange={handleNotesChange}
-          />
-          <NavigationButtons
-            currentSection={currentSection}
-            onSectionChange={handleSectionChange}
-            onSubmit={handleSubmit}
-            onNext={handleNext}
-          />
+          ) : (
+            <>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#333333",
+                  mb: 2,
+                  mt: 4,
+                  fontFamily: "Rubik, sans-serif",
+                }}
+              >
+                Section {currentIndex >= 0 ? currentIndex + 1 : 1} of {sections.length}
+              </Typography>
+
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: "100",
+                  color: "#333333",
+                  mb: 2,
+                  fontFamily: "Rubik-Bold, sans-serif",
+                }}
+              >
+                {currentSectionData?.name || 'Unknown Section'}
+              </Typography>
+              {currentQuestions.map((question) => (
+                <QuestionCard
+                  key={question.id}
+                  id={`question-${question.id}`}
+                  question={question}
+                  answer={answers[question.id]}
+                  flagged={flags[question.id]}
+                  onAnswer={handleAnswer}
+                  onFlag={handleFlag}
+                />
+              ))}
+              <NotesSection
+                notes={notes}
+                currentSection={currentSection}
+                onNotesChange={handleNotesChange}
+              />
+              <NavigationButtons
+                currentSection={currentSection}
+                onSectionChange={handleSectionChange}
+                onSubmit={handleSubmit}
+                onNext={handleNext}
+              />
+            </>
+          )}
         </Box>
       </Box>
       <Footer />

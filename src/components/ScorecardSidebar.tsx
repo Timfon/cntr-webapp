@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { sections } from "@/app/data/sections";
+import { questionBank } from "@/app/data/questionBank";
 import { getIsFlagged, getIsInProgress } from "@/app/scorecard/scoreCardUtils";
 import { TbProgress } from "react-icons/tb";
 import { FaCheck } from "react-icons/fa6";
@@ -14,17 +15,31 @@ const ScorecardSidebar = ({
   saveProgress,
 }) => {
   const getIcon = (section: any) => {
+    if (section.id === "submit") {
+      return null;
+    }
+    
     const hasFlagged = getIsFlagged(section.id, flags);
     const inProgress = getIsInProgress(section.id, answers, flags);
-    if (hasFlagged) {
-      return <ErrorOutlineIcon sx={{ color: "black", fontSize: "1.25rem" }} />;
+    const sectionQuestions = questionBank[section.id] || [];
+    const hasAnswers = sectionQuestions.some(q => answers[q.id] !== undefined);
+    
+    // 1. If section has not been started yet, grey circle
+    if (!hasAnswers) {
+      return <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#e0e0e0' }}></div>;
     }
+    
+    // 2. If user flagged 1 or more questions, red exclamation point
+    if (hasFlagged) {
+      return <ErrorOutlineIcon sx={{ color: "#d32f2f", fontSize: "1.25rem" }} />;
+    }
+    
+    // 3. If user did not answer all questions, incomplete logo (progress icon)
     if (inProgress) {
       return <TbProgress size={20} color="#afafaf" />;
     }
-    if (section.name === "Submission") {
-      return <div style={{ width: 20, height: 20 }}></div>;
-    }
+    
+    // 4. If all questions have been answered, green check
     return <FaCheck size={20} color="#1d8f3b" />;
   };
   return (

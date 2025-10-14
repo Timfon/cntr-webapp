@@ -1,27 +1,13 @@
 "use client";
 import * as React from 'react';
 import { 
-  AppBar, 
   Box, 
-  Toolbar, 
-  IconButton, 
   Typography, 
-  Menu, 
   Container, 
   Avatar, 
-  Button, 
-  Tooltip, 
-  MenuItem,
   Grid,
-  Card,
-  CardContent,
-  Paper
 } from '@mui/material';
-import ResponsiveAppBar from './ResponsiveAppBar';
-import { useRouter } from 'next/navigation';
 import "@fontsource/rubik";
-import MenuIcon from '@mui/icons-material/Menu';
-import AdbIcon from '@mui/icons-material/Adb';
 
 export default function Footer() {
   return (

@@ -1,28 +1,17 @@
 "use client";
 import * as React from 'react';
 import { 
-  AppBar, 
   Box, 
-  Toolbar, 
-  IconButton, 
   Typography, 
-  Menu, 
   Container, 
-  Avatar, 
   Button, 
-  Tooltip, 
-  MenuItem,
   Grid,
   Card,
-  CardContent,
-  Paper
 } from '@mui/material';
 import ResponsiveAppBar from '@/components/ResponsiveAppBar';
 import Footer from '@/components/Footer';
 import { useRouter } from 'next/navigation';
 import "@fontsource/rubik";
-import MenuIcon from '@mui/icons-material/Menu';
-import AdbIcon from '@mui/icons-material/Adb';
 
 
 // Sample team data
@@ -112,157 +101,6 @@ const teamMembers = [
     //description: "Lorem ipsum dolor sit amet. Vel totam amet ut velit rhoncus quis ante magna qui doloribus sapientes."
   },
 ];
-
-// function ResponsiveAppBar() {
-//   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-//   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-
-//   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-//     setAnchorElNav(event.currentTarget);
-//   };
-//   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-//     setAnchorElUser(event.currentTarget);
-//   };
-
-//   const handleCloseNavMenu = () => {
-//     setAnchorElNav(null);
-//   };
-
-//   const handleCloseUserMenu = () => {
-//     setAnchorElUser(null);
-//   };
-
-//   return (
-//     <AppBar position="static" sx={{ backgroundColor: '#FFFFFF' }}>
-//       <Container maxWidth="xl">
-//         <Toolbar disableGutters>
-//           <Avatar 
-//             src="/cntr_logo.png"
-//             alt="Logo"
-//             sx={{ 
-//               display: { xs: 'none', md: 'flex' }, 
-//               mr: 1,
-//               width: 50,
-//               height: 50
-//             }} 
-//           />
-//           <Typography
-//             variant="h6"
-//             noWrap
-//             component="a"
-//             href="#app-bar-with-responsive-menu"
-//             sx={{
-//               mr: 2,
-//               display: { xs: 'none', md: 'flex' },
-//               fontFamily: "Rubik-ExtraBold",
-//               fontWeight: '900',
-//               letterSpacing: '.1rem',
-//               color: '#0C6431',
-//               textDecoration: 'none',
-//             }}
-//           >
-//             CNTR AISLE
-//           </Typography>
-          
-//           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-//             <IconButton
-//               size="large"
-//               aria-label="account of current user"
-//               aria-controls="menu-appbar"
-//               aria-haspopup="true"
-//               onClick={handleOpenNavMenu}
-//               color="inherit"
-//             >
-//               <MenuIcon />
-//             </IconButton>
-//             <Menu
-//               id="menu-appbar"
-//               anchorEl={anchorElNav}
-//               anchorOrigin={{
-//                 vertical: 'bottom',
-//                 horizontal: 'left',
-//               }}
-//               keepMounted
-//               transformOrigin={{
-//                 vertical: 'top',
-//                 horizontal: 'left',
-//               }}
-//               open={Boolean(anchorElNav)}
-//               onClose={handleCloseNavMenu}
-//               sx={{ display: { xs: 'block', md: 'none' } }}
-//             >
-//               {pages.map((page) => (
-//                 <MenuItem key={page} onClick={handleCloseNavMenu}>
-//                   <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
-//                 </MenuItem>
-//               ))}
-//             </Menu>
-//           </Box>
-//           <AdbIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
-
-//           <Typography
-//             variant="h5"
-//             noWrap
-//             component="a"
-//             href="#app-bar-with-responsive-menu"
-//             sx={{
-//               mr: 2,
-//               display: { xs: 'flex', md: 'none' },
-//               flexGrow: 1,
-//               fontFamily: 'Rubik',
-//               fontWeight: 700,
-//               letterSpacing: '.3rem',
-//               color: '#0C6431',
-//               textDecoration: 'none',
-//             }}
-//           >
-//             LOGO
-//           </Typography>
-//           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-//             {pages.map((page) => (
-//               <Button
-//                 key={page}
-//                 onClick={handleCloseNavMenu}
-//                 sx={{ fontFamily: 'Rubik', my: 2, color: '#0C6431', display: 'block' }}
-//               >
-//                 {page}
-//               </Button>
-//             ))}
-//           </Box>
-//           <Box sx={{ flexGrow: 0 }}>
-//             <Tooltip title="Open settings">
-//               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, width: 40, height: 40 }}>
-//                 <Avatar alt="User" src="/user_icon.png" sx={{width: 30, height: 30}}/>
-//               </IconButton>
-//             </Tooltip>
-//             <Menu
-//               sx={{ mt: '45px' }}
-//               id="menu-appbar"
-//               anchorEl={anchorElUser}
-//               anchorOrigin={{
-//                 vertical: 'top',
-//                 horizontal: 'right',
-//               }}
-//               keepMounted
-//               transformOrigin={{
-//                 vertical: 'top',
-//                 horizontal: 'right',
-//               }}
-//               open={Boolean(anchorElUser)}
-//               onClose={handleCloseUserMenu}
-//             >
-//               {settings.map((setting) => (
-//                 <MenuItem key={setting} onClick={handleCloseUserMenu}>
-//                   <Typography sx={{ textAlign: 'center' }}>{setting}</Typography>
-//                 </MenuItem>
-//               ))}
-//             </Menu>
-//           </Box>
-//         </Toolbar>
-//       </Container>
-//     </AppBar>
-//   );
-// }
 
 // Hero Section Component
 function HeroSection() {
@@ -523,75 +361,6 @@ function TeamSection() {
     </Box>
   );
 }
-
-//Footer Component
-// function Footer() {
-//   return (
-//     <Box sx={{ backgroundColor: '#07361B', color: 'white', py: 6 }}>
-//       <Container maxWidth="lg">
-//         <Grid container spacing={4}>
-//           <Grid size={{ xs: 12, md: 6 }}>
-//             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-//               <Avatar
-//                 src="/cntr_logo.png"
-//                 alt="Logo"
-//                 sx={{ width: 40, height: 40, mr: 2 }}
-//               />
-//               <Typography
-//                 variant="h6"
-//                 sx={{
-//                   fontFamily: 'Rubik',
-//                   fontWeight: 'bold',
-//                 }}
-//               >
-//                 Center for Technological Responsibility, Reimagination, and Redesign (CNTR)
-//               </Typography>
-//             </Box>
-//             <Typography
-//               variant="body2"
-//               sx={{
-//                 mb: 1,
-//                 fontFamily: 'Rubik',
-//               }}
-//             >
-//               Brown University
-//             </Typography>
-//             <Typography
-//               variant="body2"
-//               sx={{
-//                 mb: 1,
-//                 fontFamily: 'Rubik',
-//               }}
-//             >
-//               Providence, RI 02912
-//             </Typography>
-//             <Typography
-//               variant="body2"
-//               sx={{
-//                 mb: 1,
-//                 fontFamily: 'Rubik',
-//               }}
-//             >
-//               401-863-1000
-//             </Typography>
-//             <Typography
-//               variant="body2"
-//               sx={{
-//                 fontFamily: 'Rubik',
-//               }}
-//             >
-//                © Brown University 2025
-//             </Typography>
-
-            
-            
-            
-//           </Grid>
-//         </Grid>
-//       </Container>
-//     </Box>
-//   );
-// }
 
 // Main App Component
 function App() {

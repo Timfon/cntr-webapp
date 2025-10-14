@@ -99,51 +99,6 @@ To connect to production Firebase instead of emulators:
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
 
-## 🗄️ Firebase Collections
-
-### `progress` Collection
-Stores user progress for incomplete scorecards.
-- **Document ID**: User UID
-- **Fields**: `answers`, `flags`, `notes`, `currentSection`, `selectedBill`
-
-### `submissions` Collection
-Stores completed scorecard submissions.
-- **Document ID**: Auto-generated
-- **Fields**: `answers`, `flags`, `notes`, `submittedAt`, `uid`, `email`
-
-## 🔒 Authentication
-
-The app supports multiple authentication methods:
-- Email/Password
-- Google OAuth
-- GitHub OAuth
-
-Authentication is handled through Firebase Authentication and managed in `src/backend/auth.ts`.
-
-## 🎨 Key Features
-
-- **Auto-save Progress**: Answers automatically saved to Firestore
-- **Question Flagging**: Mark questions for later review
-- **Section Navigation**: Sidebar navigation with completion indicators
-- **Notes System**: Add notes to each section
-- **Submission Review**: Review all answers before submitting
-- **Responsive Design**: Mobile-friendly interface
-
-## 🔧 Emulator Features
-
-### Advantages
-- ✅ Safe testing without affecting production data
-- ✅ No network latency
-- ✅ Instant data reset
-- ✅ Free (no Firebase usage costs)
-- ✅ Offline development
-
-### Emulator UI Features
-Access at http://localhost:4000 to:
-- View Firestore collections and documents
-- Inspect authentication users
-- Clear all emulator data
-- Export/import data snapshots
 
 ## 📦 Building for Production
 
@@ -165,46 +120,16 @@ Access at http://localhost:4000 to:
 
    Or use any Next.js-compatible hosting platform.
 
-## 🤝 Contributing
+## Team
 
-1. Create a new branch for your feature
-2. Use Firebase Emulators for development
-3. Test thoroughly before submitting PR
-4. Follow the existing code style and component structure
-
-## 👥 Team
-
-Built by the CNTR team at Brown University. See the homepage for full team information.
+Built by the [CNTR](https://cntr.brown.edu/) team at Brown University.
 
 ## 📄 License
 
 © Brown University 2025
-
-## 🐛 Troubleshooting
-
-### Emulators won't start
-```bash
-# Clear emulator data
-firebase emulators:start --export-on-exit=./emulator-data
-```
-
-### Not connecting to emulators
-- Verify `.env.local` has `NEXT_PUBLIC_USE_EMULATORS=true`
-- Check browser console for connection message
-- Ensure emulators are running before starting Next.js
-
-### Hydration errors
-- Clear browser cache
-- Restart development server
-- Check for browser extensions that modify HTML
-
-### Missing environment variables
-- Ensure all `NEXT_PUBLIC_FIREBASE_*` variables are set in `.env.local`
-- Restart dev server after changing environment variables
 
 ## 📚 Additional Resources
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Firebase Documentation](https://firebase.google.com/docs)
 - [Firebase Emulator Suite](https://firebase.google.com/docs/emulator-suite)
-- [Material-UI Documentation](https://mui.com/material-ui/)

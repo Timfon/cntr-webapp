@@ -6,20 +6,11 @@ import { backendFirebase } from "@/backend/firebase";
 import {
   Box,
   Typography,
-  Button,
-  TextField,
-  Paper,
-  Divider,
-  Alert,
-  Tooltip,
 } from "@mui/material";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
-import { Flag, FlagOutlined, Warning } from "@mui/icons-material";
 import ResponsiveAppBar from "@/components/ResponsiveAppBar";
 import Footer from "@/components/Footer";
 
@@ -31,7 +22,7 @@ import SubmissionPage from "./submission";
 
 import { sections } from "../data/sections";
 import { questionBank } from "../data/questionBank";
-import { validateAllAnswers, validateSectionAnswers } from "./scoreCardUtils";
+import { validateAllAnswers } from "./scoreCardUtils";
 // import "@fontsource/rubik/400.css";
 // import "@fontsource/rubik/500.css";
 // import "@fontsource/rubik/700.css";
@@ -144,25 +135,11 @@ export default function ScorecardPage() {
   };
 
   const handleNext = async () => {
-    const firstUnanswered = validateSectionAnswers(answers, currentSection);
-    console.log(firstUnanswered);
-    if (firstUnanswered?.id) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      const targetSection = sections.find(s => s.id === firstUnanswered.sectionId);
-      if (targetSection) {
-        setCurrentSection(firstUnanswered.sectionId);
-      }
-
-      alert(`Please answer all questions before proceeding. Missing: ${firstUnanswered.id}`);
-      return;
-    }
-    
-    // Check if there's a next section before trying to navigate
     if (currentIndex >= 0 && currentIndex < sections.length - 1) {
       handleSectionChange(sections[currentIndex + 1].id);
       window.scrollTo({ top: 0, behavior: "instant" });
     }
-};
+  };
 
   const handleSubmit = async () => {
     // Check if all questions are answered

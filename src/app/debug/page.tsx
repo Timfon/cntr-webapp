@@ -33,8 +33,8 @@ export default function DebugPage() {
         setError(`Google auth failed: ${result.error}`);
         console.error('Google auth error:', result.error);
       }
-    } catch (err) {
-      setError(`Unexpected error: ${err.message}`);
+    } catch (err: any) {
+      setError(`Unexpected error: ${err?.message || 'Unknown error'}`);
       console.error('Unexpected error:', err);
     }
   };

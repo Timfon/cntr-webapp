@@ -28,18 +28,35 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { backendAuth } from '@/backend/auth';
-
-const pages = [
-  { name: 'Scorecard', href: '/scorecard' },
-  { name: 'Under Construction...', href: '#' }
-];
+import { useUserRole } from '@/hooks/useUserRole';
 
 export default function ResponsiveAppBar() {
   const [user, setUser] = React.useState<User | null>(null);
   const router = useRouter();
+  const { userProfile } = useUserRole();
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'undergraduate': return 'Undergraduate';
+      case 'advanced': return 'Advanced';
+      case 'expert': return 'Expert';
+      case 'legislative_staff': return 'Legislative Staff';
+      case 'general': return 'General';
+      default: return role;
+    }
+  };
+
+  // Dynamic pages based on user role - Only Scorecard available
+  const getPages = () => {
+    return [
+      { name: 'Scorecard', href: '/scorecard' },
+    ];
+  };
+
   const settings = user
   ? [
       { label: user.email, onClick: () => {} },
+      { label: `Role: ${getRoleDisplayName(userProfile?.role || 'general')}`, onClick: () => {} },
       {
         label: 'Logout',
         onClick: async () => {
@@ -151,7 +168,7 @@ React.useEffect(() => {
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: 'block', md: 'none' } }}
             >
-              {pages.map((page) => (
+              {getPages().map((page) => (
   <MenuItem key={page.name} onClick={handleCloseNavMenu}>
     <Typography sx={{ textAlign: 'center' }}>{page.name}</Typography>
   </MenuItem>
@@ -178,7 +195,7 @@ React.useEffect(() => {
             LOGO
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-  {pages.map((page) => (
+            {getPages().map((page) => (
     <Link key={page.name} href={page.href} style={{ textDecoration: 'none' }}>
       <Button
         onClick={handleCloseNavMenu}

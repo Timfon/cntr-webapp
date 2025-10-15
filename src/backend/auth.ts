@@ -4,8 +4,10 @@ import {
   signOut, 
   onAuthStateChanged,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { auth } from '@/firebase';
+import { backendFirebase } from './firebase';
 
 /**
  * Backend authentication service functions
@@ -20,10 +22,41 @@ export const backendAuth = {
     try {
       const googleProvider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, googleProvider);
+      
+      // Ensure user profile exists (for existing users who might not have profiles)
+      try {
+        const userProfile = await backendFirebase.userRoles.getUserProfile(result.user.uid);
+        if (!userProfile) {
+          await backendFirebase.userRoles.createUserProfile(
+            result.user.uid, 
+            result.user.email || '', 
+            result.user.displayName || undefined, 
+            'general'
+          );
+        }
+      } catch (error: any) {
+        console.log('Creating new user profile for existing Google user:', result.user.uid);
+        // If getting profile fails, create one
+        await backendFirebase.userRoles.createUserProfile(
+          result.user.uid, 
+          result.user.email || '', 
+          result.user.displayName || undefined, 
+          'general'
+        );
+      }
+      
+      console.log('Google sign-in successful:', result.user.email);
+      
       return { success: true, user: result.user };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google sign-in error:', error);
-      return { success: false, error: 'Google sign-in failed' };
+      console.error('Error details:', {
+        code: error?.code,
+        message: error?.message,
+        email: error?.email,
+        credential: error?.credential
+      });
+      return { success: false, error: `Google sign-in failed: ${error?.message || 'Unknown error'}` };
     }
   },
 
@@ -33,10 +66,65 @@ export const backendAuth = {
   async signInWithEmail(email: string, password: string) {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Ensure user profile exists (for existing users who might not have profiles)
+      try {
+        const userProfile = await backendFirebase.userRoles.getUserProfile(result.user.uid);
+        if (!userProfile) {
+          await backendFirebase.userRoles.createUserProfile(
+            result.user.uid, 
+            email, 
+            result.user.displayName || undefined, 
+            'general'
+          );
+        }
+      } catch (error: any) {
+        console.log('Creating new user profile for existing user:', result.user.uid);
+        // If getting profile fails, create one
+        await backendFirebase.userRoles.createUserProfile(
+          result.user.uid, 
+          email, 
+          result.user.displayName || undefined, 
+          'general'
+        );
+      }
+      
       return { success: true, user: result.user };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email sign-in error:', error);
       return { success: false, error: 'Email sign-in failed' };
+    }
+  },
+
+  /**
+   * Sign up with email and password
+   */
+  async signUpWithEmail(email: string, password: string, displayName?: string) {
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Create user profile with default role
+      await backendFirebase.userRoles.createUserProfile(
+        result.user.uid, 
+        email, 
+        displayName, 
+        'general'
+      );
+      
+      return { success: true, user: result.user };
+    } catch (error: any) {
+      console.error('Email sign-up error:', error);
+      
+      // Provide specific error messages based on Firebase error codes
+      if (error?.code === 'auth/email-already-in-use') {
+        return { success: false, error: 'This email is already registered. Please sign in instead.' };
+      } else if (error?.code === 'auth/weak-password') {
+        return { success: false, error: 'Password is too weak. Please choose a stronger password.' };
+      } else if (error?.code === 'auth/invalid-email') {
+        return { success: false, error: 'Please enter a valid email address.' };
+      } else {
+        return { success: false, error: 'Failed to create account. Please try again.' };
+      }
     }
   },
 
@@ -47,7 +135,7 @@ export const backendAuth = {
     try {
       await signOut(auth);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign out error:', error);
       return { success: false, error: 'Sign out failed' };
     }

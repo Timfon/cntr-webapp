@@ -1,5 +1,7 @@
 import { doc, setDoc, getDoc, addDoc, collection } from 'firebase/firestore';
 import { auth, db } from '@/firebase';
+import { userRolesService } from '@/services/userRoles';
+import { UserRole } from '@/types/user';
 
 export const backendFirebase = {
   /**
@@ -69,5 +71,31 @@ export const backendFirebase = {
    */
   getCurrentUser() {
     return auth.currentUser;
+  },
+
+  /**
+   * User Roles Management
+   */
+  userRoles: {
+    /**
+     * Create user profile with role
+     */
+    async createUserProfile(userId: string, email: string, displayName?: string, role: UserRole = 'general', additionalData?: any) {
+      return userRolesService.createUserProfile(userId, email, displayName, role, additionalData);
+    },
+
+    /**
+     * Get user profile
+     */
+    async getUserProfile(userId: string) {
+      return userRolesService.getUserProfile(userId);
+    },
+
+    /**
+     * Update user profile with additional fields
+     */
+    async updateUserProfile(userId: string, additionalData: any) {
+      return userRolesService.updateUserProfile(userId, additionalData);
+    },
   }
 };

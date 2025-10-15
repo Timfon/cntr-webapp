@@ -92,7 +92,21 @@ export const backendAuth = {
       return { success: true, user: result.user };
     } catch (error: any) {
       console.error('Email sign-in error:', error);
-      return { success: false, error: 'Email sign-in failed' };
+      
+      // Handle specific Firebase error codes
+      if (error?.code === 'auth/invalid-credential' || error?.code === 'auth/wrong-password') {
+        return { success: false, error: 'Incorrect password' };
+      } else if (error?.code === 'auth/user-not-found') {
+        return { success: false, error: 'No account found with this email address' };
+      } else if (error?.code === 'auth/invalid-email') {
+        return { success: false, error: 'Please enter a valid email address' };
+      } else if (error?.code === 'auth/user-disabled') {
+        return { success: false, error: 'This account has been disabled' };
+      } else if (error?.code === 'auth/too-many-requests') {
+        return { success: false, error: 'Too many failed attempts. Please try again later' };
+      } else {
+        return { success: false, error: 'Sign-in failed. Please try again' };
+      }
     }
   },
 
@@ -123,7 +137,7 @@ export const backendAuth = {
       } else if (error?.code === 'auth/invalid-email') {
         return { success: false, error: 'Please enter a valid email address.' };
       } else {
-        return { success: false, error: 'Failed to create account. Please try again.' };
+        return { success: false, error: 'Sign-up failed. Please try again.' };
       }
     }
   },

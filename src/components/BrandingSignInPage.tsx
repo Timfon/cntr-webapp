@@ -73,10 +73,11 @@ export default function BrandingSignInPage() {
         console.log('Email sign-in success:', result.user);
         router.push('/scorecard');
       } else {
-        setError(result.error || 'Email sign-in failed');
+        setError(result.error || 'Sign-in failed. Please try again');
       }
-    } catch (err) {
-      setError('Email sign-in failed');
+    } catch (err: any) {
+      console.error('Sign-in error:', err);
+      setError('Sign-in failed. Please try again');
     } finally {
       setLoading(false);
     }

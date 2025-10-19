@@ -184,19 +184,7 @@ function AboutSection() {
               fontFamily: 'Rubik',
             }}
           >
-            The mission of the Center is to redefine computer science education, research, and technology to center the needs, problems, and aspirations of all — and especially those that technology has left behind.
-          </Typography>
-          
-          <Typography
-            variant="body1"
-            sx={{
-              mb: 3,
-              lineHeight: 1.6,
-              color: '#666',
-              fontFamily: 'Rubik',
-            }}
-          >
-            The mission of the Center is to redefine computer science education, research, and technology to center the needs, problems, and aspirations of all — and especially those that technology has left behind. The mission of the Center is to redefine computer science education, research, and technology to center the needs, problems, and aspirations of all — and especially those that technology has left behind.
+            Over 1,000 AI-related bills were introduced in the US from January 2023 to January 2025. With a lack of efforts to identify key policy elements that assess the maturity and robustness of AI legislation, a comprehensive assessment framework is urgently needed for policymakers, media, and the public.
           </Typography>
           
           <Typography
@@ -228,7 +216,7 @@ function AboutSection() {
               },
             }}
           >
-            Sign Up
+            Sign In
           </Button>
         </Grid>
         
@@ -365,7 +353,7 @@ function TeamSection() {
 // Main App Component
 function App() {
   return (
-    <Box>
+    <Box sx={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
       <ResponsiveAppBar />
       <HeroSection />
       <AboutSection />

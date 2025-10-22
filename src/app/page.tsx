@@ -104,6 +104,8 @@ const teamMembers = [
 
 // Hero Section Component
 function HeroSection() {
+  const router = useRouter();
+  
   return (
     <Box
       sx={{
@@ -150,6 +152,24 @@ function HeroSection() {
         >
           We reimagine how to design, build and govern technology in ways that put people first.
         </Typography>
+        <Button
+          variant="contained"
+          onClick={() => router.push('/signin')}
+          sx={{
+            backgroundColor: '#0C6431',
+            color: 'white',
+            px: 3,
+            py: 1.2,
+            fontFamily: 'Rubik',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            '&:hover': {
+              backgroundColor: '#094d26',
+            },
+          }}
+        >
+          Sign In
+        </Button>
       </Container>
     </Box>
   );

@@ -12,8 +12,8 @@ import {
   Divider,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { backendAuth } from '@/backend/auth';
-import { backendFirebase } from '@/backend/firebase';
+import { authService } from "@/backend/auth";
+import { userService } from '@/backend/users';
 import ResponsiveAppBar from '@/components/ResponsiveAppBar';
 import Footer from '@/components/Footer';
 import "@fontsource/rubik";
@@ -65,7 +65,7 @@ export default function ReviewPage() {
       
       if (signupData.isGoogleUser) {
         // Google user - already authenticated
-        const currentUser = backendAuth.getCurrentUser();
+        const currentUser = authService.getCurrentUser();
         if (!currentUser) {
           setError('No authenticated user found. Please sign in again.');
           return;
@@ -73,7 +73,7 @@ export default function ReviewPage() {
         userId = currentUser.uid;
       } else {
         // Email user - create account
-        const result = await backendAuth.signUpWithEmail(
+        const result = await authService.signUpWithEmail(
           signupData.email,
           signupData.password,
           `${signupData.firstName} ${signupData.lastName}`
@@ -87,7 +87,7 @@ export default function ReviewPage() {
       }
       
       // Create user profile with all information
-      await backendFirebase.userRoles.createUserProfile(
+      await userService.createUserProfile(
         userId,
         signupData.email,
         `${signupData.firstName} ${signupData.lastName}`,

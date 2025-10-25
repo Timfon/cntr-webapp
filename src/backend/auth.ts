@@ -7,14 +7,14 @@ import {
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
 import { auth } from '@/firebase';
-import { backendFirebase } from './firebase';
+import { userService } from './users';
 
 /**
  * Backend authentication service functions
  * All authentication operations are centralized here
  */
 
-export const backendAuth = {
+export const authService = {
   /**
    * Sign in with Google
    */
@@ -25,9 +25,9 @@ export const backendAuth = {
       
       // Ensure user profile exists (for existing users who might not have profiles)
       try {
-        const userProfile = await backendFirebase.userRoles.getUserProfile(result.user.uid);
+        const userProfile = await userService.getUserProfile(result.user.uid);
         if (!userProfile) {
-          await backendFirebase.userRoles.createUserProfile(
+          await userService.createUserProfile(
             result.user.uid, 
             result.user.email || '', 
             result.user.displayName || undefined, 
@@ -35,9 +35,7 @@ export const backendAuth = {
           );
         }
       } catch (error: any) {
-        console.log('Creating new user profile for existing Google user:', result.user.uid);
-        // If getting profile fails, create one
-        await backendFirebase.userRoles.createUserProfile(
+        await userService.createUserProfile(
           result.user.uid, 
           result.user.email || '', 
           result.user.displayName || undefined, 
@@ -45,7 +43,6 @@ export const backendAuth = {
         );
       }
       
-      console.log('Google sign-in successful:', result.user.email);
       
       return { success: true, user: result.user };
     } catch (error: any) {
@@ -69,9 +66,9 @@ export const backendAuth = {
       
       // Ensure user profile exists (for existing users who might not have profiles)
       try {
-        const userProfile = await backendFirebase.userRoles.getUserProfile(result.user.uid);
+        const userProfile = await userService.getUserProfile(result.user.uid);
         if (!userProfile) {
-          await backendFirebase.userRoles.createUserProfile(
+          await userService.createUserProfile(
             result.user.uid, 
             email, 
             result.user.displayName || undefined, 
@@ -79,9 +76,8 @@ export const backendAuth = {
           );
         }
       } catch (error: any) {
-        console.log('Creating new user profile for existing user:', result.user.uid);
         // If getting profile fails, create one
-        await backendFirebase.userRoles.createUserProfile(
+        await userService.createUserProfile(
           result.user.uid, 
           email, 
           result.user.displayName || undefined, 
@@ -118,7 +114,7 @@ export const backendAuth = {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
       // Create user profile with default role
-      await backendFirebase.userRoles.createUserProfile(
+      await userService.createUserProfile(
         result.user.uid, 
         email, 
         displayName, 

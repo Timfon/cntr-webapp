@@ -1,7 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { auth } from "@/firebase";
-import { backendFirebase } from "@/backend/firebase";
+import { databaseService } from "@/backend/database";
+import { userService } from "@/backend/users";
+import Loading from "@/components/Loading";
 
 import {
   Box,
@@ -23,14 +25,11 @@ import SubmissionPage from "./submission";
 import { sections } from "../data/sections";
 import { questionBank } from "../data/questionBank";
 import { validateAllAnswers } from "./scoreCardUtils";
-// import "@fontsource/rubik/400.css";
-// import "@fontsource/rubik/500.css";
-// import "@fontsource/rubik/700.css";
 
 export default function ScorecardPage() {
   const [currentSection, setCurrentSection] = useState("general");
   const [answers, setAnswers] = useState({});
-  const [selectedBill, setSelectedBill] = useState('');
+  const [selectedBill, setSelectedBill] = useState<string | null>(null);
 
   // flags is a map from question number to boolean (whether it's filled out or not)
   const [flags, setFlags] = useState({});
@@ -42,6 +41,7 @@ export default function ScorecardPage() {
   const currentIndex = sections.findIndex((s) => s.id === currentSection);
   const currentSectionData = sections[currentIndex];
   const currentQuestions = questionBank[currentSection] || [];
+  const version = questionBank.version;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -49,14 +49,18 @@ export default function ScorecardPage() {
         router.push("/signin");
       } else {
         // Fetch saved progress
-        const data = await backendFirebase.getProgress(user.uid);
-
-        if (data) {
-          setAnswers(data.answers || {});
-          setFlags(data.flags || {});
-          setNotes(data.notes || {});
-          setCurrentSection(data.currentSection || "general");
-          setSelectedBill(data.selectedBill || data.answers?.['00'] || ''); // fallback
+        const data = await userService.getUser(user.uid);
+        if (data && data.inProgress) {
+          setAnswers(data.inProgress.answers || {});
+          setFlags(data.inProgress.flags || {});
+          setNotes(data.inProgress.notes || {});
+          setCurrentSection(data.inProgress.currentSection || "general");
+          setSelectedBill(data.inProgress.billId || '');
+        } else {
+          setAnswers({});
+          setFlags({});
+          setNotes({});
+          setCurrentSection("general");
         }
 
         setLoading(false);
@@ -76,33 +80,39 @@ export default function ScorecardPage() {
   }, [notes, loading]);
 
   if (loading) {
-    return <div></div>;
+    return <Loading />;
   }
 
-  const saveProgress = async (newData) => {
+  const saveProgress = async (data) => {
     const user = auth.currentUser;
-    if (!user) return;
-
-    await backendFirebase.saveProgress(user.uid, {
-      answers,
-      flags,
-      notes,
-      currentSection,
-      ...newData,
-    });
+    if (!user || !selectedBill) return;
+    
+    try {
+      const updatedAnswers = data.answers ? { ...answers, ...data.answers } : answers;
+      const updatedFlags = data.flags ? { ...flags, ...data.flags } : flags;
+      const updatedNotes = data.notes ? { ...notes, ...data.notes } : notes;
+      
+      await databaseService.updateUserProgress(
+        user.uid, 
+        selectedBill.split(':')[0],
+        updatedAnswers, 
+        updatedFlags, 
+        updatedNotes, 
+        currentSection
+      );
+    } catch (error) {
+      console.error('Error saving progress:', error);
+    }
   };
 
   const handleAnswer = (questionId, answer) => {
-    setAnswers((prev) => {
-      const updated = { ...prev, [questionId]: answer };
-      saveProgress({ answers: updated });
-      return updated;
-    });
-     if (questionId === '00') {
+    if (questionId === "00") {
       setSelectedBill(answer);
-      saveProgress({ selectedBill: answer });
-
+      saveProgress({ answers: { "00": answer } });
     }
+    const updatedAnswers = { ...answers, [questionId]: answer };
+    setAnswers(updatedAnswers);
+    saveProgress({ answers: updatedAnswers });
   };
 
   const handleFlag = (questionId) => {
@@ -142,7 +152,6 @@ export default function ScorecardPage() {
   };
 
   const handleSubmit = async () => {
-    // Check if all questions are answered
     const firstUnanswered = validateAllAnswers(answers);
     const flaggedQuestions = Object.entries(flags)
       .filter(([_, value]) => value === true)
@@ -168,17 +177,17 @@ export default function ScorecardPage() {
     const user = auth.currentUser;
     if (!user) return;
     
-    await backendFirebase.submitForm({
+    await databaseService.createSubmission({
+      version: version,
+      billId: selectedBill?.split(':')[0] || '',
       answers,
-      flags,
-      notes,
-      submittedAt: new Date().toISOString(),
       uid: user.uid,
-      email: user.email,
+      notes,
+      createdAt: new Date().toISOString(),
     });
 
     // Clear saved progress
-    await backendFirebase.clearProgress(user.uid);
+    await databaseService.clearUserProgress(user.uid);
 
 // Reset local state
 setAnswers({});
@@ -250,7 +259,7 @@ router.push("/"); // next/navigation router is cleaner than window.location.href
               notes={notes}
               onNavigateToQuestion={handleNavigateToQuestion}
               onSubmit={handleSubmit}
-              selectedBill={selectedBill}
+              selectedBill={selectedBill || ''}
             />
           ) : (
             <>

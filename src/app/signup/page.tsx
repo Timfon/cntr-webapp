@@ -12,7 +12,6 @@ export default function SignUp() {
       <ResponsiveAppBar />
       <Box sx={{ backgroundColor: '#D9E8DF', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 8 }}>
         <BrandingSignUpPage />
-
       </Box>
       <Footer />
     </Box>

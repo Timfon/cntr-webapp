@@ -177,13 +177,23 @@ export default function ScorecardPage() {
     const user = auth.currentUser;
     if (!user) return;
     
-    await databaseService.createSubmission({
+    const submissionId = await databaseService.createSubmission({
       version: version,
       billId: selectedBill?.split(':')[0] || '',
       answers,
       uid: user.uid,
       notes,
       createdAt: new Date().toISOString(),
+    });
+
+    // Add bill to completed bills
+    const currentUser = await userService.getUser(user.uid);
+    await userService.updateUser({
+      uid: user.uid,
+      completedBills: {
+        ...(currentUser?.completedBills || {}),
+        [selectedBill?.split(':')[0] || '']: submissionId
+      }
     });
 
     // Clear saved progress

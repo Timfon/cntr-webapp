@@ -234,16 +234,12 @@ export default function ReviewPage() {
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
-                    <strong>Age Range:</strong> {signupData.demographic.ageRange || 'Not specified'}
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
-                    <strong>Gender Identity:</strong> {signupData.demographic.genderIdentity || 'Not specified'}
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
-                    <strong>Education Level:</strong> {signupData.demographic.educationLevel || 'Not specified'}
-                  </Typography>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
-                    <strong>Employment Status:</strong> {signupData.demographic.employmentStatus || 'Not specified'}
+                    <strong>Role:</strong> {signupData.demographic.role
+                      ? signupData.demographic.role
+                          .split('_')
+                          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                          .join(' ')
+                      : 'Not specified'}
                   </Typography>
                 </Box>
               </Box>

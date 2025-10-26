@@ -1,6 +1,6 @@
 import { doc, setDoc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '@/firebase';
-import { User, Bill, Submission } from '@/types/database';
+import { User, Submission, Bill } from '@/types/database';
 import { userService } from './users';
 
 /**
@@ -122,19 +122,10 @@ export const databaseService = {
   async clearUserProgress(uid: string): Promise<void> {
     try {
       const userDoc = doc(db, "users", uid);
-      const userSnap = await getDoc(userDoc);
-      const userData = userSnap.data() as User;
-      
-      if (userData?.inProgress) {
-        // Add bill to completed bills
-        const completedBills = [...(userData.completedBills || []), userData.inProgress.billId];
-        
-        await updateDoc(userDoc, {
-          inProgress: null,
-          completedBills,
-          updatedAt: new Date().toISOString(),
-        });
-      }
+      await updateDoc(userDoc, {
+        inProgress: null,
+        updatedAt: new Date().toISOString(),
+      });
     } catch (error) {
       console.error('Error clearing user progress:', error);
       throw new Error('Failed to clear user progress');
@@ -297,15 +288,6 @@ export const databaseService = {
   },
 
   // ===== UTILITY OPERATIONS =====
-
-  /**
-   * Get current authenticated user
-   */
-  getCurrentUser() {
-    // This would need to be imported from auth context or passed as parameter
-    // For now, return null and handle in calling code
-    return null;
-  },
 
   /**
    * Check if user has access to a bill

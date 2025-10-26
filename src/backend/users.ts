@@ -50,33 +50,23 @@ export const userService = {
     return this.getUser(userId);
   },
 
-  /**
-   * Update user profile with additional fields
-   */
-  async updateUserProfile(userId: string, additionalData: any): Promise<void> {
-    try {
-      const userDoc = doc(db, "users", userId);
-      await updateDoc(userDoc, {
-        ...additionalData,
-        updatedAt: serverTimestamp(),
-      });
-    } catch (error) {
-      console.error('Error updating user profile:', error);
-      throw new Error('Failed to update user profile');
-    }
-  },
-
   // ===== USER DATA OPERATIONS =====
 
   /**
    * Create or update a user
+   * Can be used for both partial updates and full user creation
    */
   async updateUser(userData: Partial<User>): Promise<void> {
-    const userDoc = doc(db, "users", userData.uid!);
-    await setDoc(userDoc, {
-      ...userData,
-      updatedAt: new Date().toISOString(),
-    }, { merge: true });
+    try {
+      const userDoc = doc(db, "users", userData.uid!);
+      await setDoc(userDoc, {
+        ...userData,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error('Failed to update user');
+    }
   },
 
   /**

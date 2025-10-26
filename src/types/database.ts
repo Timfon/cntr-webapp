@@ -18,7 +18,7 @@ export interface User {
     lastUpdated: string;
     startedAt: string;
   } | null;
-  completedBills: string[]; // Bills that were fully submitted
+  completedBills: Record<string, string>; // key: billId, value: submissionId
 }
 
 export interface Bill {
@@ -38,11 +38,7 @@ export interface Submission {
   billId: string;
   createdAt: string;
   uid: string;
-  answers: {
-    [sectionId: string]: {
-      [questionId: string]: any;
-    };
-  };
+  answers: Record<string, any>;
   notes: {
     [sectionId: string]: string;
   }

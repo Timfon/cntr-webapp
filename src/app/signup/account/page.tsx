@@ -14,8 +14,7 @@ import {
 } from '@mui/material';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { backendAuth } from '@/backend/auth';
-import { backendFirebase } from '@/backend/firebase';
+import { authService } from "@/backend/auth";
 import ResponsiveAppBar from '@/components/ResponsiveAppBar';
 import Footer from '@/components/Footer';
 import "@fontsource/rubik";
@@ -76,7 +75,7 @@ export default function AccountInfoPage() {
     setError(null);
     
     try {
-      const currentUser = backendAuth.getCurrentUser();
+      const currentUser = authService.getCurrentUser();
       
       if (currentUser) {
         // User is already authenticated (Google signup)
@@ -85,7 +84,7 @@ export default function AccountInfoPage() {
           email: formData.email,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          password: '', // No password for Google users
+          password: '', 
           isGoogleUser: true,
         }));
       } else {

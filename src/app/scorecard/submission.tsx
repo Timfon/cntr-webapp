@@ -31,7 +31,7 @@ const SubmissionPage: React.FC<SubmissionPageProps> = ({
 }) => {
   // Calculate summary statistics
   const allQuestions = Object.entries(questionBank).flatMap(
-    ([sectionId, questions]) => questions.map((q) => ({ ...q, sectionId }))
+    ([sectionId, questions]) => Array.isArray(questions) ? questions.map((q) => ({ ...q, sectionId })) : []
   );
 
   const totalQuestions = allQuestions.length;

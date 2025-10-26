@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { auth } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
-import { backendAuth } from '@/backend/auth';
+import { authService } from "@/backend/auth";
 import { useRouter } from 'next/navigation';
 import { Typography, Link, TextField, Button, Box, Alert } from '@mui/material';
 import NextLink from 'next/link';
@@ -48,7 +48,7 @@ export default function BrandingSignInPage() {
     setError(null);
     
     try {
-      const result = await backendAuth.signInWithGoogle();
+      const result = await authService.signInWithGoogle();
       if (result.success) {
         console.log('Google sign-in success:', result.user);
         router.push('/scorecard');
@@ -68,10 +68,9 @@ export default function BrandingSignInPage() {
     setError(null);
     
     try {
-      const result = await backendAuth.signInWithEmail(email, password);
+      const result = await authService.signInWithEmail(email, password);
       if (result.success) {
-        console.log('Email sign-in success:', result.user);
-        router.push('/scorecard');
+        router.push('/scorecard');  
       } else {
         setError(result.error || 'Sign-in failed. Please try again');
       }

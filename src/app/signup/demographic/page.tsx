@@ -5,7 +5,6 @@ import {
   Box,
   Card,
   CardContent,
-  TextField,
   Button,
   Typography,
   LinearProgress,
@@ -16,17 +15,14 @@ import {
   MenuItem,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { backendAuth } from '@/backend/auth';
+import { authService } from '@/backend/auth';
 import ResponsiveAppBar from '@/components/ResponsiveAppBar';
 import Footer from '@/components/Footer';
 import "@fontsource/rubik";
+import { UserRole } from '@/types/user';
 
 interface DemographicFormData {
-  ageRange: string;
-  genderIdentity: string;
-  educationLevel: string;
-  employmentStatus: string;
-  role: string;
+  role: UserRole;
 }
 
 interface SignupData {
@@ -39,10 +35,6 @@ interface SignupData {
 
 export default function DemographicPage() {
   const [formData, setFormData] = useState<DemographicFormData>({
-    ageRange: '',
-    genderIdentity: '',
-    educationLevel: '',
-    employmentStatus: '',
     role: 'general',
   });
   const [signupData, setSignupData] = useState<SignupData | null>(null);
@@ -57,7 +49,7 @@ export default function DemographicPage() {
       setSignupData(JSON.parse(storedData));
     } else {
       // Check if user is authenticated (Google user)
-      const currentUser = backendAuth.getCurrentUser();
+      const currentUser = authService.getCurrentUser();
       if (currentUser) {
         // Google user - create signup data from authenticated user
         setSignupData({
@@ -185,83 +177,9 @@ export default function DemographicPage() {
               {/* Form Fields */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <FormControl fullWidth>
-                  <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Age Range</InputLabel>
-                  <Select
-                    value={formData.ageRange}
-                    label="Age Range"
-                    onChange={handleSelectChange('ageRange')}
-                    sx={{ fontFamily: 'Rubik, sans-serif' }}
-                  >
-                    <MenuItem value="18-21">18-21</MenuItem>
-                    <MenuItem value="22-25">22-25</MenuItem>
-                    <MenuItem value="26-30">26-30</MenuItem>
-                    <MenuItem value="31-40">31-40</MenuItem>
-                    <MenuItem value="41-50">41-50</MenuItem>
-                    <MenuItem value="51-60">51-60</MenuItem>
-                    <MenuItem value="60+">60+</MenuItem>
-                    <MenuItem value="prefer-not-to-say">Prefer not to say</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth>
-                  <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Gender Identity</InputLabel>
-                  <Select
-                    value={formData.genderIdentity}
-                    label="Gender Identity"
-                    onChange={handleSelectChange('genderIdentity')}
-                    sx={{ fontFamily: 'Rubik, sans-serif' }}
-                  >
-                    <MenuItem value="male">Male</MenuItem>
-                    <MenuItem value="female">Female</MenuItem>
-                    <MenuItem value="non-binary">Non-binary</MenuItem>
-                    <MenuItem value="transgender">Transgender</MenuItem>
-                    <MenuItem value="other">Other</MenuItem>
-                    <MenuItem value="prefer-not-to-say">Prefer not to say</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth>
-                  <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Highest Level of Education</InputLabel>
-                  <Select
-                    value={formData.educationLevel}
-                    label="Highest Level of Education"
-                    onChange={handleSelectChange('educationLevel')}
-                    sx={{ fontFamily: 'Rubik, sans-serif' }}
-                  >
-                    <MenuItem value="high-school">High School</MenuItem>
-                    <MenuItem value="some-college">Some College</MenuItem>
-                    <MenuItem value="associates">Associate's Degree</MenuItem>
-                    <MenuItem value="bachelors">Bachelor's Degree</MenuItem>
-                    <MenuItem value="masters">Master's Degree</MenuItem>
-                    <MenuItem value="doctorate">Doctorate</MenuItem>
-                    <MenuItem value="other">Other</MenuItem>
-                    <MenuItem value="prefer-not-to-say">Prefer not to say</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth>
-                  <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Employment Status</InputLabel>
-                  <Select
-                    value={formData.employmentStatus}
-                    label="Employment Status"
-                    onChange={handleSelectChange('employmentStatus')}
-                    sx={{ fontFamily: 'Rubik, sans-serif' }}
-                  >
-                    <MenuItem value="full-time-student">Full-time Student</MenuItem>
-                    <MenuItem value="part-time-student">Part-time Student</MenuItem>
-                    <MenuItem value="employed-full-time">Employed Full-time</MenuItem>
-                    <MenuItem value="employed-part-time">Employed Part-time</MenuItem>
-                    <MenuItem value="self-employed">Self-employed</MenuItem>
-                    <MenuItem value="unemployed">Unemployed</MenuItem>
-                    <MenuItem value="retired">Retired</MenuItem>
-                    <MenuItem value="other">Other</MenuItem>
-                    <MenuItem value="prefer-not-to-say">Prefer not to say</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth>
                   <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Role</InputLabel>
                   <Select
+                    defaultValue="general"
                     value={formData.role}
                     label="Role"
                     onChange={handleSelectChange('role')}

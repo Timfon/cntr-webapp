@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import { auth } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
-import { backendAuth } from '@/backend/auth';
+import { authService } from "@/backend/auth";
 import { useRouter } from 'next/navigation';
 
 import { 
@@ -53,7 +53,7 @@ export default function BrandingSignUpPage() {
   const handleGoogleSignUp = async () => {
     setLoading(true);
     try {
-      const result = await backendAuth.signInWithGoogle();
+      const result = await authService.signInWithGoogle();
       if (result.success) {
         console.log('Google sign-up success:', result.user);
         // Google users skip account info and go directly to demographic page

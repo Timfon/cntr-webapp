@@ -17,7 +17,7 @@ export const getSectionColor = (sectionId, sections) => {
 
 export const validateAllAnswers = (answers) => {
   const allQuestions = Object.entries(questionBank).flatMap(
-    ([sectionId, questions]) => questions.map((q) => ({ ...q, sectionId }))
+    ([sectionId, questions]) => Array.isArray(questions) ? questions.map((q) => ({ ...q, sectionId })) : []
   );
   return allQuestions.find((q) => !(q.id in answers));
 };

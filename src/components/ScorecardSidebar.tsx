@@ -60,22 +60,6 @@ const ScorecardSidebar = ({
         flexDirection: "column",
       }}
     >
-      {/* <Box
-    sx={{
-      p: 1.5,
-      m: 2, // gives separation from Paper edges
-      borderRadius: 2,
-      backgroundColor: "#fff",
-      fontFamily: "Rubik, sans-serif",
-      fontWeight: 500,
-      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-      fontSize: "1rem",
-      whiteSpace: "normal",
-      wordBreak: "break-word",
-    }}
-  >
-    {selectedBill || "No bill selected"}
-  </Box> */}
       <Box
         sx={{
           flex: 1,

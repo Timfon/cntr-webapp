@@ -2,6 +2,7 @@ import React from 'react';
 import DefinedTerm from '@/components/DefinedTerm';
 
 export const questionBank = {
+  version: '1.0.0',
   general: [
     { 
       id: '00', 
@@ -155,7 +156,4 @@ export const questionBank = {
     { id: 'L6', text: 'Does the bill propose recommendations to alleviate work displacement as a result of AI?', type: 'yesno'},
     { id: 'L7', text: 'Does the bill propose compensation for workers who are being displaced, replaced or unemployed due to AI or automation?', type: 'yesno' }
   ],
-  submit: [
-    // { id: 'L7', text: 'Does the bill propose compensation for workers who are being displaced, replaced or unemployed due to AI or automation?' }
-  ]
 };

@@ -9,7 +9,7 @@ import {
   Typography,
   Alert,
 } from '@mui/material';
-import { backendAuth } from '@/backend/auth';
+import { authService } from '@/backend/auth';
 import ResponsiveAppBar from '@/components/ResponsiveAppBar';
 import Footer from '@/components/Footer';
 import "@fontsource/rubik";
@@ -24,7 +24,7 @@ export default function DebugPage() {
     
     try {
       console.log('Testing Google authentication...');
-      const result = await backendAuth.signInWithGoogle();
+      const result = await authService.signInWithGoogle();
       
       if (result.success) {
         setSuccess(`Google auth successful! User: ${result.user?.email}`);

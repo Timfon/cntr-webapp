@@ -1,10 +1,10 @@
 "use client";
 import * as React from 'react';
 import { Box, Typography, Link } from '@mui/material';
-import ResponsiveAppBar from '@/components/ResponsiveAppBar';
-import Footer from '@/components/Footer';
+import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
+import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
-import BrandingSignUpPage from '@/components/BrandingSignUpPage';
+import BrandingSignUpPage from '@/app/components/BrandingSignUpPage';
 
 export default function SignUp() {
   return (

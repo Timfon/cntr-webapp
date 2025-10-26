@@ -14,8 +14,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { authService } from "@/backend/auth";
 import { userService } from '@/backend/users';
-import ResponsiveAppBar from '@/components/ResponsiveAppBar';
-import Footer from '@/components/Footer';
+import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
+import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
 
 interface CompleteSignupData {

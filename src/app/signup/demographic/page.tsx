@@ -16,8 +16,8 @@ import {
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/backend/auth';
-import ResponsiveAppBar from '@/components/ResponsiveAppBar';
-import Footer from '@/components/Footer';
+import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
+import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
 import { UserRole } from '@/types/user';
 

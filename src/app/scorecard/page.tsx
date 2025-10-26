@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { auth } from "@/firebase";
 import { databaseService } from "@/backend/database";
 import { userService } from "@/backend/users";
-import Loading from "@/components/Loading";
+import Loading from "@/app/components/Loading";
 
 import {
   Box,
@@ -13,13 +13,13 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 
-import ResponsiveAppBar from "@/components/ResponsiveAppBar";
-import Footer from "@/components/Footer";
+import ResponsiveAppBar from "@/app/components/ResponsiveAppBar";
+import Footer from "@/app/components/Footer";
 
-import ScorecardSidebar from "@/components/ScorecardSidebar";
-import QuestionCard from "@/components/QuestionCard";
-import NotesSection from "@/components/NotesSection";
-import NavigationButtons from "@/components/NavigationButtons";
+import ScorecardSidebar from "@/app/components/ScorecardSidebar";
+import QuestionCard from "@/app/components/QuestionCard";
+import NotesSection from "@/app/components/NotesSection";
+import NavigationButtons from "@/app/components/NavigationButtons";
 import SubmissionPage from "./submission";
 
 import { sections } from "../data/sections";

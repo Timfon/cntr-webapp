@@ -1,5 +1,5 @@
 import React from 'react';
-import DefinedTerm from '@/components/DefinedTerm';
+import DefinedTerm from '@/app/components/DefinedTerm';
 
 export const questionBank = {
   version: '1.0.0',

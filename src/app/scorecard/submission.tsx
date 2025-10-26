@@ -5,12 +5,12 @@ import {
 } from '@mui/material';
 import { sections } from '@/app/data/sections';
 import { questionBank } from '@/app/data/questionBank';
-import ScoringSummary from '@/components/ScoringSummary';
-import FlaggedQuestionsTable from '@/components/FlaggedQuestionsTable';
-import UnansweredQuestionsTable from '@/components/UnansweredQuestionsTable';
-import NotesTable from '@/components/NotesTable';
-import SubmitButton from '@/components/SubmitButton';
-import SubmissionStatusAlert from '@/components/SubmissionStatusAlert';
+import ScoringSummary from '@/app/components/ScoringSummary';
+import FlaggedQuestionsTable from '@/app/components/FlaggedQuestionsTable';
+import UnansweredQuestionsTable from '@/app/components/UnansweredQuestionsTable';
+import NotesTable from '@/app/components/NotesTable';
+import SubmitButton from '@/app/components/SubmitButton';
+import SubmissionStatusAlert from '@/app/components/SubmissionStatusAlert';
 
 interface SubmissionPageProps {
   answers: Record<string, any>;

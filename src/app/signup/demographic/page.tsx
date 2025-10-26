@@ -16,7 +16,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { backendAuth } from '@/backend/auth';
+import { authService } from '@/backend/auth';
 import ResponsiveAppBar from '@/components/ResponsiveAppBar';
 import Footer from '@/components/Footer';
 import "@fontsource/rubik";
@@ -57,7 +57,7 @@ export default function DemographicPage() {
       setSignupData(JSON.parse(storedData));
     } else {
       // Check if user is authenticated (Google user)
-      const currentUser = backendAuth.getCurrentUser();
+      const currentUser = authService.getCurrentUser();
       if (currentUser) {
         // Google user - create signup data from authenticated user
         setSignupData({

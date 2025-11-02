@@ -6,7 +6,6 @@ import { userService } from "@/backend/users";
 import Loading from "@/app/components/Loading";
 import { questionBank } from "../data/questionBank";
 import { filterQuestionsByDependencies, findDependentQuestions } from "./scoreCardUtils";
-import { useDebounce } from "./useDebounce";
 
 import {
   Box,
@@ -36,11 +35,6 @@ export default function ScorecardPage() {
   const [flags, setFlags] = useState({});
   const [notes, setNotes] = useState({});
   const [loading, setLoading] = useState(true);
-
-  const debouncedAnswers = useDebounce(answers, 2000);
-  const debouncedFlags = useDebounce(flags, 2000);
-  const debouncedNotes = useDebounce(notes, 2000);
-
 
   const router = useRouter();
   const currentIndex = sections.findIndex((s) => s.id === currentSection);
@@ -74,47 +68,12 @@ export default function ScorecardPage() {
     return () => unsubscribe();
   }, [router]);
 
-  useEffect(() => {
-    if (!loading) {
-      const timeout = setTimeout(() => {
-        saveProgress({ notes });
-      }, 500);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [notes, loading]);
-
-  // Debounced save - saves to Firestore after 2 seconds of no changes
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user || !selectedBill || loading) return;
-
-    // Only save if there are actual changes (non-empty answers)
-    const hasAnswers = Object.keys(debouncedAnswers).length > 0;
-    if (hasAnswers) {
-      const saveData = async () => {
-        try {
-          await databaseService.updateUserProgress(
-            user.uid,
-            selectedBill.split(':')[0],
-            debouncedAnswers,
-            debouncedFlags,
-            debouncedNotes,
-            currentSection
-          );
-        } catch (error) {
-          console.error('Error saving progress (debounced):', error);
-        }
-      };
-      saveData();
-    }
-  }, [debouncedAnswers, debouncedFlags, debouncedNotes, currentSection, selectedBill, loading]);
 
   if (loading) {
     return <Loading />;
   }
 
-  const saveProgress = async (data, isImmediate = false) => {
+  const saveProgress = async (data) => {
     const user = auth.currentUser;
     if (!user || !selectedBill) return;
     
@@ -123,16 +82,14 @@ export default function ScorecardPage() {
       const updatedFlags = data.flags ? { ...flags, ...data.flags } : flags;
       const updatedNotes = data.notes ? { ...notes, ...data.notes } : notes;
       
-      if (isImmediate) {
-        await databaseService.updateUserProgress(
-          user.uid, 
-          selectedBill.split(':')[0],
-          updatedAnswers, 
-          updatedFlags, 
-          updatedNotes, 
-          currentSection
-        );
-      }
+      await databaseService.updateUserProgress(
+        user.uid, 
+        selectedBill.split(':')[0],
+        updatedAnswers, 
+        updatedFlags, 
+        updatedNotes, 
+        currentSection
+      );
     } catch (error) {
       console.error('Error saving progress:', error);
     }
@@ -141,7 +98,9 @@ export default function ScorecardPage() {
   const handleAnswer = (questionId, answer) => {
     if (questionId === "00") {
       setSelectedBill(answer);
-      saveProgress({ answers: { "00": answer } }, true);
+      const updatedAnswers = { ...answers, [questionId]: answer };
+      setAnswers(updatedAnswers);
+      saveProgress({ answers: updatedAnswers });
       return;
     }
     
@@ -170,22 +129,22 @@ export default function ScorecardPage() {
       dependentQuestions.forEach((dependentId) => {
         delete updatedAnswers[dependentId];
       });
-
     }
     
     setAnswers(updatedAnswers);
-    // Debounced save will handle saving to Firestore
+    saveProgress({ answers: updatedAnswers });
   };
 
   const handleFlag = (questionId) => {
-    setFlags((prev) => {
-      const updated = { ...prev, [questionId]: !prev[questionId] };
-      return updated;
-    });
+    const updated = { ...flags, [questionId]: !flags[questionId] };
+    setFlags(updated);
+    saveProgress({ flags: updated });
   };
 
   const handleNotesChange = (sectionId, value) => {
-    setNotes({ ...notes, [sectionId]: value });
+    const updated = { ...notes, [sectionId]: value };
+    setNotes(updated);
+    saveProgress({ notes: updated });
   };
 
   const handleSectionChange = (sectionId) => {

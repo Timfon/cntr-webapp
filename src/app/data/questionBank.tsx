@@ -21,11 +21,12 @@ export const questionBank = {
     { id: 'G1a', text: 'If "Yes" to G1, please select at least one of the following categories of AI definitions that is closest to the definition of AI in the bill.',
       type: 'multiselect',
       options: ['OECD: An AI system is a machine-based system that, for explicit or implicit objectives, infers, from the input it receives, how to generate outputs such as predictions, content, recommendations, or decisions that can influence physical or virtual environments. Different AI systems vary in their levels of autonomy and adaptiveness after deployment.',
-         '2019 NDAA: (1) Any artificial system that performs tasks under varying and unpredictable circumstances without significant human oversight, or that can learn from experience and improve performance when exposed to data sets. (2) An artificial system developed in computer software, physical hardware, or other context that solves tasks requiring human-like perception, cognition, planning, learning, communication, or physical action. (3) An artificial system designed to think or act like a human, including cognitive architectures and neural networks. (4) A set of techniques, including machine learning, that is designed to approximate a cognitive task. (5) An artificial system designed to act rationally, including an intelligent software agent or embodied robot that achieves goals using perception, planning, reasoning, learning, communicating, decision making, and acting.',
+        '2019 NDAA: (1) Any artificial system that performs tasks under varying and unpredictable circumstances without significant human oversight, or that can learn from experience and improve performance when exposed to data sets. (2) An artificial system developed in computer software, physical hardware, or other context that solves tasks requiring human-like perception, cognition, planning, learning, communication, or physical action. (3) An artificial system designed to think or act like a human, including cognitive architectures and neural networks. (4) A set of techniques, including machine learning, that is designed to approximate a cognitive task. (5) An artificial system designed to act rationally, including an intelligent software agent or embodied robot that achieves goals using perception, planning, reasoning, learning, communicating, decision making, and acting.',
         '2020 NDAA: The term ‘‘artificial intelligence’’ means a machine-based system that can, for a given set of human-defined objectives, make predictions, recommendations or decisions influencing real or virtual environments. Artificial intelligence systems use machine and human-based inputs to— (A) perceive real and virtual environments; (B) abstract such perceptions into models through analysis in an automated manner; and (C) use model inference to formulate options for information or action.',
-      'EU AI Act: "AI system" means a machine-based system that is designed to operate with varying levels of autonomy and that may exhibit adaptiveness after deployment, and that, for explicit or implicit objectives, infers, from the input it receives, how to generate outputs such as predictions, content, recommendations, or decisions that can influence physical or virtual environments;',
-    'EU AI Act: "General-purpose AI model" means an AI model, including where such an AI model is trained with a large amount of data using self-supervision at scale, that displays significant generality and is capable of competently performing a wide range of distinct tasks regardless of the way the model is placed on the market and that can be integrated into a variety of downstream systems or applications, except AI models that are used for research, development or prototyping activities before they are placed on the market;',
-  'N/A']
+        'EU AI Act: "AI system" means a machine-based system that is designed to operate with varying levels of autonomy and that may exhibit adaptiveness after deployment, and that, for explicit or implicit objectives, infers, from the input it receives, how to generate outputs such as predictions, content, recommendations, or decisions that can influence physical or virtual environments;',
+        'EU AI Act: "General-purpose AI model" means an AI model, including where such an AI model is trained with a large amount of data using self-supervision at scale, that displays significant generality and is capable of competently performing a wide range of distinct tasks regardless of the way the model is placed on the market and that can be integrated into a variety of downstream systems or applications, except AI models that are used for research, development or prototyping activities before they are placed on the market;',
+      ],
+      dependencies: ['G1'],
     },
     { id: 'G1b', text: 'If "Yes" to G1, please select at least one of the following categories of ADS definitions that is closest to the definition of ADS in the bill.',
       type: 'multiselect',
@@ -36,12 +37,12 @@ export const questionBank = {
         'Government purpose v1: The term "automated decision system" means a system, software, or process that (i) uses computation, in whole or in part, to determine outcomes, make or aid decisions (including through evaluations, metrics, or scoring), inform policy implementation, collect data or observations, or otherwise interact with individuals or communities, including such a system, software, or process derived from machine learning, statistics, or other data processing or artificial intelligence techniques; and (ii) is not passive computing infrastructure. [Example source: US S-262 (118th)]',
         'Government purpose v2: "Automated decision system" means any machine-based system or application, including, but not limited to, any such system or application that is derived from machine learning, statistics, or other data processing or artificial intelligence techniques, which system is developed, procured, or utilized to make, inform, or materially support a critical decision made by a State agency. "Automated decision system" does not include passive computing infrastructure. [Example source: NJ S-1438 (221st)]',
         'Government purpose v3: "Automated decision system" means an algorithm, including an algorithm incorporating machine learning or other artificial intelligence techniques, that uses data-based analytics to make or support governmental decisions, judgments, or conclusions. [Example source: ID H-568 (2024)]',
-        'N/A'
-      ]
+      ],
+      dependencies: ['G1'],
      },
-    { id: 'G1bi', text: 'If the bill has ADS definition, does the bill provide exclusions for ADS?', type: 'yesno' },
+    { id: 'G1bi', text: 'If the bill has ADS definition, does the bill provide exclusions for ADS?', type: 'yesno', dependencies: ['G1'] },
     { id: 'G2', text: 'Does the bill include enforcement mechanisms to ensure compliance with any rules for AI governance?', type: 'yesno' },
-    { id: 'G2a', text: 'If "Yes" to G2, does the bill specify the party responsible for enforcement?' , type: 'yesno'},
+    { id: 'G2a', text: 'If "Yes" to G2, does the bill specify the party responsible for enforcement?' , type: 'yesno', dependencies: ['G2']},
     {
     id: 'G3',
     text: (
@@ -58,7 +59,7 @@ export const questionBank = {
     { id: 'G4', text: 'Does the bill apply to private-sector use of AI / ADS?', type: 'yesno' },
     { id: 'G5', text: 'Does the bill provide an explicit list of domains where AI / ADS is used?', type: 'yesno' },
     { id: 'G6', text: 'Does the bill define concepts related to generative AI, e.g "large language model", "frontier model", "foundational model", etc?', type: 'yesno' },
-    { id: 'G6a', text: 'If "Yes" to G6, does the bill specify scope (e.g. model size, compute power) specifically related to generative AI or foundational model?', type: 'yesno' }
+    { id: 'G6a', text: 'If "Yes" to G6, does the bill specify scope (e.g. model size, compute power) specifically related to generative AI or foundational model?', type: 'yesno', dependencies: ['G6'] }
   ],
   accountability: [
     { id: 'A1', text: 'Does the bill provide definitions for "Impact Assessment" (IA), "Risk Assessment" (RA), or similar forms of evaluation? If other forms of evaluation are used, please indicate in the Notes.', type: 'yesno'},
@@ -79,7 +80,7 @@ export const questionBank = {
     { id: 'A14', text: 'Does the IA/RA include the option of deploying the system in its current state with increased testing and controls, or if necessary, decommissioning the system?', type: 'yesno'},
     { id: 'A15', text: 'Is risk management an ongoing procedure, with testing and evaluation occurring over the entire lifecycle of an AI system, including the post-deployment period?', type: 'yesno'},
     { id: 'A16', text: 'Does the bill specify the frequency of IA/RA?', type: 'yesno'},
-    { id: 'A16a', text: 'If "Yes" to A16, are IA/RAs required at regular intervals (e.g., annually, biannually)?', type: 'yesno'},
+    { id: 'A16a', text: 'If "Yes" to A16, are IA/RAs required at regular intervals (e.g., annually, biannually)?', type: 'yesno', dependencies: ['A16']},
     { id: 'A17', text: 'Does the bill require a pre-deployment IA/RA before the system is implemented?', type: 'yesno'},
     { id: 'A18', text: 'Does the bill require a post-deployment IA/RA after the system has been implemented?', type: 'yesno'},
     { id: 'A19', text: 'Does the bill require IA/RAs for all stages of the model\'s life cycle (e.g., development, deployment, monitoring)?', type: 'yesno'},
@@ -97,7 +98,7 @@ export const questionBank = {
     { id: 'A30', text: 'Does the bill impose explicit bans on AI systems, such as preventing deployment due to safety risks or requiring compliance before use?', type: 'yesno'},
     { id: 'A31', text: 'Does the bill propose a licensing regime for any AI systems?', type: 'yesno'},
     { id: 'A32', text: 'Does the bill consider conditional licensing?', type: 'yesno'},
-    { id: 'A32a', text: 'If "Yes" to A32a, is the conditional licensing imposed by a regulator rather than self-imposed by companies?', type: 'yesno'},
+    { id: 'A32a', text: 'If "Yes" to A32, is the conditional licensing imposed by a regulator rather than self-imposed by companies?', type: 'yesno', dependencies: ['A32']},
     { id: 'A34', text: 'Does the bill give regulators extensive inspection and information-forcing capabilities?', type: 'yesno'},
     { id: 'A35', text: 'Does the bill require tools of resilience, e.g., kill switches, recalls, emergency training and protocols, or establishing thresholds at which a deployed system should be shut down?', type: 'yesno'}
   ],
@@ -107,7 +108,7 @@ export const questionBank = {
     { id: 'B3', text: 'Does the bill identify specific sectors or domains where bias provisions apply?', type:'yesno'},
     { id: 'B3a', text: 'Does the bill apply bias provisions to specific types of consequential decisions (e.g., government benefits, employment)?', type:'yesno'},
     { id: 'B4', text: 'Does the bill require or suggest examination of data sources?', type:'yesno'},
-    { id: 'B4a', text: 'If yes to B4, does the bill require or suggest examination of data sources that would implicate biased outcomes?', type:'yesno'},
+    { id: 'B4a', text: 'If yes to B4, does the bill require or suggest examination of data sources that would implicate biased outcomes?', type:'yesno', dependencies: ['B4']},
     { id: 'B5', text: 'Does the bill restrict the use of AI systems that exhibit potentially discriminatory outcomes?', type:'yesno'},
     { id: 'B6', text: 'Does the bill propose or endorse specific methods to reduce algorithmic discrimination?', type:'yesno'},
     { id: 'B7', text: 'Does the bill mandate ongoing monitoring and evaluation of AI systems for bias?', type:'yesno'}
@@ -115,7 +116,7 @@ export const questionBank = {
   data: [
     { id: 'D1', text: 'Does the bill mention or imply a right to privacy concerning personal data or individual information?', type:'yesno'},
     { id: 'D2', text: 'Does the bill refer to established standards such as ISO standards or NIST guidelines specific to data protection?', type:'yesno'},
-    { id: 'D2a', text: 'If yes to D2, does the bill include provisions for the enforcement of these data protection standards?', type:'yesno'},
+    { id: 'D2a', text: 'If yes to D2, does the bill include provisions for the enforcement of these data protection standards?', type:'yesno', dependencies: ['D2']},
     { id: 'D4', text: 'Does the bill establish a private right of action?', type:'yesno'},
     { id: 'D5', text: 'Does the bill provide a definition of sensitive data?', type:'yesno'},
     { id: 'D6', text: 'Does the bill have specific requirements for handling sensitive data?', type:'yesno'},
@@ -144,8 +145,8 @@ export const questionBank = {
   ],
   institution: [
     { id: 'I1', text: 'Does the bill mandate the establishment of a new entity?', type: 'yesno'},
-    { id: 'I1a', text: 'Does the bill outline clear, measurable objectives for the new entity that must be achieved within defined timelines?', type: 'yesno'},
-    { id: 'I1b', text: 'Does the bill identify how the new entity will work with existing agencies?', type: 'yesno'}
+    { id: 'I1a', text: 'Does the bill outline clear, measurable objectives for the new entity that must be achieved within defined timelines?', type: 'yesno', dependencies: ['I1'] },
+    { id: 'I1b', text: 'Does the bill identify how the new entity will work with existing agencies?', type: 'yesno', dependencies: ['I1'] }
   ],
   labor: [
     { id: 'L1', text: 'Does the bill contain provisions aimed at expanding the workforce in the AI Economy?', type: 'yesno'},

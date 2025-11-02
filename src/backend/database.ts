@@ -13,7 +13,7 @@ export const databaseService = {
   /**
    * Update user's in-progress bill
    */
-  async updateUserProgress(uid: string, billId: string, answers: Record<string, Record<string, any>>, flags?: Record<string, boolean>, notes?: Record<string, string>, currentSection?: string): Promise<void> {
+  async updateUserProgress(uid: string, billId: string, answers: Record<string, any>, flags?: Record<string, boolean>, notes?: Record<string, string>, currentSection?: string): Promise<void> {
     try {
       const userDoc = doc(db, "users", uid);
       const userSnap = await getDoc(userDoc);
@@ -161,7 +161,7 @@ export const databaseService = {
       const billSnap = await getDoc(billDoc);
       
       if (billSnap.exists()) {
-        return { billId, ...billSnap.data() } as Bill;
+        return { ...billSnap.data() } as unknown as Bill;
       }
       return null;
     } catch (error) {
@@ -179,8 +179,7 @@ export const databaseService = {
       const billsSnap = await getDocs(billsQuery);
       
       return billsSnap.docs.map(doc => ({
-        billId: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as Bill[];
     } catch (error) {
       console.error('Error getting bills:', error);

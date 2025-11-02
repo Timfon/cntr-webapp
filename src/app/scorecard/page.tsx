@@ -1,15 +1,17 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auth } from "@/firebase";
 import { databaseService } from "@/backend/database";
 import { userService } from "@/backend/users";
 import Loading from "@/app/components/Loading";
+import { questionBank } from "../data/questionBank";
+import { filterQuestionsByDependencies, findDependentQuestions } from "./scoreCardUtils";
+import { useDebounce } from "./useDebounce";
 
 import {
   Box,
   Typography,
 } from "@mui/material";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -23,7 +25,6 @@ import NavigationButtons from "@/app/components/NavigationButtons";
 import SubmissionPage from "./submission";
 
 import { sections } from "../data/sections";
-import { questionBank } from "../data/questionBank";
 import { validateAllAnswers } from "./scoreCardUtils";
 
 export default function ScorecardPage() {
@@ -36,11 +37,16 @@ export default function ScorecardPage() {
   const [notes, setNotes] = useState({});
   const [loading, setLoading] = useState(true);
 
+  const debouncedAnswers = useDebounce(answers, 2000);
+  const debouncedFlags = useDebounce(flags, 2000);
+  const debouncedNotes = useDebounce(notes, 2000);
+
 
   const router = useRouter();
   const currentIndex = sections.findIndex((s) => s.id === currentSection);
   const currentSectionData = sections[currentIndex];
-  const currentQuestions = questionBank[currentSection] || [];
+  const allCurrentQuestions = questionBank[currentSection] || [];
+  const currentQuestions = filterQuestionsByDependencies(allCurrentQuestions, answers);
   const version = questionBank.version;
 
   useEffect(() => {
@@ -48,7 +54,6 @@ export default function ScorecardPage() {
       if (!user) {
         router.push("/signin");
       } else {
-        // Fetch saved progress
         const data = await userService.getUser(user.uid);
         if (data && data.inProgress) {
           setAnswers(data.inProgress.answers || {});
@@ -79,11 +84,37 @@ export default function ScorecardPage() {
     }
   }, [notes, loading]);
 
+  // Debounced save - saves to Firestore after 2 seconds of no changes
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user || !selectedBill || loading) return;
+
+    // Only save if there are actual changes (non-empty answers)
+    const hasAnswers = Object.keys(debouncedAnswers).length > 0;
+    if (hasAnswers) {
+      const saveData = async () => {
+        try {
+          await databaseService.updateUserProgress(
+            user.uid,
+            selectedBill.split(':')[0],
+            debouncedAnswers,
+            debouncedFlags,
+            debouncedNotes,
+            currentSection
+          );
+        } catch (error) {
+          console.error('Error saving progress (debounced):', error);
+        }
+      };
+      saveData();
+    }
+  }, [debouncedAnswers, debouncedFlags, debouncedNotes, currentSection, selectedBill, loading]);
+
   if (loading) {
     return <Loading />;
   }
 
-  const saveProgress = async (data) => {
+  const saveProgress = async (data, isImmediate = false) => {
     const user = auth.currentUser;
     if (!user || !selectedBill) return;
     
@@ -92,14 +123,16 @@ export default function ScorecardPage() {
       const updatedFlags = data.flags ? { ...flags, ...data.flags } : flags;
       const updatedNotes = data.notes ? { ...notes, ...data.notes } : notes;
       
-      await databaseService.updateUserProgress(
-        user.uid, 
-        selectedBill.split(':')[0],
-        updatedAnswers, 
-        updatedFlags, 
-        updatedNotes, 
-        currentSection
-      );
+      if (isImmediate) {
+        await databaseService.updateUserProgress(
+          user.uid, 
+          selectedBill.split(':')[0],
+          updatedAnswers, 
+          updatedFlags, 
+          updatedNotes, 
+          currentSection
+        );
+      }
     } catch (error) {
       console.error('Error saving progress:', error);
     }
@@ -108,25 +141,51 @@ export default function ScorecardPage() {
   const handleAnswer = (questionId, answer) => {
     if (questionId === "00") {
       setSelectedBill(answer);
-      saveProgress({ answers: { "00": answer } });
+      saveProgress({ answers: { "00": answer } }, true);
+      return;
     }
-    const updatedAnswers = { ...answers, [questionId]: answer };
+    
+    let updatedAnswers = { ...answers, [questionId]: answer };
+    
+    // If the answer is "No" or "N/A", clear dependent question answers
+    if (answer === 'no' || answer === 'N/A') {
+      const dependentQuestions = findDependentQuestions(questionId);
+      
+      dependentQuestions.forEach((dependentId) => {
+        updatedAnswers[dependentId] = ['N/A'];
+      });
+      
+      const updatedFlags = { ...flags };
+      dependentQuestions.forEach((dependentId) => {
+        delete updatedFlags[dependentId];
+      });
+      setFlags(updatedFlags);
+      
+      saveProgress({ 
+        answers: updatedAnswers, 
+        flags: updatedFlags, 
+      });
+    } else {
+      const dependentQuestions = findDependentQuestions(questionId);
+      dependentQuestions.forEach((dependentId) => {
+        delete updatedAnswers[dependentId];
+      });
+
+    }
+    
     setAnswers(updatedAnswers);
-    saveProgress({ answers: updatedAnswers });
+    // Debounced save will handle saving to Firestore
   };
 
   const handleFlag = (questionId) => {
     setFlags((prev) => {
       const updated = { ...prev, [questionId]: !prev[questionId] };
-      saveProgress({ flags: updated });
       return updated;
     });
   };
 
   const handleNotesChange = (sectionId, value) => {
-    const newNotes = { ...notes, [sectionId]: value };
-    setNotes(newNotes);
-    saveProgress({ notes: newNotes });
+    setNotes({ ...notes, [sectionId]: value });
   };
 
   const handleSectionChange = (sectionId) => {

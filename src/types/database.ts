@@ -4,15 +4,11 @@ export interface User {
   uid: string;
   email: string;
   role: string;
-  assignedBills: string[]; 
+  assignedBills: string[];
   inProgress: {
     billId: string;
     currentSection: string;
-    answers: {
-      [sectionId: string]: {
-        [questionId: string]: any;
-      };
-    };
+    answers: Record<string, any>;
     flags: Record<string, boolean>;
     notes: Record<string, string>;
     lastUpdated: string;
@@ -22,14 +18,14 @@ export interface User {
 }
 
 export interface Bill {
-  billId: string; // Format: {state} {H|S} {Number} {Year}
-  name: string;
+  title: string;
+  description: string;
   url: string;
   versionDate: string;
   state: string;
-  year: string;
+  year: number;
   number: string;
-  type: 'H' | 'S';
+  body: string;
 }
 
 export interface Submission {

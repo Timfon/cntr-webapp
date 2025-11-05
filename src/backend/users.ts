@@ -28,12 +28,18 @@ export const userService = {
         role,
         assignedBills: [],
         inProgress: null,
-        completedBills: [],
-        ...additionalData, // Include any additional fields
+        completedBills: {},
       };
+      
+      // Filter out undefined values from additionalData
+      const cleanAdditionalData = additionalData ? 
+        Object.fromEntries(
+          Object.entries(additionalData).filter(([_, value]) => value !== undefined)
+        ) : {};
       
       await setDoc(userDoc, {
         ...userData,
+        ...cleanAdditionalData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       }, { merge: true });

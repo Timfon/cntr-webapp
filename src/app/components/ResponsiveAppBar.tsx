@@ -24,8 +24,7 @@ import { auth } from '@/firebase';
 import { authService } from "@/backend/auth";
 
 const pages = [
-  { name: 'Scorecard', href: '/scorecard' },
-  { name: 'Under Construction...', href: '#' }
+  { name: 'Dashboard', href: '/dashboard' },
 ];
 
 export default function ResponsiveAppBar() {

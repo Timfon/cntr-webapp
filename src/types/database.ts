@@ -8,11 +8,7 @@ export interface User {
   inProgress: {
     billId: string;
     currentSection: string;
-    answers: {
-      [sectionId: string]: {
-        [questionId: string]: any;
-      };
-    };
+    answers: Record<string, any>;
     flags: Record<string, boolean>;
     notes: Record<string, string>;
     lastUpdated: string;
@@ -22,14 +18,17 @@ export interface User {
 }
 
 export interface Bill {
-  billId: string; // Format: {state} {H|S} {Number} {Year}
-  name: string;
+  billId: string; // Document ID from Firestore (e.g., "AL HB283 2025-02-13")
+  title: string; // Bill title from Firestore
+  name?: string; // Legacy field - fallback
   url: string;
   versionDate: string;
   state: string;
-  year: string;
-  number: string;
-  type: 'H' | 'S';
+  year: number | string; // Firestore has number, but can be string
+  number: string; // Firestore format: includes prefix like "HB283" or "SB123"
+  body?: string; // Firestore format: "House" or "Senate"
+  type?: 'H' | 'S'; // Legacy field - can be derived from body or number
+  description?: string; // Firestore format - bill description
 }
 
 export interface Submission {

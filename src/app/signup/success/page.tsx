@@ -17,7 +17,7 @@ export default function SignupSuccessPage() {
   const router = useRouter();
 
   const handleContinue = () => {
-    router.push('/scorecard');
+    router.push('/dashboard');
   };
 
   return (

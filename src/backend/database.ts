@@ -175,16 +175,45 @@ export const databaseService = {
    */
   async getAllBills(): Promise<Bill[]> {
     try {
-      const billsQuery = query(collection(db, "bills"), orderBy("createdAt", "desc"));
-      const billsSnap = await getDocs(billsQuery);
-      
-      return billsSnap.docs.map(doc => ({
-        billId: doc.id,
-        ...doc.data()
-      })) as Bill[];
-    } catch (error) {
+      // Try to get bills ordered by createdAt if it exists, otherwise just get all
+      try {
+        const billsQuery = query(collection(db, "bills"), orderBy("createdAt", "desc"));
+        const billsSnap = await getDocs(billsQuery);
+        
+        // If createdAt ordering returns 0 bills, try without ordering
+        if (billsSnap.docs.length === 0) {
+          const billsQueryNoOrder = query(collection(db, "bills"));
+          const billsSnapNoOrder = await getDocs(billsQueryNoOrder);
+          return billsSnapNoOrder.docs.map(doc => ({
+            billId: doc.id,
+            ...(doc.data() as any)
+          })) as Bill[];
+        }
+        
+        return billsSnap.docs.map(doc => ({
+          billId: doc.id,
+          ...(doc.data() as any)
+        })) as Bill[];
+      } catch (orderError: any) {
+        // If createdAt ordering fails, get all bills without ordering
+        try {
+          const billsQuery = query(collection(db, "bills"));
+          const billsSnap = await getDocs(billsQuery);
+          return billsSnap.docs.map(doc => ({
+            billId: doc.id,
+            ...(doc.data() as any)
+          })) as Bill[];
+        } catch (queryError: any) {
+          console.error('Error getting bills:', queryError);
+          throw queryError;
+        }
+      }
+    } catch (error: any) {
       console.error('Error getting bills:', error);
-      throw new Error('Failed to get bills');
+      if (error?.code === 'permission-denied') {
+        throw new Error('Permission denied: Check your Firestore security rules to allow reading bills');
+      }
+      throw new Error(`Failed to get bills: ${error?.message || 'Unknown error'}`);
     }
   },
 

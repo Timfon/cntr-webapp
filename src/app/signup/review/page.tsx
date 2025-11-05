@@ -25,10 +25,6 @@ interface CompleteSignupData {
   password: string;
   isGoogleUser: boolean;
   demographic: {
-    ageRange: string;
-    genderIdentity: string;
-    educationLevel: string;
-    employmentStatus: string;
     role: string;
   };
 }
@@ -95,10 +91,6 @@ export default function ReviewPage() {
         {
           firstName: signupData.firstName,
           lastName: signupData.lastName,
-          ageRange: signupData.demographic.ageRange,
-          genderIdentity: signupData.demographic.genderIdentity,
-          educationLevel: signupData.demographic.educationLevel,
-          employmentStatus: signupData.demographic.employmentStatus,
         }
       );
       

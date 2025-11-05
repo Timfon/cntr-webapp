@@ -33,9 +33,9 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
         connectFirestoreEmulator(db, 'localhost', 8080);
       }
       
-      console.log('🔧 Connected to Firebase Emulators');
+      // Connected to emulators
     } catch (error) {
-      console.warn('⚠️ Firebase Emulators connection failed:', error);
+      console.warn('Firebase Emulators connection failed:', error);
     }
   }
 }

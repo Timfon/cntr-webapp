@@ -34,7 +34,7 @@ export default function BrandingSignInPage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("User is signed in:", user);
-        router.push('/scorecard');
+        router.push('/dashboard');
       } else {
         console.log("No user is signed in.");
       }
@@ -51,7 +51,7 @@ export default function BrandingSignInPage() {
       const result = await authService.signInWithGoogle();
       if (result.success) {
         console.log('Google sign-in success:', result.user);
-        router.push('/scorecard');
+        router.push('/dashboard');
       } else {
         setError(result.error || 'Google sign-in failed');
       }
@@ -70,7 +70,7 @@ export default function BrandingSignInPage() {
     try {
       const result = await authService.signInWithEmail(email, password);
       if (result.success) {
-        router.push('/scorecard');  
+        router.push('/dashboard');  
       } else {
         setError(result.error || 'Sign-in failed. Please try again');
       }

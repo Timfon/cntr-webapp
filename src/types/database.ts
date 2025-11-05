@@ -4,7 +4,7 @@ export interface User {
   uid: string;
   email: string;
   role: string;
-  assignedBills: string[]; 
+  assignedBills: string[];
   inProgress: {
     billId: string;
     currentSection: string;

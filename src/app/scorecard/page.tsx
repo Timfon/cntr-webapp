@@ -4,6 +4,8 @@ import { auth } from "@/firebase";
 import { databaseService } from "@/backend/database";
 import { userService } from "@/backend/users";
 import Loading from "@/app/components/Loading";
+import { questionBank } from "../data/questionBank";
+import { filterQuestionsByDependencies, findDependentQuestions } from "./scoreCardUtils";
 
 import {
   Box,
@@ -25,7 +27,6 @@ import SubmissionPage from "./submission";
 import GlossaryPanel from "@/app/components/GlossaryPanel";
 
 import { sections } from "../data/sections";
-import { questionBank } from "../data/questionBank";
 import { validateAllAnswers } from "./scoreCardUtils";
 
 function ScorecardContent() {
@@ -40,7 +41,6 @@ function ScorecardContent() {
   const [billDetails, setBillDetails] = useState<any>(null);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
 
-
   const router = useRouter();
   const searchParams = useSearchParams();
   const billParam = searchParams.get('bill');
@@ -48,7 +48,8 @@ function ScorecardContent() {
   
   const currentIndex = sections.findIndex((s) => s.id === currentSection);
   const currentSectionData = sections[currentIndex];
-  const currentQuestions = questionBank[currentSection] || [];
+  const allCurrentQuestions = questionBank[currentSection] || [];
+  const currentQuestions = filterQuestionsByDependencies(allCurrentQuestions, answers);
   const version = questionBank.version;
 
   // Helper: Find which section a question belongs to
@@ -202,15 +203,6 @@ function ScorecardContent() {
     return () => unsubscribe();
   }, [router, billParam]);
 
-  useEffect(() => {
-    if (!loading) {
-      const timeout = setTimeout(() => {
-        saveProgress({ notes });
-      }, 500);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [notes, loading]);
 
   if (loading) {
     return <Loading />;
@@ -247,23 +239,48 @@ function ScorecardContent() {
       saveProgress({ answers: { "00": answer } });
       return;
     }
-    const updatedAnswers = { ...answers, [questionId]: answer };
+    
+    let updatedAnswers = { ...answers, [questionId]: answer };
+    
+    // If the answer is "No" or "N/A", clear dependent question answers
+    if (answer === 'no' || answer === 'N/A') {
+      const dependentQuestions = findDependentQuestions(questionId);
+      
+      dependentQuestions.forEach((dependentId) => {
+        updatedAnswers[dependentId] = ['N/A'];
+      });
+      
+      const updatedFlags = { ...flags };
+      dependentQuestions.forEach((dependentId) => {
+        delete updatedFlags[dependentId];
+      });
+      setFlags(updatedFlags);
+      
+      saveProgress({ 
+        answers: updatedAnswers, 
+        flags: updatedFlags, 
+      });
+    } else {
+      const dependentQuestions = findDependentQuestions(questionId);
+      dependentQuestions.forEach((dependentId) => {
+        delete updatedAnswers[dependentId];
+      });
+    }
+    
     setAnswers(updatedAnswers);
     saveProgress({ answers: updatedAnswers });
   };
 
   const handleFlag = (questionId) => {
-    setFlags((prev) => {
-      const updated = { ...prev, [questionId]: !prev[questionId] };
-      saveProgress({ flags: updated });
-      return updated;
-    });
+    const updated = { ...flags, [questionId]: !flags[questionId] };
+    setFlags(updated);
+    saveProgress({ flags: updated });
   };
 
   const handleNotesChange = (sectionId, value) => {
-    const newNotes = { ...notes, [sectionId]: value };
-    setNotes(newNotes);
-    saveProgress({ notes: newNotes });
+    const updated = { ...notes, [sectionId]: value };
+    setNotes(updated);
+    saveProgress({ notes: updated });
   };
 
   const handleSectionChange = (sectionId) => {

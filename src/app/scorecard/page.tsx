@@ -376,7 +376,7 @@ router.push("/dashboard");
         onClick={() => setGlossaryOpen(!glossaryOpen)}
         sx={{
           position: 'fixed',
-          right: glossaryOpen ? 400 : 0,
+          right: glossaryOpen ? 320 : 0,
           top: '120px',
           zIndex: 1400,
           backgroundColor: '#0C6431',

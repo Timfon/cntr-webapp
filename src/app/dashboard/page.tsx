@@ -141,17 +141,13 @@ export default function DashboardPage() {
           !billsData.find(b => b.id === bill.billId)
         );
         
-        // Simple seeded random function for consistent selection per user
         let randomSeed = seed;
         const seededRandom = () => {
           randomSeed = (randomSeed * 9301 + 49297) % 233280;
           return randomSeed / 233280;
         };
-        
-        // Shuffle available bills using seeded random
         const shuffled = [...availableBills].sort(() => seededRandom() - 0.5);
         
-        // Take first 10 bills
         const randomBills = shuffled.slice(0, 10);
         
         randomBills.forEach((bill) => {
@@ -162,7 +158,7 @@ export default function DashboardPage() {
 
       setBills(billsData);
 
-      // Calculate stats
+      // each individual status count
       const inProgressCount = billsData.filter(b => b.status === 'inProgress').length;
       const assignedCount = billsData.filter(b => b.status === 'assigned').length;
       const scoredCount = billsData.filter(b => b.status === 'scored').length;
@@ -212,10 +208,9 @@ export default function DashboardPage() {
         const completedBillIds = userData.completedBills ? Object.keys(userData.completedBills) : [];
         // If the in-progress bill is already completed, clear it and allow starting a new one
         if (completedBillIds.includes(userData.inProgress.billId)) {
-          // Clear the stale inProgress data
           await databaseService.clearUserProgress(user.uid);
         } else {
-          // Bill is actually in progress, show error
+          // if bill already in progress when you click assigned
           setAlertDialog({
             open: true,
             message: 'You already have a bill in progress. Please complete it before starting another one.',
@@ -229,7 +224,7 @@ export default function DashboardPage() {
       const bill = allBills.find(b => b.billId === billId);
       const billName = bill?.name || billId;
 
-      // Show confirmation dialog
+      // Confirmation dialog
       setConfirmDialog({
         open: true,
         billId,
@@ -262,8 +257,6 @@ export default function DashboardPage() {
         {},
         'general'
       );
-
-      // Close dialog
       setConfirmDialog({ open: false, billId: '', billName: '' });
 
       // Reload the bills to show updated status

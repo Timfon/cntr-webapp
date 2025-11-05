@@ -40,13 +40,13 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
           display: 'none',
         },
         '& .MuiDrawer-paper': {
-          width: { xs: '100%', sm: 400 },
+          width: { xs: '100%', sm: 320 },
           maxWidth: '90vw',
           boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.15)',
           position: 'fixed',
           height: '100vh',
           top: 0,
-          right: open ? 0 : -400,
+          right: open ? 0 : -320,
           transition: 'right 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         },
       }}
@@ -134,7 +134,8 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                   variant="h6"
                   sx={{
                     fontFamily: 'Rubik-Bold',
-                    color: '#0C6431',
+                    color: '#000000',
+                    fontWeight: 'bold',
                     mb: 1.5,
                     fontSize: '1.1rem',
                   }}

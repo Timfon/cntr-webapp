@@ -1,15 +1,16 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auth } from "@/firebase";
 import { databaseService } from "@/backend/database";
 import { userService } from "@/backend/users";
 import Loading from "@/app/components/Loading";
+import { questionBank } from "../data/questionBank";
+import { filterQuestionsByDependencies, findDependentQuestions } from "./scoreCardUtils";
 
 import {
   Box,
   Typography,
 } from "@mui/material";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -23,7 +24,6 @@ import NavigationButtons from "@/app/components/NavigationButtons";
 import SubmissionPage from "./submission";
 
 import { sections } from "../data/sections";
-import { questionBank } from "../data/questionBank";
 import { validateAllAnswers } from "./scoreCardUtils";
 
 export default function ScorecardPage() {
@@ -36,11 +36,11 @@ export default function ScorecardPage() {
   const [notes, setNotes] = useState({});
   const [loading, setLoading] = useState(true);
 
-
   const router = useRouter();
   const currentIndex = sections.findIndex((s) => s.id === currentSection);
   const currentSectionData = sections[currentIndex];
-  const currentQuestions = questionBank[currentSection] || [];
+  const allCurrentQuestions = questionBank[currentSection] || [];
+  const currentQuestions = filterQuestionsByDependencies(allCurrentQuestions, answers);
   const version = questionBank.version;
 
   useEffect(() => {
@@ -48,7 +48,6 @@ export default function ScorecardPage() {
       if (!user) {
         router.push("/signin");
       } else {
-        // Fetch saved progress
         const data = await userService.getUser(user.uid);
         if (data && data.inProgress) {
           setAnswers(data.inProgress.answers || {});
@@ -69,15 +68,6 @@ export default function ScorecardPage() {
     return () => unsubscribe();
   }, [router]);
 
-  useEffect(() => {
-    if (!loading) {
-      const timeout = setTimeout(() => {
-        saveProgress({ notes });
-      }, 500);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [notes, loading]);
 
   if (loading) {
     return <Loading />;
@@ -108,25 +98,53 @@ export default function ScorecardPage() {
   const handleAnswer = (questionId, answer) => {
     if (questionId === "00") {
       setSelectedBill(answer);
-      saveProgress({ answers: { "00": answer } });
+      const updatedAnswers = { ...answers, [questionId]: answer };
+      setAnswers(updatedAnswers);
+      saveProgress({ answers: updatedAnswers });
+      return;
     }
-    const updatedAnswers = { ...answers, [questionId]: answer };
+    
+    let updatedAnswers = { ...answers, [questionId]: answer };
+    
+    // If the answer is "No" or "N/A", clear dependent question answers
+    if (answer === 'no' || answer === 'N/A') {
+      const dependentQuestions = findDependentQuestions(questionId);
+      
+      dependentQuestions.forEach((dependentId) => {
+        updatedAnswers[dependentId] = ['N/A'];
+      });
+      
+      const updatedFlags = { ...flags };
+      dependentQuestions.forEach((dependentId) => {
+        delete updatedFlags[dependentId];
+      });
+      setFlags(updatedFlags);
+      
+      saveProgress({ 
+        answers: updatedAnswers, 
+        flags: updatedFlags, 
+      });
+    } else {
+      const dependentQuestions = findDependentQuestions(questionId);
+      dependentQuestions.forEach((dependentId) => {
+        delete updatedAnswers[dependentId];
+      });
+    }
+    
     setAnswers(updatedAnswers);
     saveProgress({ answers: updatedAnswers });
   };
 
   const handleFlag = (questionId) => {
-    setFlags((prev) => {
-      const updated = { ...prev, [questionId]: !prev[questionId] };
-      saveProgress({ flags: updated });
-      return updated;
-    });
+    const updated = { ...flags, [questionId]: !flags[questionId] };
+    setFlags(updated);
+    saveProgress({ flags: updated });
   };
 
   const handleNotesChange = (sectionId, value) => {
-    const newNotes = { ...notes, [sectionId]: value };
-    setNotes(newNotes);
-    saveProgress({ notes: newNotes });
+    const updated = { ...notes, [sectionId]: value };
+    setNotes(updated);
+    saveProgress({ notes: updated });
   };
 
   const handleSectionChange = (sectionId) => {

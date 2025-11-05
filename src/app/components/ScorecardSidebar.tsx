@@ -3,7 +3,7 @@ import { Box, Paper, Typography } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { sections } from "@/app/data/sections";
 import { questionBank } from "@/app/data/questionBank";
-import { getIsFlagged, getIsInProgress } from "@/app/scorecard/scoreCardUtils";
+import { getIsFlagged, getIsInProgress, filterQuestionsByDependencies } from "@/app/scorecard/scoreCardUtils";
 import { TbProgress } from "react-icons/tb";
 import { FaCheck } from "react-icons/fa6";
 
@@ -19,10 +19,11 @@ const ScorecardSidebar = ({
       return null;
     }
     
-    const hasFlagged = getIsFlagged(section.id, flags);
+    const hasFlagged = getIsFlagged(section.id, flags, answers);
     const inProgress = getIsInProgress(section.id, answers, flags);
     const sectionQuestions = questionBank[section.id] || [];
-    const hasAnswers = sectionQuestions.some(q => answers[q.id] !== undefined);
+    const visibleQuestions = filterQuestionsByDependencies(sectionQuestions, answers);
+    const hasAnswers = visibleQuestions.some(q => answers[q.id] !== undefined);
     
     // 1. If section has not been started yet, grey circle
     if (!hasAnswers) {

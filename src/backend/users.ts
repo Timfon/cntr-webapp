@@ -13,7 +13,7 @@ export const userService = {
   /**
    * Create user profile with role
    */
-  async createUserProfile(userId: string, email: string, displayName?: string, role: UserRole = 'general', additionalData?: any): Promise<void> {
+  async createUserProfile(userId: string, email: string, firstName: string, lastName: string, role: UserRole = 'general', cohort: string | null = null, additionalData?: any): Promise<void> {
     try {
       // Validate that the role is one of the allowed values
       const validRoles: UserRole[] = ['undergraduate', 'advanced', 'expert', 'legislative_staff', 'general'];
@@ -26,6 +26,9 @@ export const userService = {
         uid: userId,
         email,
         role,
+        firstName,
+        lastName,
+        cohort,
         assignedBills: [],
         inProgress: null,
         completedBills: {},

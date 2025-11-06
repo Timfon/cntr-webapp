@@ -17,31 +17,20 @@ import { userService } from '@/backend/users';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
-
-interface CompleteSignupData {
-  email: string;
-  firstName: string;
-  lastName: string;
-  password: string;
-  isGoogleUser: boolean;
-  demographic: {
-    role: string;
-  };
-}
+import { getSignupData, SignupData } from '../signupUtils';
+import { UserRole } from '@/types/user';
 
 export default function ReviewPage() {
-  const [signupData, setSignupData] = useState<CompleteSignupData | null>(null);
+  const [signupData, setSignupData] = useState<SignupData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Get complete signup data from sessionStorage
-    const storedData = sessionStorage.getItem('completeSignupData');
-    if (storedData) {
-      setSignupData(JSON.parse(storedData));
+    const data = getSignupData();
+    if (data?.demographic) {
+      setSignupData(data);
     } else {
-      // If no signup data, redirect to account page
       router.push('/signup/account');
     }
   }, [router]);
@@ -53,49 +42,47 @@ export default function ReviewPage() {
   const handleSubmit = async () => {
     if (!signupData) return;
     
+    if (!signupData.demographic) {
+      setError('Demographic information is missing');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
     try {
-      let userId: string;
-      
       if (signupData.isGoogleUser) {
-        // Google user - already authenticated
         const currentUser = authService.getCurrentUser();
         if (!currentUser) {
           setError('No authenticated user found. Please sign in again.');
           return;
         }
-        userId = currentUser.uid;
+        
+        await userService.createUserProfile(
+          currentUser.uid,
+          signupData.email,
+          signupData.firstName,
+          signupData.lastName,
+          signupData.demographic.role as any,
+          signupData.demographic.cohort
+        );
       } else {
-        // Email user - create account
         const result = await authService.signUpWithEmail(
           signupData.email,
           signupData.password,
-          `${signupData.firstName} ${signupData.lastName}`
+          signupData.firstName,
+          signupData.lastName,
+          signupData.demographic.role as UserRole,
+          signupData.demographic.cohort
         );
         
         if (!result.success || !result.user) {
           setError(result.error || 'Failed to create account');
           return;
         }
-        userId = result.user.uid;
       }
       
-      // Create user profile with all information
-      await userService.createUserProfile(
-        userId,
-        signupData.email,
-        `${signupData.firstName} ${signupData.lastName}`,
-        signupData.demographic.role as any,
-        {
-          firstName: signupData.firstName,
-          lastName: signupData.lastName,
-        }
-      );
-      
       // Clear session storage
-      sessionStorage.removeItem('signupData');
       sessionStorage.removeItem('completeSignupData');
       
       // Navigate to success page
@@ -226,11 +213,16 @@ export default function ReviewPage() {
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
-                    <strong>Role:</strong> {signupData.demographic.role
+                    <strong>Role:</strong> {signupData.demographic?.role
                       ? signupData.demographic.role
                           .split('_')
                           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                           .join(' ')
+                      : 'Not specified'}
+                  </Typography>
+                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
+                    <strong>Cohort:</strong> {signupData.demographic?.cohort 
+                      ? signupData.demographic.cohort.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
                       : 'Not specified'}
                   </Typography>
                 </Box>

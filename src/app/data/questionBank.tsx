@@ -1,5 +1,5 @@
 import React from 'react';
-import DefinedTerm from '@/app/components/DefinedTerm';
+import DefinedTerm from '@/app/scorecard/DefinedTerm';
 
 export const questionBank = {
   version: '1.0.0',

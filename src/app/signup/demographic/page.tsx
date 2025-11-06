@@ -20,9 +20,11 @@ import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
 import { UserRole } from '@/types/user';
+import { getSignupData } from '../signupUtils';
 
 interface DemographicFormData {
   role: UserRole;
+  cohort: string;
 }
 
 interface SignupData {
@@ -36,6 +38,7 @@ interface SignupData {
 export default function DemographicPage() {
   const [formData, setFormData] = useState<DemographicFormData>({
     role: 'general',
+    cohort: '',
   });
   const [signupData, setSignupData] = useState<SignupData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,26 +46,17 @@ export default function DemographicPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Get signup data from sessionStorage
-    const storedData = sessionStorage.getItem('signupData');
-    if (storedData) {
-      setSignupData(JSON.parse(storedData));
-    } else {
-      // Check if user is authenticated (Google user)
-      const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-        // Google user - create signup data from authenticated user
-        setSignupData({
-          email: currentUser.email || '',
-          firstName: currentUser.displayName?.split(' ')[0] || '',
-          lastName: currentUser.displayName?.split(' ').slice(1).join(' ') || '',
-          password: '',
-          isGoogleUser: true,
+    const data = getSignupData();
+    if (data) {
+      setSignupData(data);
+      if (data.demographic) {
+        setFormData({
+          role: (data.demographic.role || 'general') as UserRole,
+          cohort: data.demographic.cohort || '',
         });
-      } else {
-        // If no signup data, redirect to account page
-        router.push('/signup/account');
       }
+    } else {
+      router.push('/signup/account');
     }
   }, [router]);
 
@@ -77,16 +71,16 @@ export default function DemographicPage() {
   };
 
   const handlePrevious = () => {
-    if (signupData?.isGoogleUser) {
-      // Google users can't go back to account page, redirect to signup
-      router.push('/signup');
-    } else {
       router.push('/signup/account');
-    }
   };
 
   const handleNext = async () => {
     if (!signupData) return;
+    
+    if (!formData.cohort) {
+      setError('Please select a cohort');
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -190,6 +184,18 @@ export default function DemographicPage() {
                     <MenuItem value="expert">Expert</MenuItem>
                     <MenuItem value="legislative_staff">Legislative Staff</MenuItem>
                     <MenuItem value="general">General</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth required>
+                  <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Cohort</InputLabel>
+                  <Select
+                    value={formData.cohort}
+                    label="Cohort"
+                    onChange={handleSelectChange('cohort')}
+                    sx={{ fontFamily: 'Rubik, sans-serif' }}
+                  >
+                    <MenuItem value="fall-2025">Fall 2025</MenuItem>
                   </Select>
                 </FormControl>
               </Box>

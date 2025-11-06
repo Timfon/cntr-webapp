@@ -31,12 +31,12 @@ export default function BrandingSignInPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log("User is signed in:", user);
-        router.push('/dashboard');
-      } else {
-        console.log("No user is signed in.");
+        const hasCompleted = await authService.hasCompletedProfile(user.uid);
+        if (hasCompleted) {
+          router.push('/dashboard');
+        }
       }
     });
 
@@ -49,9 +49,21 @@ export default function BrandingSignInPage() {
     
     try {
       const result = await authService.signInWithGoogle();
+      console.log('Google sign-in result:', result);
       if (result.success) {
         console.log('Google sign-in success:', result.user);
-        router.push('/dashboard');
+        if (result.isNewUser) {
+          await sessionStorage.setItem('completeSignupData', JSON.stringify({
+            email: result.user.email || '',
+            firstName: result.user.displayName?.split(' ')[0] || '',
+            lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+            password: '',
+            isGoogleUser: true,
+          }));
+          router.push('/signup/account');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         setError(result.error || 'Google sign-in failed');
       }

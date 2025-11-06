@@ -2,9 +2,7 @@
 
 import * as React from 'react';
 import { useTheme } from '@mui/material/styles';
-import { auth } from '@/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { authService } from "@/backend/auth";
 import { useRouter } from 'next/navigation';
 
@@ -37,27 +35,24 @@ export default function BrandingSignUpPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("User is signed up:", user);
-        router.push('/dashboard');
-      } else {
-        console.log("No user is signed up.");
-      }
-    });
-
-    return () => unsubscribe(); // cleanup listener
-  }, [router]);
-
   const handleGoogleSignUp = async () => {
     setLoading(true);
     try {
       const result = await authService.signInWithGoogle();
       if (result.success) {
         console.log('Google sign-up success:', result.user);
-        // Google users skip account info and go directly to demographic page
-        router.push('/signup/demographic');
+        if (result.isNewUser) {
+          sessionStorage.setItem('completeSignupData', JSON.stringify({
+            email: result.user.email || '',
+            firstName: result.user.displayName?.split(' ')[0] || '',
+            lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
+            password: '',
+            isGoogleUser: true,
+          }));
+          router.push('/signup/account');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         console.error('Google sign-up error:', result.error);
         alert(`Google sign-up failed: ${result.error}`);
@@ -196,7 +191,7 @@ export default function BrandingSignUpPage() {
           Already have an account?{' '}
           <Link 
             component={NextLink} 
-            href="/signin" 
+            href="/signin"
             sx={{ 
               color: '#0C6431',
               textDecoration: 'none',

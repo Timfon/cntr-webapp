@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -14,10 +14,10 @@ import {
 } from '@mui/material';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
-import { authService } from "@/backend/auth";
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
+import { getSignupData } from '../signupUtils';
 
 interface AccountInfoFormData {
   email: string;
@@ -37,7 +37,24 @@ export default function AccountInfoPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const signupData = getSignupData();
+    const shouldAutoFill = signupData?.isGoogleUser || signupData?.demographic;
+    
+    if (shouldAutoFill && signupData) {
+      setIsGoogleUser(signupData.isGoogleUser);
+      setFormData({
+        email: signupData.email,
+        firstName: signupData.firstName,
+        lastName: signupData.lastName,
+        password: signupData.isGoogleUser ? '' : signupData.password || '',
+        confirmPassword: signupData.isGoogleUser ? '' : signupData.password || '',
+      });
+    }
+  }, []);
 
   const handleInputChange = (field: keyof AccountInfoFormData) => (
     event: React.ChangeEvent<HTMLInputElement>
@@ -50,19 +67,27 @@ export default function AccountInfoPage() {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.email || !formData.firstName || !formData.lastName || !formData.password) {
+    if (!formData.email || !formData.firstName || !formData.lastName) {
       setError('Please fill in all required fields');
       return false;
     }
     
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
-    }
-    
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
+    // Password validation only required for non-Google users
+    if (!isGoogleUser) {
+      if (!formData.password) {
+        setError('Please enter a password');
+        return false;
+      }
+      
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return false;
+      }
+      
+      if (formData.password.length < 6) {
+        setError('Password must be at least 6 characters long');
+        return false;
+      }
     }
     
     return true;
@@ -75,28 +100,17 @@ export default function AccountInfoPage() {
     setError(null);
     
     try {
-      const currentUser = authService.getCurrentUser();
+      const existingData = sessionStorage.getItem('completeSignupData');
+      const baseData = existingData ? JSON.parse(existingData) : {};
       
-      if (currentUser) {
-        // User is already authenticated (Google signup)
-        // Store form data for the next step
-        sessionStorage.setItem('signupData', JSON.stringify({
-          email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          password: '', 
-          isGoogleUser: true,
-        }));
-      } else {
-        // User needs to create account (Email signup)
-        sessionStorage.setItem('signupData', JSON.stringify({
-          email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          password: formData.password,
-          isGoogleUser: false,
-        }));
-      }
+      sessionStorage.setItem('completeSignupData', JSON.stringify({
+        ...baseData,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        password: isGoogleUser ? '' : formData.password,
+        isGoogleUser: isGoogleUser,
+      }));
       
       // Navigate to demographic page
       router.push('/signup/demographic');
@@ -131,7 +145,9 @@ export default function AccountInfoPage() {
                   Sign Up
                 </Typography>
                 <Typography variant="body1" sx={{ fontFamily: 'Rubik, sans-serif', color: '#666' }}>
-                  Create your account to begin scoring AI policy
+                  {isGoogleUser 
+                    ? 'Review and confirm your account information' 
+                    : 'Create your account to begin scoring AI policy'}
                 </Typography>
               </Box>
 
@@ -168,6 +184,7 @@ export default function AccountInfoPage() {
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange('email')}
+                  disabled={isGoogleUser}
                   fullWidth
                   required
                   sx={{ fontFamily: 'Rubik, sans-serif' }}
@@ -191,25 +208,29 @@ export default function AccountInfoPage() {
                   sx={{ fontFamily: 'Rubik, sans-serif' }}
                 />
                 
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange('password')}
-                  fullWidth
-                  required
-                  sx={{ fontFamily: 'Rubik, sans-serif' }}
-                />
-                
-                <TextField
-                  label="Confirm Password"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange('confirmPassword')}
-                  fullWidth
-                  required
-                  sx={{ fontFamily: 'Rubik, sans-serif' }}
-                />
+                {!isGoogleUser && (
+                  <>
+                    <TextField
+                      label="Password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleInputChange('password')}
+                      fullWidth
+                      required
+                      sx={{ fontFamily: 'Rubik, sans-serif' }}
+                    />
+                    
+                    <TextField
+                      label="Confirm Password"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange('confirmPassword')}
+                      fullWidth
+                      required
+                      sx={{ fontFamily: 'Rubik, sans-serif' }}
+                    />
+                  </>
+                )}
               </Box>
 
               {/* Navigation */}

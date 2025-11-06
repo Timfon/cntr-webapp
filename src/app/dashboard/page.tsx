@@ -10,6 +10,7 @@ import Footer from '@/app/components/Footer';
 import Loading from '@/app/components/Loading';
 import BillBox from '@/app/dashboard/BillBox';
 import { authService } from '@/backend/auth';
+import { colors } from '@/app/theme/colors';
 import {
   Box,
   Typography,
@@ -313,11 +314,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F6FBF7' }}>
+    <Box sx={{ minHeight: "100vh", backgroundColor: colors.background.main }}>
       <ResponsiveAppBar />
       <Container maxWidth={false} sx={{ py: 4, px: 4 }}>
         {/* Search and Filter */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', maxWidth: '1200px', mx: 'auto' }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mb: 4,
+            flexWrap: "wrap",
+            maxWidth: "1200px",
+            mx: "auto",
+          }}
+        >
           <TextField
             placeholder="Search bills"
             variant="outlined"
@@ -326,8 +336,8 @@ export default function DashboardPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{
               flexGrow: 1,
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'white',
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "white",
               },
             }}
             InputProps={{
@@ -338,62 +348,101 @@ export default function DashboardPage() {
               ),
             }}
           />
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            {(['all', 'inProgress', 'assigned', 'scored'] as FilterType[]).map((f) => (
-              <Button
-                key={f}
-                variant={filter === f ? 'contained' : 'outlined'}
-                onClick={() => setFilter(f)}
-                sx={{
-                  fontFamily: 'Rubik',
-                  backgroundColor: filter === f ? '#0C6431' : 'transparent',
-                  color: filter === f ? 'white' : '#0C6431',
-                  borderColor: '#0C6431',
-                  textTransform: 'capitalize',
-                  '&:hover': {
-                    backgroundColor: filter === f ? '#094d26' : 'rgba(12, 100, 49, 0.1)',
-                  },
-                }}
-              >
-                {f === 'inProgress' ? 'In Progress' : f}
-              </Button>
-            ))}
+          <Box sx={{ display: "flex", gap: 1 }}>
+            {(["all", "inProgress", "assigned", "scored"] as FilterType[]).map(
+              (f) => (
+                <Button
+                  key={f}
+                  variant={filter === f ? "contained" : "outlined"}
+                  onClick={() => setFilter(f)}
+                  sx={{
+                    backgroundColor:
+                      filter === f ? colors.primary : "transparent",
+                    color: filter === f ? colors.text.white : colors.primary,
+                    borderColor: colors.primary,
+                    textTransform: "capitalize",
+                    "&:hover": {
+                      backgroundColor:
+                        filter === f
+                          ? colors.primaryHover
+                          : colors.primaryLight,
+                    },
+                  }}
+                >
+                  {f === "inProgress" ? "In Progress" : f}
+                </Button>
+              )
+            )}
           </Box>
         </Box>
 
         {/* Stats Cards */}
-        <Grid container spacing={2} sx={{ mb: 4, maxWidth: '1200px', mx: 'auto' }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{ mb: 4, maxWidth: "1200px", mx: "auto" }}
+        >
           <Grid size={{ xs: 4, sm: 4 }}>
-            <Card sx={{ backgroundColor: 'white', boxShadow: '0px 1px 3px rgba(0,0,0,0.1)' }}>
+            <Card
+              sx={{
+                backgroundColor: colors.background.white,
+                boxShadow: "0px 1px 3px rgba(0,0,0,0.1)",
+              }}
+            >
               <CardContent sx={{ py: 2 }}>
-                <Typography variant="body2" sx={{ fontFamily: 'Rubik', color: '#666', fontSize: '0.875rem' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.text.secondary, fontSize: "0.875rem" }}
+                >
                   Total Bills
                 </Typography>
-                <Typography sx={{ fontFamily: 'Rubik-Bold', color: '#0C6431', fontSize: '2rem', mt: 0.5 }}>
+                <Typography
+                  sx={{ color: colors.primary, fontSize: "2.5rem", mt: 0.5 }}
+                >
                   {stats.total}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid size={{ xs: 4, sm: 4 }}>
-            <Card sx={{ backgroundColor: 'white', boxShadow: '0px 1px 3px rgba(0,0,0,0.1)' }}>
+            <Card
+              sx={{
+                backgroundColor: colors.background.white,
+                boxShadow: "0px 1px 3px rgba(0,0,0,0.1)",
+              }}
+            >
               <CardContent sx={{ py: 2 }}>
-                <Typography variant="body2" sx={{ fontFamily: 'Rubik', color: '#666', fontSize: '0.875rem' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.text.secondary, fontSize: "0.875rem" }}
+                >
                   Assigned
                 </Typography>
-                <Typography sx={{ fontFamily: 'Rubik-Bold', color: '#0C6431', fontSize: '2rem', mt: 0.5 }}>
+                <Typography
+                  sx={{ color: colors.primary, fontSize: "2.5rem", mt: 0.5 }}
+                >
                   {stats.assigned}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid size={{ xs: 4, sm: 4 }}>
-            <Card sx={{ backgroundColor: 'white', boxShadow: '0px 1px 3px rgba(0,0,0,0.1)' }}>
+            <Card
+              sx={{
+                backgroundColor: colors.background.white,
+                boxShadow: "0px 1px 3px rgba(0,0,0,0.1)",
+              }}
+            >
               <CardContent sx={{ py: 2 }}>
-                <Typography variant="body2" sx={{ fontFamily: 'Rubik', color: '#666', fontSize: '0.875rem' }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.text.secondary, fontSize: "0.875rem" }}
+                >
                   Scored
                 </Typography>
-                <Typography sx={{ fontFamily: 'Rubik-Bold', color: '#0C6431', fontSize: '2rem', mt: 0.5 }}>
+                <Typography
+                  sx={{ color: colors.primary, fontSize: "2.5rem", mt: 0.5 }}
+                >
                   {stats.scored}
                 </Typography>
               </CardContent>
@@ -403,13 +452,18 @@ export default function DashboardPage() {
 
         {/* Bill Cards - Grouped by Status */}
         {(() => {
-          const inProgressBills = filteredBills.filter(b => b.status === 'inProgress');
-          const assignedBills = filteredBills.filter(b => b.status === 'assigned');
-          const scoredBills = filteredBills.filter(b => b.status === 'scored');
-
+          const inProgressBills = filteredBills.filter(
+            (b) => b.status === "inProgress"
+          );
+          const assignedBills = filteredBills.filter(
+            (b) => b.status === "assigned"
+          );
+          const scoredBills = filteredBills.filter(
+            (b) => b.status === "scored"
+          );
 
           return (
-            <Box sx={{ maxWidth: '1200px', mx: 'auto' }}>
+            <Box sx={{ maxWidth: "1200px", mx: "auto" }}>
               {inProgressBills.length > 0 && (
                 <Grid container spacing={3} sx={{ mb: 5 }}>
                   {inProgressBills.map((bill) => (
@@ -430,13 +484,12 @@ export default function DashboardPage() {
               {/* Assigned Section */}
               {assignedBills.length > 0 && (
                 <Box sx={{ mb: 5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                     <Typography
                       variant="h6"
                       sx={{
-                        fontFamily: 'Rubik-Bold',
-                        color: '#333',
-                        fontSize: '1.25rem',
+                        color: "#333",
+                        fontSize: "1.25rem",
                       }}
                     >
                       Assigned
@@ -462,13 +515,12 @@ export default function DashboardPage() {
               {/* Scored Section */}
               {scoredBills.length > 0 && (
                 <Box sx={{ mb: 5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                     <Typography
                       variant="h6"
                       sx={{
-                        fontFamily: 'Rubik-Bold',
-                        color: '#333',
-                        fontSize: '1.25rem',
+                        color: "#333",
+                        fontSize: "1.25rem",
                       }}
                     >
                       Scored
@@ -492,8 +544,11 @@ export default function DashboardPage() {
               )}
 
               {filteredBills.length === 0 && (
-                <Box sx={{ textAlign: 'center', py: 8 }}>
-                  <Typography variant="h6" sx={{ fontFamily: 'Rubik', color: '#666' }}>
+                <Box sx={{ textAlign: "center", py: 8 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ color: colors.text.secondary }}
+                  >
                     No bills found
                   </Typography>
                 </Box>
@@ -506,32 +561,28 @@ export default function DashboardPage() {
       {/* Confirmation Dialog */}
       <Dialog
         open={confirmDialog.open}
-        onClose={() => setConfirmDialog({ open: false, billId: ''})}
+        onClose={() => setConfirmDialog({ open: false, billId: "" })}
       >
-        <DialogTitle sx={{ fontFamily: 'Rubik-Bold' }}>
-          Start Scoring Bill
-        </DialogTitle>
+        <DialogTitle>Start Scoring Bill</DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ fontFamily: 'Rubik', color: '#333' }}>
+          <DialogContentText sx={{ color: colors.text.primary }}>
             Are you sure you want to start scoring "{confirmDialog.billId}"?
-            <br /><br />
-            <strong>Important:</strong> To score another bill, you must first complete this bill.
+            <br />
+            <br />
+            <strong>Important:</strong> To score another bill, you must first
+            complete this bill.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => setConfirmDialog({ open: false, billId: '' })}
-            sx={{ fontFamily: 'Rubik' }}
-          >
+          <Button onClick={() => setConfirmDialog({ open: false, billId: "" })}>
             Cancel
           </Button>
           <Button
             onClick={confirmStartBill}
             variant="contained"
             sx={{
-              fontFamily: 'Rubik',
-              backgroundColor: '#0C6431',
-              '&:hover': { backgroundColor: '#094d26' },
+              backgroundColor: "#0C6431",
+              "&:hover": { backgroundColor: "#094d26" },
             }}
           >
             Start Bill
@@ -542,24 +593,21 @@ export default function DashboardPage() {
       {/* Alert Dialog */}
       <Dialog
         open={alertDialog.open}
-        onClose={() => setAlertDialog({ open: false, message: '' })}
+        onClose={() => setAlertDialog({ open: false, message: "" })}
       >
-        <DialogTitle sx={{ fontFamily: 'Rubik-Bold' }}>
-          Bill Already In Progress
-        </DialogTitle>
+        <DialogTitle>Bill Already In Progress</DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ fontFamily: 'Rubik', color: '#333' }}>
+          <DialogContentText sx={{ color: colors.text.primary }}>
             {alertDialog.message}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setAlertDialog({ open: false, message: '' })}
+            onClick={() => setAlertDialog({ open: false, message: "" })}
             variant="contained"
             sx={{
-              fontFamily: 'Rubik',
-              backgroundColor: '#0C6431',
-              '&:hover': { backgroundColor: '#094d26' },
+              backgroundColor: "#0C6431",
+              "&:hover": { backgroundColor: "#094d26" },
             }}
           >
             OK

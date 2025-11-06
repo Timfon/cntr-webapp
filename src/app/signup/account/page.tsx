@@ -141,10 +141,10 @@ export default function AccountInfoPage() {
                   alt="CNTR logo"
                   style={{ height: 50, marginBottom: 16 }}
                 />
-                <Typography variant="h4" sx={{ fontFamily: 'Rubik-Bold, sans-serif', color: '#0C6431', mb: 1 }}>
+                <Typography variant="h4" sx={{ color: '#0C6431', mb: 1 }}>
                   Sign Up
                 </Typography>
-                <Typography variant="body1" sx={{ fontFamily: 'Rubik, sans-serif', color: '#666' }}>
+                <Typography variant="body1" sx={{ color: '#666' }}>
                   {isGoogleUser 
                     ? 'Review and confirm your account information' 
                     : 'Create your account to begin scoring AI policy'}
@@ -153,7 +153,7 @@ export default function AccountInfoPage() {
 
               {/* Progress Bar */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" sx={{ fontFamily: 'Rubik, sans-serif', mb: 1 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
                   Step 1 of 3: Account Information
                 </Typography>
                 <LinearProgress 
@@ -172,7 +172,7 @@ export default function AccountInfoPage() {
 
               {/* Error Alert */}
               {error && (
-                <Alert severity="error" sx={{ mb: 2, fontFamily: 'Rubik, sans-serif' }}>
+                <Alert severity="error" sx={{ mb: 2 }}>
                   {error}
                 </Alert>
               )}
@@ -187,7 +187,6 @@ export default function AccountInfoPage() {
                   disabled={isGoogleUser}
                   fullWidth
                   required
-                  sx={{ fontFamily: 'Rubik, sans-serif' }}
                 />
                 
                 <TextField
@@ -196,7 +195,6 @@ export default function AccountInfoPage() {
                   onChange={handleInputChange('firstName')}
                   fullWidth
                   required
-                  sx={{ fontFamily: 'Rubik, sans-serif' }}
                 />
                 
                 <TextField
@@ -205,7 +203,6 @@ export default function AccountInfoPage() {
                   onChange={handleInputChange('lastName')}
                   fullWidth
                   required
-                  sx={{ fontFamily: 'Rubik, sans-serif' }}
                 />
                 
                 {!isGoogleUser && (
@@ -217,7 +214,6 @@ export default function AccountInfoPage() {
                       onChange={handleInputChange('password')}
                       fullWidth
                       required
-                      sx={{ fontFamily: 'Rubik, sans-serif' }}
                     />
                     
                     <TextField
@@ -227,7 +223,6 @@ export default function AccountInfoPage() {
                       onChange={handleInputChange('confirmPassword')}
                       fullWidth
                       required
-                      sx={{ fontFamily: 'Rubik, sans-serif' }}
                     />
                   </>
                 )}
@@ -239,7 +234,6 @@ export default function AccountInfoPage() {
                   component={NextLink} 
                   href="/signin" 
                   sx={{ 
-                    fontFamily: 'Rubik, sans-serif',
                     color: '#0C6431',
                     textDecoration: 'none',
                     '&:hover': { textDecoration: 'underline' }
@@ -254,7 +248,6 @@ export default function AccountInfoPage() {
                   disabled={loading}
                   sx={{
                     backgroundColor: '#0C6431',
-                    fontFamily: 'Rubik, sans-serif',
                     px: 4,
                     py: 1,
                     '&:hover': {

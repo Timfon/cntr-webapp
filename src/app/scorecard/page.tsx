@@ -412,7 +412,6 @@ router.push("/dashboard");
         position: "sticky",
         top: 30,
         backgroundColor: '#ffffffff',
-        fontFamily: 'Rubik, sans-serif',
         fontWeight: 500,
         color: '#333333',
         boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
@@ -470,7 +469,6 @@ router.push("/dashboard");
                     color: "#333333",
                     mb: 2,
                     mt: 4,
-                    fontFamily: "Rubik, sans-serif",
                   }}
                 >
                   Section {currentIndex >= 0 ? currentIndex + 1 : 1} of {sections.length}
@@ -482,7 +480,6 @@ router.push("/dashboard");
                     fontWeight: "100",
                     color: "#333333",
                     mb: 2,
-                    fontFamily: "Rubik-Bold, sans-serif",
                   }}
                 >
                   {currentSectionData?.name || 'Unknown Section'}

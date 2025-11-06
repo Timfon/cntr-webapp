@@ -40,17 +40,17 @@ export default function SignupSuccessPage() {
                   alt="CNTR logo"
                   style={{ height: 50, marginBottom: 16 }}
                 />
-                <Typography variant="h4" sx={{ fontFamily: 'Rubik-Bold, sans-serif', color: '#0C6431', mb: 2 }}>
+                <Typography variant="h4" sx={{ color: '#0C6431', mb: 2 }}>
                   Account Created!
                 </Typography>
-                <Typography variant="body1" sx={{ fontFamily: 'Rubik, sans-serif', color: '#666', mb: 3 }}>
+                <Typography variant="body1" sx={{ color: '#666', mb: 3 }}>
                   Your account has been successfully created. You can now begin scoring AI policy bills.
                 </Typography>
               </Box>
 
               {/* Success Message */}
               <Box sx={{ mb: 4 }}>
-                <Typography variant="body1" sx={{ fontFamily: 'Rubik, sans-serif', color: '#0C6431', fontWeight: 'bold' }}>
+                <Typography variant="body1" sx={{ color: '#0C6431', fontWeight: 'bold' }}>
                   Navigate to the dashboard to begin scoring bills.
                 </Typography>
               </Box>
@@ -61,7 +61,6 @@ export default function SignupSuccessPage() {
                 onClick={handleContinue}
                 sx={{
                   backgroundColor: '#0C6431',
-                  fontFamily: 'Rubik, sans-serif',
                   px: 4,
                   py: 1,
                   fontSize: '1.1rem',

@@ -11,6 +11,7 @@ import {
   TableRow,
   Button
 } from '@mui/material';
+import { colors } from '@/app/theme/colors';
 
 interface UnansweredQuestion {
   section: string;
@@ -41,10 +42,8 @@ const UnansweredQuestionsTable: React.FC<UnansweredQuestionsTableProps> = ({
       <Typography
         variant="h5"
         sx={{
-          fontWeight: "bold",
           mb: 2,
-          fontFamily: "Rubik-Bold, sans-serif",
-          color: "#333333",
+          color: colors.text.primary,
         }}
       >
         Unanswered Questions
@@ -53,8 +52,7 @@ const UnansweredQuestionsTable: React.FC<UnansweredQuestionsTableProps> = ({
         variant="body2"
         sx={{
           mb: 2,
-          fontFamily: "Rubik, sans-serif",
-          color: "#666",
+          color: colors.text.secondary,
         }}
       >
         These questions still need to be answered:
@@ -66,20 +64,14 @@ const UnansweredQuestionsTable: React.FC<UnansweredQuestionsTableProps> = ({
       >
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-              <TableCell
-                sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 600 }}
-              >
+            <TableRow sx={{ backgroundColor: colors.neutral.gray100 }}>
+              <TableCell sx={{ fontWeight: 600 }}>
                 Section
               </TableCell>
-              <TableCell
-                sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 600 }}
-              >
+              <TableCell sx={{ fontWeight: 600 }}>
                 Question
               </TableCell>
-              <TableCell
-                sx={{ fontFamily: "Rubik, sans-serif", fontWeight: 600 }}
-              >
+              <TableCell sx={{ fontWeight: 600 }}>
                 Action
               </TableCell>
             </TableRow>
@@ -94,10 +86,10 @@ const UnansweredQuestionsTable: React.FC<UnansweredQuestionsTableProps> = ({
                   handleNavigateToQuestion(item.sectionId, item.questionId)
                 }
               >
-                <TableCell sx={{ fontFamily: "Rubik, sans-serif" }}>
+                <TableCell>
                   {item.section}
                 </TableCell>
-                <TableCell sx={{ fontFamily: "Rubik, sans-serif" }}>
+                <TableCell>
                   {item.questionId}.{" "} 
                   {item.question}
                 </TableCell>
@@ -106,10 +98,8 @@ const UnansweredQuestionsTable: React.FC<UnansweredQuestionsTableProps> = ({
                     variant="outlined"
                     size="small"
                     sx={{
-                      fontFamily: "Rubik, sans-serif",
-                      textTransform: "none",
-                      borderColor: "#ccc",
-                      color: "#666",
+                      borderColor: colors.border.default,
+                      color: colors.text.secondary,
                     }}
                     onClick={(e) => {
                       e.stopPropagation();

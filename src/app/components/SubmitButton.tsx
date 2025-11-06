@@ -3,6 +3,7 @@ import {
   Box,
   Button
 } from '@mui/material';
+import { colors } from '@/app/theme/colors';
 
 interface SubmitButtonProps {
   canSubmit: boolean;
@@ -20,15 +21,12 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
         onClick={onSubmit}
         disabled={!canSubmit}
         sx={{
-          backgroundColor: canSubmit ? '#2e7d32' : '#ccc',
-          fontFamily: 'Rubik, sans-serif',
-          borderRadius: 2,
-          textTransform: 'none',
+          backgroundColor: canSubmit ? colors.primary : colors.text.disabled,
           minWidth: 200,
           py: 1.5,
           fontSize: '1.1rem',
           '&:hover': {
-            backgroundColor: canSubmit ? '#1b5e20' : '#ccc'
+            backgroundColor: canSubmit ? colors.primaryHover : colors.text.disabled
           }
         }}
       >

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import { authService } from "@/backend/auth";
 import { useRouter } from 'next/navigation';
@@ -31,7 +30,6 @@ const BRANDING = {
 };
 
 export default function BrandingSignUpPage() {
-  const theme = useTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -70,23 +68,6 @@ export default function BrandingSignUpPage() {
     router.push('/signup/account');
   };
 
-  const customTheme = {
-    ...theme,
-    typography: {
-      ...theme.typography,
-      fontFamily: 'Rubik, sans-serif',
-      h1: { ...theme.typography.h1, fontFamily: 'Rubik-Bold, sans-serif' },
-      h2: { ...theme.typography.h2, fontFamily: 'Rubik-Bold, sans-serif' },
-      h3: { ...theme.typography.h3, fontFamily: 'Rubik-Bold, sans-serif' },
-      h4: { ...theme.typography.h4, fontFamily: 'Rubik-Bold, sans-serif' },
-      h5: { ...theme.typography.h5, fontFamily: 'Rubik-Bold, sans-serif' },
-      h6: { ...theme.typography.h6, fontFamily: 'Rubik-Bold, sans-serif' },
-      body1: { ...theme.typography.body1, fontFamily: 'Rubik, sans-serif' },
-      body2: { ...theme.typography.body2, fontFamily: 'Rubik, sans-serif' },
-      button: { ...theme.typography.button, fontFamily: 'Rubik, sans-serif' },
-    },
-  };
-
   return (
     <Card sx={{ maxWidth: 400, width: '100%', mx: 2 }}>
       <CardContent sx={{ p: 4, textAlign: 'center' }}>
@@ -94,10 +75,9 @@ export default function BrandingSignUpPage() {
         {BRANDING.logo}
         
         {/* Title */}
-        <Typography variant="h4" sx={{ 
-          fontFamily: 'Rubik-Bold, sans-serif', 
-          color: '#0C6431', 
-          mb: 1,
+          <Typography variant="h4" sx={{ 
+            color: '#0C6431', 
+            mb: 1,
           mt: 2 
         }}>
           {BRANDING.title}
@@ -105,7 +85,6 @@ export default function BrandingSignUpPage() {
         
         {/* Description */}
         <Typography variant="body1" sx={{ 
-          fontFamily: 'Rubik, sans-serif', 
           color: '#666', 
           mb: 3 
         }}>
@@ -131,8 +110,6 @@ export default function BrandingSignUpPage() {
             sx={{
               mb: 2,
               py: 1.5,
-              fontFamily: 'Rubik, sans-serif',
-              textTransform: 'none',
               fontSize: '0.95rem',
               borderColor: '#dadce0',
               color: '#3c4043',
@@ -156,7 +133,6 @@ export default function BrandingSignUpPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
             <Divider sx={{ flex: 1 }} />
             <Typography variant="body2" sx={{ 
-              fontFamily: 'Rubik, sans-serif', 
               color: '#666', 
               px: 2 
             }}>
@@ -171,7 +147,6 @@ export default function BrandingSignUpPage() {
             onClick={handleEmailSignUp}
             sx={{
               backgroundColor: '#0C6431',
-              fontFamily: 'Rubik, sans-serif',
               py: 1.5,
               '&:hover': {
                 backgroundColor: '#0A4F28',
@@ -184,7 +159,6 @@ export default function BrandingSignUpPage() {
 
         {/* Sign In Link */}
         <Typography variant="body2" sx={{ 
-          fontFamily: 'Rubik, sans-serif', 
           mt: 3,
           color: '#666'
         }}>

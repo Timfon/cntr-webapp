@@ -8,7 +8,6 @@ const NotesSection = ({ notes, currentSection, onNotesChange }) => {
       <Typography variant="h6" sx={{ 
         fontWeight: 'bold', 
         mb: 2,
-        fontFamily: 'Rubik, sans-serif'
       }}>
         Notes
       </Typography>
@@ -22,12 +21,7 @@ const NotesSection = ({ notes, currentSection, onNotesChange }) => {
         sx={{
           '& .MuiOutlinedInput-root': {
             backgroundColor: 'white',
-            fontFamily: 'Rubik, sans-serif',
-            borderRadius: 2
           },
-          '& .MuiInputBase-input': {
-            fontFamily: 'Rubik, sans-serif'
-          }
         }}
       />
     </Paper>

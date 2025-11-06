@@ -20,14 +20,14 @@ const SubmissionStatusAlert: React.FC<SubmissionStatusAlertProps> = ({
   return (
     <Alert 
       severity="warning" 
-      sx={{ mb: 4, fontFamily: 'Rubik, sans-serif' }}
+      sx={{ mb: 4 }}
     >
-      <Typography sx={{ fontFamily: 'Rubik, sans-serif', fontWeight: 500 }}>
+      <Typography sx={{ fontWeight: 500 }}>
         Cannot submit yet. Please address the following:
       </Typography>
       <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
         {submissionIssues.map((issue, index) => (
-          <li key={index} style={{ fontFamily: 'Rubik, sans-serif' }}>{issue}</li>
+          <li key={index}>{issue}</li>
         ))}
       </ul>
     </Alert>

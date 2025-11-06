@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { AppProvider } from '@toolpad/core/AppProvider';
-import { useTheme } from '@mui/material/styles';
 import { auth } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
@@ -27,7 +25,6 @@ export default function BrandingSignInPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const theme = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -94,37 +91,18 @@ export default function BrandingSignInPage() {
     }
   };
 
-  const customTheme = {
-    ...theme,
-    typography: {
-      ...theme.typography,
-      fontFamily: 'Rubik, sans-serif',
-      h1: { ...theme.typography.h1, fontFamily: 'Rubik-Bold, sans-serif' },
-      h2: { ...theme.typography.h2, fontFamily: 'Rubik-Bold, sans-serif' },
-      h3: { ...theme.typography.h3, fontFamily: 'Rubik-Bold, sans-serif' },
-      h4: { ...theme.typography.h4, fontFamily: 'Rubik-Bold, sans-serif' },
-      h5: { ...theme.typography.h5, fontFamily: 'Rubik-Bold, sans-serif' },
-      h6: { ...theme.typography.h6, fontFamily: 'Rubik-Bold, sans-serif' },
-      body1: { ...theme.typography.body1, fontFamily: 'Rubik, sans-serif' },
-      body2: { ...theme.typography.body2, fontFamily: 'Rubik, sans-serif' },
-      button: { ...theme.typography.button, fontFamily: 'Rubik, sans-serif' },
-    },
-  };
-
   return (
-    <AppProvider branding={BRANDING} theme={customTheme}>
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#D9E8DF',
-        px: 2
-      }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      minHeight: '100vh',
+      backgroundColor: '#D9E8DF',
+      px: 2
+    }}>
         <Box sx={{ 
           backgroundColor: 'white', 
-          borderRadius: 2, 
           p: 4, 
           boxShadow: 3,
           width: '100%',
@@ -143,7 +121,6 @@ export default function BrandingSignInPage() {
           <Typography 
             variant="h4" 
             sx={{ 
-              fontFamily: 'Rubik-Bold, sans-serif', 
               textAlign: 'center', 
               mb: 3,
               color: '#0C6431'
@@ -154,7 +131,7 @@ export default function BrandingSignInPage() {
 
           {/* Error Alert */}
           {error && (
-            <Alert severity="error" sx={{ mb: 2, fontFamily: 'Rubik, sans-serif' }}>
+            <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
@@ -176,7 +153,6 @@ export default function BrandingSignInPage() {
             sx={{
               mb: 2,
               py: 1.5,
-              fontFamily: 'Rubik, sans-serif',
               borderColor: '#0C6431',
               color: '#0C6431',
               '&:hover': {
@@ -191,7 +167,7 @@ export default function BrandingSignInPage() {
           {/* Divider */}
           <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
             <Box sx={{ flex: 1, height: 1, backgroundColor: '#e0e0e0' }} />
-            <Typography variant="body2" sx={{ mx: 2, color: '#666', fontFamily: 'Rubik, sans-serif' }}>
+            <Typography variant="body2" sx={{ mx: 2, color: '#666' }}>
               or
             </Typography>
             <Box sx={{ flex: 1, height: 1, backgroundColor: '#e0e0e0' }} />
@@ -207,7 +183,7 @@ export default function BrandingSignInPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              sx={{ mb: 2, fontFamily: 'Rubik, sans-serif' }}
+              sx={{ mb: 2 }}
             />
             <TextField
               fullWidth
@@ -217,7 +193,7 @@ export default function BrandingSignInPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              sx={{ mb: 3, fontFamily: 'Rubik, sans-serif' }}
+              sx={{ mb: 3 }}
             />
             <Button
               type="submit"
@@ -226,7 +202,6 @@ export default function BrandingSignInPage() {
               disabled={loading}
               sx={{
                 py: 1.5,
-                fontFamily: 'Rubik, sans-serif',
                 backgroundColor: '#0C6431',
                 '&:hover': {
                   backgroundColor: '#0A4F28',
@@ -238,7 +213,7 @@ export default function BrandingSignInPage() {
           </form>
 
           {/* Sign Up Link */}
-          <Typography variant="body2" sx={{ fontFamily: 'Rubik, sans-serif', mt: 3, textAlign: 'center' }}>
+          <Typography variant="body2" sx={{ mt: 3, textAlign: 'center' }}>
             Don't have an account?{' '}
             <Link component={NextLink} href="/signup" underline="hover" sx={{ fontWeight: 500 }}>
               Sign up here
@@ -246,6 +221,5 @@ export default function BrandingSignInPage() {
           </Typography>
         </Box>
       </Box>
-    </AppProvider>
   );
 }

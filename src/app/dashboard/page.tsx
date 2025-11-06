@@ -8,7 +8,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import Loading from '@/app/components/Loading';
-import BillBox from '@/app/components/BillBox';
+import BillBox from '@/app/dashboard/BillBox';
+import { authService } from '@/backend/auth';
 import {
   Box,
   Typography,
@@ -53,7 +54,6 @@ export default function DashboardPage() {
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     billId: '',
-    billName: '',
   });
   const [alertDialog, setAlertDialog] = useState({
     open: false,
@@ -66,6 +66,14 @@ export default function DashboardPage() {
       if (!user) {
         router.push('/signin');
       } else {
+        // Check if user has completed profile setup
+        const hasCompleted = await authService.hasCompletedProfile(user.uid);
+        if (!hasCompleted) {
+          // Redirect to signup flow if profile is incomplete
+          router.push('/signup/account');
+          return;
+        }
+        
         await loadUserBills(user.uid);
         setLoading(false);
       }
@@ -222,13 +230,11 @@ export default function DashboardPage() {
       // Get bill name for confirmation
       const allBills = await databaseService.getAllBills();
       const bill = allBills.find(b => b.billId === billId);
-      const billName = bill?.name || billId;
 
       // Confirmation dialog
       setConfirmDialog({
         open: true,
         billId,
-        billName,
       });
     } catch (error) {
       setAlertDialog({
@@ -257,7 +263,7 @@ export default function DashboardPage() {
         {},
         'general'
       );
-      setConfirmDialog({ open: false, billId: '', billName: '' });
+      setConfirmDialog({ open: false, billId: '' });
 
       // Reload the bills to show updated status
       await loadUserBills(user.uid);
@@ -512,21 +518,21 @@ export default function DashboardPage() {
       {/* Confirmation Dialog */}
       <Dialog
         open={confirmDialog.open}
-        onClose={() => setConfirmDialog({ open: false, billId: '', billName: '' })}
+        onClose={() => setConfirmDialog({ open: false, billId: ''})}
       >
         <DialogTitle sx={{ fontFamily: 'Rubik-Bold' }}>
           Start Scoring Bill
         </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ fontFamily: 'Rubik', color: '#333' }}>
-            Are you sure you want to start scoring "{confirmDialog.billName}"?
+            Are you sure you want to start scoring "{confirmDialog.billId}"?
             <br /><br />
             <strong>Important:</strong> To score another bill, you must first complete this bill.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setConfirmDialog({ open: false, billId: '', billName: '' })}
+            onClick={() => setConfirmDialog({ open: false, billId: '' })}
             sx={{ fontFamily: 'Rubik' }}
           >
             Cancel

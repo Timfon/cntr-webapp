@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { userService } from './users';
+import { UserRole } from '@/types/user';
 
 /**
  * Backend authentication service functions
@@ -23,28 +24,17 @@ export const authService = {
       const googleProvider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, googleProvider);
       
-      // Ensure user profile exists (for existing users who might not have profiles)
+      let isNewUser = false;
       try {
         const userProfile = await userService.getUserProfile(result.user.uid);
         if (!userProfile) {
-          await userService.createUserProfile(
-            result.user.uid, 
-            result.user.email || '', 
-            result.user.displayName || undefined, 
-            'general'
-          );
+          isNewUser = true;
         }
       } catch (error: any) {
-        await userService.createUserProfile(
-          result.user.uid, 
-          result.user.email || '', 
-          result.user.displayName || undefined, 
-          'general'
-        );
+        isNewUser = true;
       }
       
-      
-      return { success: true, user: result.user };
+      return { success: true, user: result.user, isNewUser };
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       console.error('Error details:', {
@@ -68,21 +58,10 @@ export const authService = {
       try {
         const userProfile = await userService.getUserProfile(result.user.uid);
         if (!userProfile) {
-          await userService.createUserProfile(
-            result.user.uid, 
-            email, 
-            result.user.displayName || undefined, 
-            'general'
-          );
+          return { success: false, error: 'User profile not found' };
         }
       } catch (error: any) {
-        // If getting profile fails, create one
-        await userService.createUserProfile(
-          result.user.uid, 
-          email, 
-          result.user.displayName || undefined, 
-          'general'
-        );
+        return { success: false, error: 'User profile not found' };
       }
       
       return { success: true, user: result.user };
@@ -109,16 +88,18 @@ export const authService = {
   /**
    * Sign up with email and password
    */
-  async signUpWithEmail(email: string, password: string, displayName?: string) {
+  async signUpWithEmail(email: string, password: string, firstName: string, lastName: string, role: UserRole, cohort: string) {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
       // Create user profile with default role
       await userService.createUserProfile(
-        result.user.uid, 
-        email, 
-        displayName, 
-        'general'
+        result.user.uid,
+        email,
+        firstName,
+        lastName,
+        role,
+        cohort,
       );
       
       return { success: true, user: result.user };
@@ -163,5 +144,22 @@ export const authService = {
    */
   getCurrentUser() {
     return auth.currentUser;
+  },
+
+  /**
+   * Check if user has completed profile setup
+   * Profile is considered complete if firstName and lastName exist
+   */
+  async hasCompletedProfile(uid: string): Promise<boolean> {
+    try {
+      const userProfile = await userService.getUserProfile(uid);
+      if (!userProfile) return false;
+      
+      // Check if required profile fields are present
+      return !!(userProfile.firstName && userProfile.lastName);
+    } catch (error) {
+      console.error('Error checking profile completion:', error);
+      return false;
+    }
   }
 };

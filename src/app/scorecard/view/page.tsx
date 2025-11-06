@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Loading from "@/app/components/Loading";
 import ResponsiveAppBar from "@/app/components/ResponsiveAppBar";
 import Footer from "@/app/components/Footer";
-import ScoringSummary from "@/app/components/ScoringSummary";
+import ScoringSummary from "@/app/scorecard/ScoringSummary";
 import {
   Box,
   Typography,

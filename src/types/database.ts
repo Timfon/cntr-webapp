@@ -4,6 +4,9 @@ export interface User {
   uid: string;
   email: string;
   role: string;
+  firstName: string;
+  lastName: string;
+  cohort: string | null;
   assignedBills: string[];
   inProgress: {
     billId: string;
@@ -18,16 +21,14 @@ export interface User {
 }
 
 export interface Bill {
-  billId: string; // Document ID from Firestore (e.g., "AL HB283 2025-02-13")
+  billId: string;
   title: string; // Bill title from Firestore
-  name?: string; // Legacy field - fallback
   url: string;
   versionDate: string;
   state: string;
   year: number | string; // Firestore has number, but can be string
   number: string; // Firestore format: includes prefix like "HB283" or "SB123"
   body?: string; // Firestore format: "House" or "Senate"
-  type?: 'H' | 'S'; // Legacy field - can be derived from body or number
   description?: string; // Firestore format - bill description
 }
 

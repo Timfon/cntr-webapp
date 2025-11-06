@@ -19,8 +19,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import ResponsiveAppBar from "@/app/components/ResponsiveAppBar";
 import Footer from "@/app/components/Footer";
 
-import ScorecardSidebar from "@/app/components/ScorecardSidebar";
-import QuestionCard from "@/app/components/QuestionCard";
+import ScorecardSidebar from "@/app/scorecard/ScorecardSidebar";
+import QuestionCard from "@/app/scorecard/QuestionCard";
 import NotesSection from "@/app/components/NotesSection";
 import NavigationButtons from "@/app/components/NavigationButtons";
 import SubmissionPage from "./submission";
@@ -112,7 +112,7 @@ function ScorecardContent() {
         const details = await databaseService.getBill(decodedBill);
         if (details) {
           setBillDetails(details);
-          billName = details.title || details.name || decodedBill;
+          billName = details.title || decodedBill;
           setSelectedBill(billName);
         } else {
           setSelectedBill(decodedBill);

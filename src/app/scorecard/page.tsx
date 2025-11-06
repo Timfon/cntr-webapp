@@ -21,7 +21,7 @@ import Footer from "@/app/components/Footer";
 
 import ScorecardSidebar from "@/app/scorecard/ScorecardSidebar";
 import QuestionCard from "@/app/scorecard/QuestionCard";
-import NotesSection from "@/app/components/NotesSection";
+import NotesSection from "@/app/scorecard/NotesSection";
 import NavigationButtons from "@/app/components/NavigationButtons";
 import SubmissionPage from "./submission";
 import GlossaryPanel from "@/app/components/GlossaryPanel";

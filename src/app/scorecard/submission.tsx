@@ -6,7 +6,7 @@ import {
 import { sections } from '@/app/data/sections';
 import { questionBank } from '@/app/data/questionBank';
 import ScoringSummary from '@/app/scorecard/ScoringSummary';
-import FlaggedQuestionsTable from '@/app/components/FlaggedQuestionsTable';
+import FlaggedQuestionsTable from '@/app/scorecard/FlaggedQuestionsTable';
 import UnansweredQuestionsTable from '@/app/scorecard/UnansweredQuestionsTable';
 import NotesTable from '@/app/components/NotesTable';
 import SubmitButton from '@/app/components/SubmitButton';

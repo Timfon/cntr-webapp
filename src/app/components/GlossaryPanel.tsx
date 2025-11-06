@@ -5,18 +5,13 @@ import {
   Box,
   Typography,
   TextField,
-  IconButton,
   Divider,
   Chip,
   InputAdornment,
-  List,
-  ListItem,
-  ListItemText,
   Paper,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
-import { glossary, GlossaryTerm, searchGlossary } from '@/app/data/glossary';
+import { glossary, searchGlossary } from '@/app/data/glossary';
 
 interface GlossaryPanelProps {
   open: boolean;
@@ -67,7 +62,6 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
           <Typography
             variant="h5"
             sx={{
-              fontFamily: 'Rubik-Bold',
               color: '#0C6431',
               fontWeight: 'bold',
             }}
@@ -93,7 +87,6 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
             sx={{
               '& .MuiOutlinedInput-root': {
                 backgroundColor: 'white',
-                fontFamily: 'Rubik',
                 '&:hover fieldset': {
                   borderColor: '#0C6431',
                 },
@@ -110,7 +103,6 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
           {filteredTerms.length === 0 ? (
             <Typography
               sx={{
-                fontFamily: 'Rubik',
                 color: '#999',
                 textAlign: 'center',
                 mt: 4,
@@ -133,7 +125,6 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                 <Typography
                   variant="h6"
                   sx={{
-                    fontFamily: 'Rubik-Bold',
                     color: '#000000',
                     fontWeight: 'bold',
                     mb: 1.5,
@@ -148,7 +139,6 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                 <Typography
                   variant="body2"
                   sx={{
-                    fontFamily: 'Rubik',
                     color: '#333',
                     mb: 1.5,
                     lineHeight: 1.6,
@@ -161,7 +151,6 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                   <Typography
                     variant="caption"
                     sx={{
-                      fontFamily: 'Rubik-Medium',
                       color: '#666',
                       mb: 0.5,
                       display: 'block',
@@ -178,7 +167,6 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                         sx={{
                           backgroundColor: '#E8F5E9',
                           color: '#2e7d32',
-                          fontFamily: 'Rubik',
                           fontSize: '0.75rem',
                           height: '24px',
                         }}

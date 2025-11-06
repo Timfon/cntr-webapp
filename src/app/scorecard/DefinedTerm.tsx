@@ -9,7 +9,7 @@ const DefinedTerm = ({ term = '', children = null, definition = '' }) => {
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
       <Tooltip
         title={
-          <Box sx={{ fontFamily: 'Rubik, sans-serif', fontSize: '1rem', lineHeight: 1.6 }}>
+          <Box sx={{ fontSize: '1rem', lineHeight: 1.6 }}>
             <strong>Definition:</strong> {finalDefinition}
           </Box>
         }
@@ -25,7 +25,6 @@ const DefinedTerm = ({ term = '', children = null, definition = '' }) => {
               maxWidth: 500,
               padding: '16px 20px',
               borderRadius: '12px',
-              fontFamily: 'Rubik, sans-serif',
               border: '1px solid #e0e0e0',
               boxShadow: '0 6px 24px rgba(0, 0, 0, 0.15)',
               lineHeight: 1.6

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Button } from '@mui/material';
 import { sections } from '@/app/data/sections';
+import { colors } from '@/app/theme/colors';
 
 const NavigationButtons = ({ 
   currentSection, 
@@ -23,14 +24,11 @@ const NavigationButtons = ({
         }}
         disabled={currentIndex === 0}
         sx={{ 
-          color: '#666',
-          borderColor: '#ccc',
-          textTransform: 'none',
+          color: colors.text.secondary,
+          borderColor: colors.border.default,
           minWidth: 110,
-          fontFamily: 'Rubik, sans-serif',
-          borderRadius: 2,
           '&:hover': {
-            backgroundColor: '#f5f5f5'
+            backgroundColor: colors.neutral.gray100
           }
         }}
       >
@@ -41,14 +39,11 @@ const NavigationButtons = ({
           variant="contained"
           onClick={onSubmit}
           sx={{
-            backgroundColor: '#2e7d32',
-            fontFamily: 'Rubik, sans-serif',
-            borderRadius: 2,
-            textTransform: 'none',
+            backgroundColor: colors.status.success,
             minWidth: 110,
             width: 100,
             '&:hover': {
-              backgroundColor: '#1b5e20'
+              backgroundColor: colors.status.successDark
             }
           }}
         >
@@ -59,14 +54,11 @@ const NavigationButtons = ({
           variant="contained" 
           onClick={onNext}
           sx={{ 
-            backgroundColor: '#2e7d32',
-            fontFamily: 'Rubik, sans-serif',
-            borderRadius: 2,
+            backgroundColor: colors.status.success,
             minWidth: 110,
-            textTransform: 'none',
             width: 100,
             '&:hover': {
-              backgroundColor: '#1b5e20'
+              backgroundColor: colors.status.successDark
             }
           }}
         >

@@ -136,7 +136,6 @@ function HeroSection() {
             color: 'white',
             fontWeight: 'bold',
             mb: 2,
-            fontFamily: 'Rubik-ExtraBold',
           }}
         >
           CNTR AISLE
@@ -147,7 +146,6 @@ function HeroSection() {
             color: 'white',
             mb: 4,
             maxWidth: '600px',
-            fontFamily: 'Rubik',
           }}
         >
           We reimagine how to design, build and govern technology in ways that put people first.
@@ -160,7 +158,6 @@ function HeroSection() {
             color: 'white',
             px: 3,
             py: 1.2,
-            fontFamily: 'Rubik',
             fontSize: '1rem',
             fontWeight: 'bold',
             '&:hover': {
@@ -189,7 +186,6 @@ function AboutSection() {
               mb: 4,
               fontWeight: 'bold',
               color: '#333',
-              fontFamily: 'Rubik',
             }}
           >
             More About CNTR AISLE
@@ -201,7 +197,6 @@ function AboutSection() {
               mb: 3,
               lineHeight: 1.6,
               color: '#666',
-              fontFamily: 'Rubik',
             }}
           >
             Over 1,000 AI-related bills were introduced in the US from January 2023 to January 2025. With a lack of efforts to identify key policy elements that assess the maturity and robustness of AI legislation, a comprehensive assessment framework is urgently needed for policymakers, media, and the public.
@@ -213,7 +208,6 @@ function AboutSection() {
               mb: 4,
               lineHeight: 1.6,
               color: '#666',
-              fontFamily: 'Rubik',
             }}
           >
             The mission of the Center is to redefine computer science education, research, and technology to center the needs, problems, and aspirations of all — and especially those that technology has left behind.
@@ -230,7 +224,6 @@ function AboutSection() {
               color: 'white',
               px: 3,
               py: 1.0,
-              fontFamily: 'Rubik',
               '&:hover': {
                 backgroundColor: '#094d26',
               },
@@ -265,7 +258,6 @@ function AboutSection() {
     alignItems: 'center',
     justifyContent: 'center',
     color: '#666',
-    fontFamily: 'Rubik',
   }}
 >
 </Box>
@@ -289,7 +281,6 @@ function TeamSection() {
             mb: 6,
             fontWeight: 'bold',
             color: '#333',
-            fontFamily: 'Rubik',
           }}
         >
           Our Team
@@ -324,7 +315,6 @@ function TeamSection() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#666',
-                    fontFamily: 'Rubik',
                     fontSize: '12px',
                   }}
                 >
@@ -336,7 +326,6 @@ function TeamSection() {
                     mb: 1,
                     fontWeight: 'bold',
                     color: '#333',
-                    fontFamily: 'Rubik',
                   }}
                 >
                   {member.name}
@@ -346,7 +335,6 @@ function TeamSection() {
                   sx={{
                     mb: 2,
                     color: '#0C6431',
-                    fontFamily: 'Rubik',
                   }}
                 >
                   {member.role}
@@ -356,7 +344,6 @@ function TeamSection() {
                   sx={{
                     color: '#666',
                     lineHeight: 1.5,
-                    fontFamily: 'Rubik',
                   }}
                 >
                   {/* {member.description} */}

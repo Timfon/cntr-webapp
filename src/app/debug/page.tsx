@@ -73,7 +73,6 @@ export default function DebugPage() {
           <Card sx={{ maxWidth: 600, width: '100%', mx: 2 }}>
             <CardContent sx={{ p: 4 }}>
               <Typography variant="h4" sx={{ 
-                fontFamily: 'Rubik-Bold, sans-serif', 
                 color: '#0C6431', 
                 mb: 3,
                 textAlign: 'center'
@@ -82,7 +81,6 @@ export default function DebugPage() {
               </Typography>
               
               <Typography variant="body1" sx={{ 
-                fontFamily: 'Rubik, sans-serif', 
                 color: '#666', 
                 mb: 4,
                 textAlign: 'center'
@@ -91,13 +89,13 @@ export default function DebugPage() {
               </Typography>
 
               {error && (
-                <Alert severity="error" sx={{ mb: 2, fontFamily: 'Rubik, sans-serif' }}>
+                <Alert severity="error" sx={{ mb: 2 }}>
                   {error}
                 </Alert>
               )}
 
               {success && (
-                <Alert severity="success" sx={{ mb: 2, fontFamily: 'Rubik, sans-serif' }}>
+                <Alert severity="success" sx={{ mb: 2 }}>
                   {success}
                 </Alert>
               )}
@@ -109,7 +107,6 @@ export default function DebugPage() {
                   sx={{
                     borderColor: '#0C6431',
                     color: '#0C6431',
-                    fontFamily: 'Rubik, sans-serif',
                     py: 1.5,
                     '&:hover': {
                       borderColor: '#0A4F28',
@@ -125,7 +122,6 @@ export default function DebugPage() {
                   onClick={testGoogleAuth}
                   sx={{
                     backgroundColor: '#0C6431',
-                    fontFamily: 'Rubik, sans-serif',
                     py: 1.5,
                     '&:hover': {
                       backgroundColor: '#0A4F28',
@@ -137,7 +133,6 @@ export default function DebugPage() {
               </Box>
 
               <Typography variant="body2" sx={{ 
-                fontFamily: 'Rubik, sans-serif', 
                 color: '#666', 
                 mt: 3,
                 textAlign: 'center',

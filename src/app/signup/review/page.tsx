@@ -137,17 +137,17 @@ export default function ReviewPage() {
                   alt="CNTR logo"
                   style={{ height: 50, marginBottom: 16 }}
                 />
-                <Typography variant="h4" sx={{ fontFamily: 'Rubik-Bold, sans-serif', color: '#0C6431', mb: 1 }}>
+                <Typography variant="h4" sx={{ color: '#0C6431', mb: 1 }}>
                   Sign Up
                 </Typography>
-                <Typography variant="body1" sx={{ fontFamily: 'Rubik, sans-serif', color: '#666' }}>
+                <Typography variant="body1" sx={{ color: '#666' }}>
                   Review your information before creating your account
                 </Typography>
               </Box>
 
               {/* Progress Bar */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" sx={{ fontFamily: 'Rubik, sans-serif', mb: 1 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
                   Step 3 of 3: Review and Submit
                 </Typography>
                 <LinearProgress 
@@ -168,14 +168,14 @@ export default function ReviewPage() {
               {error && (
                 <Alert 
                   severity="error" 
-                  sx={{ mb: 2, fontFamily: 'Rubik, sans-serif' }}
+                  sx={{ mb: 2 }}
                   action={
                     error.includes('already registered') ? (
                       <Button
                         color="inherit"
                         size="small"
                         onClick={() => router.push('/signin')}
-                        sx={{ fontFamily: 'Rubik, sans-serif', fontWeight: 'bold' }}
+                        sx={{ fontWeight: 'bold' }}
                       >
                         Sign In Instead
                       </Button>
@@ -188,31 +188,31 @@ export default function ReviewPage() {
 
               {/* Review Information */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" sx={{ fontFamily: 'Rubik-Bold, sans-serif', mb: 2, color: '#0C6431' }}>
+                <Typography variant="h6" sx={{ mb: 2, color: '#0C6431' }}>
                   Account Information
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
+                  <Typography>
                     <strong>Email:</strong> {signupData.email}
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
+                  <Typography>
                     <strong>First Name:</strong> {signupData.firstName}
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
+                  <Typography>
                     <strong>Last Name:</strong> {signupData.lastName}
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
+                  <Typography>
                     <strong>Password:</strong> ••••••••
                   </Typography>
                 </Box>
 
                 <Divider sx={{ my: 2 }} />
 
-                <Typography variant="h6" sx={{ fontFamily: 'Rubik-Bold, sans-serif', mb: 2, color: '#0C6431' }}>
+                <Typography variant="h6" sx={{ mb: 2, color: '#0C6431' }}>
                   Demographic Information
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
+                  <Typography>
                     <strong>Role:</strong> {signupData.demographic?.role
                       ? signupData.demographic.role
                           .split('_')
@@ -220,7 +220,7 @@ export default function ReviewPage() {
                           .join(' ')
                       : 'Not specified'}
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Rubik, sans-serif' }}>
+                  <Typography>
                     <strong>Cohort:</strong> {signupData.demographic?.cohort 
                       ? signupData.demographic.cohort.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
                       : 'Not specified'}
@@ -237,7 +237,6 @@ export default function ReviewPage() {
                   sx={{
                     borderColor: '#0C6431',
                     color: '#0C6431',
-                    fontFamily: 'Rubik, sans-serif',
                     px: 4,
                     py: 1,
                     '&:hover': {
@@ -255,7 +254,6 @@ export default function ReviewPage() {
                   disabled={loading}
                   sx={{
                     backgroundColor: '#0C6431',
-                    fontFamily: 'Rubik, sans-serif',
                     px: 4,
                     py: 1,
                     '&:hover': {

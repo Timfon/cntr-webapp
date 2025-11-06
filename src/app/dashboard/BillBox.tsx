@@ -8,6 +8,7 @@ import {
   Chip,
   Grid,
 } from '@mui/material';
+import { colors } from '@/app/theme/colors';
 
 interface BillData {
   id: string;
@@ -63,9 +64,8 @@ export default function BillBox({
             size="small"
             sx={{
               backgroundColor: 'transparent',
-              color: '#666',
-              border: '1px solid #e0e0e0',
-              fontFamily: 'Rubik',
+              color: colors.text.secondary,
+              border: `1px solid ${colors.border.light}`,
               textTransform: 'capitalize',
               fontWeight: 'bold',
               fontSize: '0.7rem',
@@ -80,8 +80,7 @@ export default function BillBox({
           <Typography
             variant="h6"
             sx={{
-              fontFamily: 'Rubik-Bold',
-              color: '#333',
+              color: colors.text.primary,
               mb: 1.5,
               pr: 8,
               fontSize: '1.1rem',
@@ -93,8 +92,7 @@ export default function BillBox({
           <Typography
             variant="body2"
             sx={{
-              fontFamily: 'Rubik',
-              color: '#666',
+              color: colors.text.secondary,
               mb: 1.5,
               fontSize: '0.875rem',
             }}
@@ -105,8 +103,7 @@ export default function BillBox({
             <Typography
               variant="body2"
               sx={{
-                fontFamily: 'Rubik',
-                color: '#888',
+                color: colors.text.tertiary,
                 mb: isLong ? 0.5 : 1,
                 fontSize: '0.875rem',
                 lineHeight: 1.5,
@@ -135,10 +132,8 @@ export default function BillBox({
                   });
                 }}
                 sx={{
-                  fontFamily: 'Rubik',
-                  color: '#0C6431',
+                  color: colors.primary,
                   fontSize: '0.875rem',
-                  textTransform: 'none',
                   minWidth: 'auto',
                   padding: 0,
                   marginTop: '4px',
@@ -167,10 +162,9 @@ export default function BillBox({
                 }
               }}
               sx={{
-                backgroundColor: bill.status === 'inProgress' ? '#4caf50' : 'white',
-                color: bill.status === 'inProgress' ? 'white' : '#666',
-                borderColor: bill.status === 'inProgress' ? 'transparent' : '#e0e0e0',
-                fontFamily: 'Rubik',
+                backgroundColor: bill.status === 'inProgress' ? colors.status.success : colors.background.white,
+                color: bill.status === 'inProgress' ? colors.text.white : colors.text.secondary,
+                borderColor: bill.status === 'inProgress' ? 'transparent' : colors.border.light,
                 fontWeight: 'bold',
                 py: 1,
                 px: 2.5,
@@ -178,8 +172,8 @@ export default function BillBox({
                 fontSize: '0.75rem',
                 minWidth: 'auto',
                 '&:hover': {
-                  backgroundColor: bill.status === 'inProgress' ? '#45a049' : '#f5f5f5',
-                  borderColor: bill.status === 'inProgress' ? 'transparent' : '#d0d0d0',
+                  backgroundColor: bill.status === 'inProgress' ? colors.status.successDark : colors.neutral.gray100,
+                  borderColor: bill.status === 'inProgress' ? 'transparent' : colors.border.default,
                 },
               }}
             >

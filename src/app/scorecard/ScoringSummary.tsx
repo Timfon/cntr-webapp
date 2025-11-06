@@ -5,6 +5,7 @@ import {
   Paper,
   Chip
 } from '@mui/material';
+import { colors } from '@/app/theme/colors';
 
 interface ScoringSummaryProps {
   completedSections: number;
@@ -28,10 +29,8 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
       <Typography
         variant="h5"
         sx={{
-          fontWeight: "bold",
           mb: 2,
-          fontFamily: "Rubik-Bold, sans-serif",
-          color: "#333333"
+          color: colors.text.primary
         }}
       >
         Scoring Summary
@@ -47,43 +46,39 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontFamily: 'Rubik, sans-serif', fontWeight: 500 }}>
+            <Typography sx={{ fontWeight: 500 }}>
               Total Sections Completed:
             </Typography>
             <Chip 
               label={`${completedSections} of ${totalSections}`} 
               color={completedSections === totalSections ? "success" : "default" as any}
-              sx={{ fontFamily: 'Rubik, sans-serif' }}
             />
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontFamily: 'Rubik, sans-serif', fontWeight: 500 }}>
+            <Typography sx={{ fontWeight: 500 }}>
               Questions Answered:
             </Typography>
             <Chip 
               label={`${answeredQuestions} of ${totalQuestions}`} 
               color={answeredQuestions === totalQuestions ? "success" : "default" as any}
-              sx={{ fontFamily: 'Rubik, sans-serif' }}
             />
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontFamily: 'Rubik, sans-serif', fontWeight: 500 }}>
+            <Typography sx={{ fontWeight: 500 }}>
               Questions Flagged:
             </Typography>
             <Chip 
               label={flaggedQuestions} 
               color={flaggedQuestions === 0 ? "success" : "warning"}
-              sx={{ fontFamily: 'Rubik, sans-serif' }}
             />
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontFamily: 'Rubik, sans-serif', fontWeight: 500 }}>
+            <Typography sx={{ fontWeight: 500 }}>
               Notes Added:
             </Typography>
             <Chip 
               label={sectionsWithNotes} 
               color="info"
-              sx={{ fontFamily: 'Rubik, sans-serif' }}
             />
           </Box>
         </Box>

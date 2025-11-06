@@ -22,6 +22,7 @@ import "@fontsource/rubik";
 import MenuIcon from '@mui/icons-material/Menu';
 import { auth } from '@/firebase';
 import { authService } from "@/backend/auth";
+import { colors } from '@/app/theme/colors';
 
 const pages = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -84,7 +85,7 @@ React.useEffect(() => {
 }, []);
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: '#FFFFFF' }}>
+    <AppBar position="static" sx={{ backgroundColor: colors.background.white }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Avatar 
@@ -110,7 +111,7 @@ React.useEffect(() => {
               fontWeight: '900',
               fontSize: '2.0rem',
               // letterSpacing: '.1rem',
-              color: '#0C6431',
+              color: colors.primary,
               textDecoration: 'none',
             }}
           >
@@ -161,10 +162,9 @@ React.useEffect(() => {
               mr: 2,
               display: { xs: 'flex', md: 'none' },
               flexGrow: 1,
-              fontFamily: 'Rubik',
               fontWeight: 700,
               letterSpacing: '.3rem',
-              color: '#0C6431',
+              color: colors.primary,
               textDecoration: 'none',
             }}
           >
@@ -176,9 +176,8 @@ React.useEffect(() => {
       <Button
         onClick={handleCloseNavMenu}
         sx={{
-          fontFamily: 'Rubik',
           my: 2,
-          color: '#0C6431',
+          color: colors.primary,
           display: 'block',
           mx: 1.5,
         }}
@@ -219,7 +218,7 @@ React.useEffect(() => {
       setting.onClick();
     }}
   >
-    <Typography sx={{ textAlign: 'center', fontFamily: 'Rubik' }}>{setting.label}</Typography>
+    <Typography sx={{ textAlign: 'center' }}>{setting.label}</Typography>
   </MenuItem>
 ))}
             </Menu>

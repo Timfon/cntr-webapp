@@ -134,17 +134,17 @@ export default function DemographicPage() {
                   alt="CNTR logo"
                   style={{ height: 50, marginBottom: 16 }}
                 />
-                <Typography variant="h4" sx={{ fontFamily: 'Rubik-Bold, sans-serif', color: '#0C6431', mb: 1 }}>
+                <Typography variant="h4" sx={{ color: '#0C6431', mb: 1 }}>
                   Sign Up
                 </Typography>
-                <Typography variant="body1" sx={{ fontFamily: 'Rubik, sans-serif', color: '#666' }}>
+                <Typography variant="body1" sx={{ color: '#666' }}>
                   Tell us a bit about yourself (optional)
                 </Typography>
               </Box>
 
               {/* Progress Bar */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" sx={{ fontFamily: 'Rubik, sans-serif', mb: 1 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
                   Step 2 of 3: Demographic Information
                 </Typography>
                 <LinearProgress 
@@ -163,7 +163,7 @@ export default function DemographicPage() {
 
               {/* Error Alert */}
               {error && (
-                <Alert severity="error" sx={{ mb: 2, fontFamily: 'Rubik, sans-serif' }}>
+                <Alert severity="error" sx={{ mb: 2 }}>
                   {error}
                 </Alert>
               )}
@@ -171,13 +171,12 @@ export default function DemographicPage() {
               {/* Form Fields */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <FormControl fullWidth>
-                  <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Role</InputLabel>
+                  <InputLabel>Role</InputLabel>
                   <Select
                     defaultValue="general"
                     value={formData.role}
                     label="Role"
                     onChange={handleSelectChange('role')}
-                    sx={{ fontFamily: 'Rubik, sans-serif' }}
                   >
                     <MenuItem value="undergraduate">Undergraduate</MenuItem>
                     <MenuItem value="advanced">Advanced</MenuItem>
@@ -188,12 +187,11 @@ export default function DemographicPage() {
                 </FormControl>
 
                 <FormControl fullWidth required>
-                  <InputLabel sx={{ fontFamily: 'Rubik, sans-serif' }}>Cohort</InputLabel>
+                  <InputLabel>Cohort</InputLabel>
                   <Select
                     value={formData.cohort}
                     label="Cohort"
                     onChange={handleSelectChange('cohort')}
-                    sx={{ fontFamily: 'Rubik, sans-serif' }}
                   >
                     <MenuItem value="fall-2025">Fall 2025</MenuItem>
                   </Select>
@@ -209,7 +207,6 @@ export default function DemographicPage() {
                   sx={{
                     borderColor: '#0C6431',
                     color: '#0C6431',
-                    fontFamily: 'Rubik, sans-serif',
                     px: 4,
                     py: 1,
                     '&:hover': {
@@ -227,7 +224,6 @@ export default function DemographicPage() {
                   disabled={loading}
                   sx={{
                     backgroundColor: '#0C6431',
-                    fontFamily: 'Rubik, sans-serif',
                     px: 4,
                     py: 1,
                     '&:hover': {

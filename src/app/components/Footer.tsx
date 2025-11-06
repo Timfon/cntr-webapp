@@ -24,7 +24,6 @@ export default function Footer() {
               <Typography
                 variant="h6"
                 sx={{
-                  fontFamily: 'Rubik',
                   fontWeight: 'bold',
                 }}
               >
@@ -35,7 +34,6 @@ export default function Footer() {
               variant="body2"
               sx={{
                 mb: 1,
-                fontFamily: 'Rubik',
               }}
             >
               Brown University
@@ -44,7 +42,6 @@ export default function Footer() {
               variant="body2"
               sx={{
                 mb: 1,
-                fontFamily: 'Rubik',
               }}
             >
               Providence, RI 02912
@@ -53,16 +50,12 @@ export default function Footer() {
               variant="body2"
               sx={{
                 mb: 1,
-                fontFamily: 'Rubik',
               }}
             >
               401-863-1000
             </Typography>
             <Typography
               variant="body2"
-              sx={{
-                fontFamily: 'Rubik',
-              }}
             >
                © Brown University 2025
             </Typography>

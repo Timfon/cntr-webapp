@@ -3,6 +3,7 @@ import {
   Box, Button, Paper, Typography, MenuItem, Select, Checkbox, FormControlLabel 
 } from '@mui/material';
 import { Flag, FlagOutlined } from '@mui/icons-material';
+import { colors } from '@/app/theme/colors';
 
 const QuestionCard = ({ 
   id,
@@ -20,16 +21,13 @@ const QuestionCard = ({
             variant={answer === 'yes' ? 'contained' : 'outlined'}
             onClick={() => onAnswer(question.id, 'yes')}
             sx={{
-              backgroundColor: answer === 'yes' ? '#138B43' : 'transparent',
-              color: answer === 'yes' ? 'white' : '#666',
-              borderColor: '#ccc',
-              borderRadius: 2,
+              backgroundColor: answer === 'yes' ? colors.primary : 'transparent',
+              color: answer === 'yes' ? colors.text.white : colors.text.secondary,
+              borderColor: colors.border.default,
               minWidth: 110,
-              textTransform: 'none',
-              fontFamily: 'Rubik, sans-serif',
               fontSize: '1.0rem',
               '&:hover': {
-                backgroundColor: answer === 'yes' ? '#0f7a3a' : '#f5f5f5'
+                backgroundColor: answer === 'yes' ? colors.primaryHover : colors.neutral.gray100
               }
             }}
           >
@@ -39,16 +37,13 @@ const QuestionCard = ({
             variant={answer === 'no' ? 'contained' : 'outlined'}
             onClick={() => onAnswer(question.id, 'no')}
             sx={{
-              backgroundColor: answer === 'no' ? '#138B43' : 'transparent',
-              color: answer === 'no' ? 'white' : '#666',
-              borderColor: '#ccc',
-              borderRadius: 2,
+              backgroundColor: answer === 'no' ? colors.primary : 'transparent',
+              color: answer === 'no' ? colors.text.white : colors.text.secondary,
+              borderColor: colors.border.default,
               minWidth: 110,
-              textTransform: 'none',
-              fontFamily: 'Rubik, sans-serif',
               fontSize: '1.0rem',
               '&:hover': {
-                backgroundColor: answer === 'no' ? '#0f7a3a' : '#f5f5f5'
+                backgroundColor: answer === 'no' ? colors.primaryHover : colors.neutral.gray100
               }
             }}
           >
@@ -68,7 +63,6 @@ const QuestionCard = ({
             mt: 2,
             minWidth: 300, // wider select box
             maxWidth: '100%', // don't overflow container
-            fontFamily: 'Rubik, sans-serif',
             whiteSpace: 'normal',
             wordBreak: 'break-word',
           }}
@@ -82,7 +76,7 @@ const QuestionCard = ({
             }
           }}
         >
-          <MenuItem value="" sx={{ fontFamily: 'Rubik, sans-serif', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+          <MenuItem value="" sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
             Select an option
           </MenuItem>
           {question.options.map((opt, i) => (
@@ -90,7 +84,6 @@ const QuestionCard = ({
               key={i}
               value={opt}
               sx={{
-                fontFamily: 'Rubik, sans-serif',
                 whiteSpace: 'normal',
                 wordBreak: 'break-word'
               }}
@@ -110,7 +103,7 @@ const QuestionCard = ({
               key={i}
               control={
                 <Checkbox
-                  sx={{ color: '#138B43', '&.Mui-checked': { color: '#138B43' } }}
+                  sx={{ color: colors.primary, '&.Mui-checked': { color: colors.primary } }}
                   checked={answer?.includes(opt) || false}
                   onChange={(e) => {
                     let newAnswer = Array.isArray(answer) ? [...answer] : [];
@@ -124,7 +117,7 @@ const QuestionCard = ({
                 />
               }
               label={
-                <Typography sx={{ fontFamily: 'Rubik, sans-serif', mt: 1}}>
+                <Typography sx={{ mt: 1}}>
                   {opt}
                 </Typography>
               }
@@ -148,7 +141,6 @@ const QuestionCard = ({
           sx={{
             flex: 1,
             mr: 2,
-            fontFamily: 'Rubik, sans-serif'
           }}
         >
           <strong>{question.id}.</strong> {question.text}
@@ -158,8 +150,7 @@ const QuestionCard = ({
           sx={{
             minWidth: 'auto',
             p: 0.5,
-            color: flagged ? '#d32f2f' : '#666',
-            borderRadius: 2
+            color: flagged ? colors.status.error : colors.text.secondary,
           }}
         >
           {flagged ? <Flag /> : <FlagOutlined />}

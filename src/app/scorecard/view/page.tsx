@@ -173,7 +173,6 @@ function ViewSubmissionContent() {
               position: "sticky",
               top: 30,
               backgroundColor: "#ffffffff",
-              fontFamily: "Rubik, sans-serif",
               fontWeight: 500,
               color: "#333333",
               boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
@@ -213,7 +212,6 @@ function ViewSubmissionContent() {
             sx={{
               fontWeight: "bold",
               mb: 2,
-              fontFamily: "Rubik-Bold, sans-serif",
               color: "#333333",
             }}
           >
@@ -224,7 +222,6 @@ function ViewSubmissionContent() {
             variant="body1"
             sx={{
               mb: 4,
-              fontFamily: "Rubik, sans-serif",
               color: "#666",
               lineHeight: 1.6,
             }}
@@ -248,7 +245,6 @@ function ViewSubmissionContent() {
               sx={{
                 fontWeight: "bold",
                 mb: 2,
-                fontFamily: "Rubik-Bold, sans-serif",
                 color: "#333333",
               }}
             >
@@ -294,7 +290,6 @@ function ViewSubmissionContent() {
                       <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
                         <Typography
                           sx={{
-                            fontFamily: "Rubik-Bold, sans-serif",
                             fontWeight: "bold",
                             flex: 1,
                           }}
@@ -305,7 +300,6 @@ function ViewSubmissionContent() {
                           label={`${answeredCount}/${totalCount} answered`}
                           size="small"
                           sx={{
-                            fontFamily: "Rubik, sans-serif",
                             ml: 2,
                           }}
                           color={answeredCount === totalCount ? "success" : "default"}
@@ -325,7 +319,6 @@ function ViewSubmissionContent() {
                             <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                               <TableCell
                                 sx={{
-                                  fontFamily: "Rubik, sans-serif",
                                   fontWeight: 600,
                                   borderBottom: "1px solid #e0e0e0",
                                 }}
@@ -334,7 +327,6 @@ function ViewSubmissionContent() {
                               </TableCell>
                               <TableCell
                                 sx={{
-                                  fontFamily: "Rubik, sans-serif",
                                   fontWeight: 600,
                                   borderBottom: "1px solid #e0e0e0",
                                 }}
@@ -343,7 +335,6 @@ function ViewSubmissionContent() {
                               </TableCell>
                               <TableCell
                                 sx={{
-                                  fontFamily: "Rubik, sans-serif",
                                   fontWeight: 600,
                                   borderBottom: "1px solid #e0e0e0",
                                 }}
@@ -365,7 +356,6 @@ function ViewSubmissionContent() {
                               >
                                 <TableCell
                                   sx={{
-                                    fontFamily: "Rubik, sans-serif",
                                     borderBottom: "1px solid #e0e0e0",
                                   }}
                                 >
@@ -373,7 +363,6 @@ function ViewSubmissionContent() {
                                 </TableCell>
                                 <TableCell
                                   sx={{
-                                    fontFamily: "Rubik, sans-serif",
                                     borderBottom: "1px solid #e0e0e0",
                                   }}
                                 >
@@ -381,7 +370,6 @@ function ViewSubmissionContent() {
                                 </TableCell>
                                 <TableCell
                                   sx={{
-                                    fontFamily: "Rubik, sans-serif",
                                     borderBottom: "1px solid #e0e0e0",
                                     color: question.hasAnswer ? "#333" : "#999",
                                     fontStyle: question.hasAnswer ? "normal" : "italic",
@@ -405,7 +393,6 @@ function ViewSubmissionContent() {
                         >
                           <Typography
                             sx={{
-                              fontFamily: "Rubik-Bold, sans-serif",
                               fontWeight: "bold",
                               mb: 1,
                               color: "#333",
@@ -415,7 +402,6 @@ function ViewSubmissionContent() {
                           </Typography>
                           <Typography
                             sx={{
-                              fontFamily: "Rubik, sans-serif",
                               color: "#333",
                               whiteSpace: "pre-wrap",
                             }}

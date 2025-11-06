@@ -118,7 +118,6 @@ const ScorecardSidebar = ({
               sx={{
                 fontSize: "0.9rem",
                 fontWeight: 500,
-                fontFamily: "Rubik-Medium, sans-serif",
                 color: currentSection === section.id ? "#1b5e20" : "inherit",
               }}
             >

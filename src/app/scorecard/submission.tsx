@@ -4,6 +4,7 @@ import {
   Typography
 } from '@mui/material';
 import { sections } from '@/app/data/sections';
+import { colors } from '@/app/theme/colors';
 import { questionBank } from '@/app/data/questionBank';
 import ScoringSummary from '@/app/scorecard/ScoringSummary';
 import FlaggedQuestionsTable from '@/app/scorecard/FlaggedQuestionsTable';
@@ -95,10 +96,8 @@ const SubmissionPage: React.FC<SubmissionPageProps> = ({
       <Typography
         variant="h4"
         sx={{
-          fontWeight: "bold",
           mb: 2,
-          fontFamily: "Rubik-Bold, sans-serif",
-          color: "#333333"
+          color: colors.text.primary
         }}
       >
         Review & Submit
@@ -108,8 +107,7 @@ const SubmissionPage: React.FC<SubmissionPageProps> = ({
         variant="body1"
         sx={{
           mb: 4,
-          fontFamily: "Rubik, sans-serif",
-          color: "#666",
+          color: colors.text.secondary,
           lineHeight: 1.6
         }}
       >

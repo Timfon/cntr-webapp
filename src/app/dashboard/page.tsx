@@ -316,18 +316,6 @@ export default function DashboardPage() {
     <Box sx={{ minHeight: '100vh', backgroundColor: '#F6FBF7' }}>
       <ResponsiveAppBar />
       <Container maxWidth={false} sx={{ py: 4, px: 4 }}>
-        <Typography
-          variant="h4"
-          sx={{
-            fontFamily: 'Rubik-Bold',
-            fontWeight: 'bold',
-            mb: 3,
-            color: '#333',
-          }}
-        >
-          Your Bill Dashboard
-        </Typography>
-
         {/* Search and Filter */}
         <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', maxWidth: '1200px', mx: 'auto' }}>
           <TextField

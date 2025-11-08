@@ -26,6 +26,7 @@ import { colors } from '@/app/theme/colors';
 
 const pages = [
   { name: 'Dashboard', href: '/dashboard' },
+  { name: 'Our Team', href: '/our-team' },
 ];
 
 export default function ResponsiveAppBar() {

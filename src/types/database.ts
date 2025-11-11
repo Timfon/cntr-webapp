@@ -1,9 +1,11 @@
 // Database Models for Refactored Structure
 
+import { UserRole } from './user';
+
 export interface User {
   uid: string;
   email: string;
-  role: string;
+  role: UserRole;
   firstName: string;
   lastName: string;
   cohort: string | null;
@@ -18,6 +20,7 @@ export interface User {
     startedAt: string;
   } | null;
   completedBills: Record<string, string>; // key: billId, value: submissionId
+  completedBillsCount?: number;
 }
 
 export interface Bill {
@@ -33,13 +36,13 @@ export interface Bill {
 }
 
 export interface Submission {
-  version: string;
   id: string;
   billId: string;
-  createdAt: string;
   uid: string;
+  submissionDate: string;
   answers: Record<string, any>;
   notes: {
     [sectionId: string]: string;
-  }
+  };
+  version?: string;
 }

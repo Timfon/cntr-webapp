@@ -335,12 +335,12 @@ function ScorecardContent() {
     }
 
     const submissionId = await databaseService.createSubmission({
-      version: version,
       billId: decodedBill,
       answers,
       uid: user.uid,
       notes,
-      createdAt: new Date().toISOString(),
+      submissionDate: new Date().toISOString(),
+      version: version,
     });
 
     // Add bill to completed bills

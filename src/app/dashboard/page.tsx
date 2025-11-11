@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [bills, setBills] = useState<BillData[]>([]);
+  const [userData, setUserData] = useState<any>(null); // Cache user data
   const [stats, setStats] = useState({
     total: 0,
     assigned: 0,
@@ -86,6 +87,7 @@ export default function DashboardPage() {
     try {
       const user = await userService.getUser(uid);
       if (!user) return;
+      setUserData(user); // Cache user data for later use
       const allBills = await databaseService.getAllBills();
       const billsData: BillData[] = [];
       
@@ -211,8 +213,6 @@ export default function DashboardPage() {
         return;
       }
 
-      // Check if user already has a bill in progress (and it's not already completed)
-      const userData = await userService.getUser(user.uid);
       if (userData?.inProgress) {
         const completedBillIds = userData.completedBills ? Object.keys(userData.completedBills) : [];
         // If the in-progress bill is already completed, clear it and allow starting a new one
@@ -227,10 +227,6 @@ export default function DashboardPage() {
           return;
         }
       }
-
-      // Get bill name for confirmation
-      const allBills = await databaseService.getAllBills();
-      const bill = allBills.find(b => b.billId === billId);
 
       // Confirmation dialog
       setConfirmDialog({
@@ -287,8 +283,7 @@ export default function DashboardPage() {
         return;
       }
 
-      // Get the submission ID from completed bills
-      const userData = await userService.getUser(user.uid);
+      // Get the submission ID from completed bills (use cached userData)
       const submissionId = userData?.completedBills?.[billId];
       
       if (!submissionId) {

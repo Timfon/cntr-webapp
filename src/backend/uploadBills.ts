@@ -125,21 +125,42 @@ export async function uploadBills(): Promise<UploadBillsResult> {
     
     for (const row of parseResult.data) {
       try {
-        // Generate bill ID: {state} {bill_number} {first_action_date}
-        const billId = `${row.state} ${row.bill_number} ${row.first_action_date}`.trim();
-        
+        // Normalize fields
+        const state = (row.state || '').toLowerCase().replace(/\s+/g, '-');
+        const billNumber = (row.bill_number || '').toLowerCase().replace(/\s+/g, '-');
+        const firstActionDate = row.first_action_date?.split('T')[0] || row.first_action_date || '';
+        const yearToken = row.first_action_date?.split('-')[0] || row.session?.split('-')[0] || '';
+        const fallbackId = row.bill_id?.toLowerCase();
+
+        // Build a deterministic bill ID (state-billnumber-year); fallback to CSV bill_id if needed
+        const normalizedParts = [state, billNumber, yearToken].filter(Boolean);
+        const billId = normalizedParts.length === 3
+          ? normalizedParts.join('-')
+          : fallbackId || `${state}-${billNumber}`.replace(/^-|-$/g, '');
+
+        if (!billId) {
+          throw new Error('Unable to derive billId for row');
+        }
+
         // Extract year from session or first_action_date
-        const year = row.first_action_date?.split('-')[0];
+        const parsedYearToken = yearToken && /^\d{4}$/.test(yearToken) ? parseInt(yearToken, 10) : NaN;
+        const derivedYear = !Number.isNaN(parsedYearToken)
+          ? parsedYearToken
+          : (() => {
+              const date = firstActionDate ? new Date(firstActionDate) : new Date();
+              const yearValue = date.getFullYear();
+              return Number.isNaN(yearValue) ? new Date().getFullYear() : yearValue;
+            })();
         
         const bill: Bill & { billId: string } = {
-          billId: billId,
+          billId,
           title: row.title?.trim() || "",
           description: row.description?.trim() || "",
           url: row.state_link?.trim() || "",
-          versionDate: row.first_action_date?.trim() || "",
-          state: row.state?.trim() || "",
-          year: parseInt(year) || new Date().getFullYear(),
-          number: row.bill_number?.trim() || "",
+          versionDate: firstActionDate.trim(),
+          state: state.toUpperCase(),
+          year: derivedYear,
+          number: billNumber.toUpperCase(),
           body: row.body?.trim() || "",
         };  
         

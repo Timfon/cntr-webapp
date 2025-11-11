@@ -23,15 +23,12 @@ export default function DebugPage() {
     setSuccess(null);
     
     try {
-      console.log('Testing Google authentication...');
       const result = await authService.signInWithGoogle();
       
       if (result.success) {
         setSuccess(`Google auth successful! User: ${result.user?.email}`);
-        console.log('Google auth result:', result);
       } else {
         setError(`Google auth failed: ${result.error}`);
-        console.error('Google auth error:', result.error);
       }
     } catch (err: any) {
       setError(`Unexpected error: ${err?.message || 'Unknown error'}`);
@@ -49,7 +46,6 @@ export default function DebugPage() {
       appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     };
     
-    console.log('Firebase config:', config);
     
     const missing = Object.entries(config).filter(([key, value]) => !value);
     if (missing.length > 0) {

@@ -38,7 +38,6 @@ export default function BrandingSignUpPage() {
     try {
       const result = await authService.signInWithGoogle();
       if (result.success) {
-        console.log('Google sign-up success:', result.user);
         if (result.isNewUser) {
           sessionStorage.setItem('completeSignupData', JSON.stringify({
             email: result.user.email || '',

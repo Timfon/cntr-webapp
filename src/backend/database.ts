@@ -376,28 +376,4 @@ export const databaseService = {
       throw new Error('Failed to get all submissions');
     }
   },
-
-  // ===== UTILITY OPERATIONS =====
-
-  /**
-   * Check if user has access to a bill (CLIENT-SIDE ONLY - FOR UI)
-   * Permission Model:
-   * - Admin (role='admin'): Can access ALL bills
-   * - Scorers (all other roles): Can only access their assigned bills
-   */
-  async userHasAccessToBill(uid: string, billId: string): Promise<boolean> {
-    try {
-      const user = await userService.getUser(uid);
-      if (!user) return false;
-
-      // Admins have access to all bills
-      if (user.role === 'admin') return true;
-
-      // Scorers only have access to assigned bills
-      return user.assignedBills.includes(billId);
-    } catch (error) {
-      console.error('Error checking bill access:', error);
-      return false;
-    }
-  }
 };

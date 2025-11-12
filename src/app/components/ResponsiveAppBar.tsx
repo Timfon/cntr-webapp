@@ -37,6 +37,10 @@ export default function ResponsiveAppBar() {
   ? [
       { label: user.email, onClick: () => {} },
       {
+        label: 'Settings',
+        onClick: () => router.push('/settings'),
+      },
+      {
         label: 'Logout',
         onClick: async () => {
           try {

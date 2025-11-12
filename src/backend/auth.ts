@@ -1,10 +1,13 @@
-import { 
-  signInWithPopup, 
-  signInWithEmailAndPassword, 
-  signOut, 
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
 } from 'firebase/auth';
 import { auth } from '@/firebase';
 import { userService } from './users';
@@ -144,6 +147,78 @@ export const authService = {
    */
   getCurrentUser() {
     return auth.currentUser;
+  },
+
+  /**
+   * Send password reset email
+   */
+  async sendPasswordReset(email: string) {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return { success: true };
+    } catch (error: any) {
+      if (error?.code === 'auth/user-not-found') {
+        return { success: false, error: 'No account found with this email address' };
+      }
+
+      if (error?.code === 'auth/invalid-email') {
+        return { success: false, error: 'Please enter a valid email address' };
+      }
+
+      return { success: false, error: 'Failed to send reset email. Please try again.' };
+    }
+  },
+
+  /**
+   * Verify password reset code and return associated email
+   */
+  async verifyPasswordResetCode(code: string) {
+    try {
+      const email = await verifyPasswordResetCode(auth, code);
+      return { success: true, email };
+    } catch (error: any) {
+      if (error?.code === 'auth/expired-action-code') {
+        return { success: false, error: 'This reset link has expired. Please request a new one.' };
+      }
+
+      if (error?.code === 'auth/invalid-action-code') {
+        return { success: false, error: 'This reset link is invalid or has already been used.' };
+      }
+
+      return { success: false, error: 'Unable to verify reset link. Please request a new one.' };
+    }
+  },
+
+  /**
+   * Confirm password reset with new password
+   */
+  async confirmPasswordReset(code: string, newPassword: string) {
+    try {
+      await confirmPasswordReset(auth, code, newPassword);
+      return { success: true };
+    } catch (error: any) {
+      if (error?.code === 'auth/expired-action-code') {
+        return { success: false, error: 'This reset link has expired. Please request a new one.' };
+      }
+
+      if (error?.code === 'auth/invalid-action-code') {
+        return { success: false, error: 'This reset link is invalid or has already been used.' };
+      }
+
+      if (error?.code === 'auth/user-disabled') {
+        return { success: false, error: 'This account has been disabled.' };
+      }
+
+      if (error?.code === 'auth/user-not-found') {
+        return { success: false, error: 'No account found for this reset link.' };
+      }
+
+      if (error?.code === 'auth/weak-password') {
+        return { success: false, error: 'Please choose a stronger password.' };
+      }
+
+      return { success: false, error: 'Failed to reset password. Please try again.' };
+    }
   },
 
   /**

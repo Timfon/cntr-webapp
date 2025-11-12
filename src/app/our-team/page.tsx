@@ -1,15 +1,16 @@
 "use client";
 import * as React from 'react';
-import { 
-  Box, 
-  Typography, 
-  Container, 
+import {
+  Box,
+  Typography,
+  Container,
   Grid,
   Card,
   Link,
 } from '@mui/material';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
+import { colors } from '@/app/theme/colors';
 
 // Team data
 const teamMembers = [
@@ -89,7 +90,7 @@ const teamMembers = [
     name: "Brandon Sun",
     role: "Undergraduate Student in Computer Science and Mathematics, CNTR AISLE Product Developer",
     image: "/brandon.jpg",
-    email: "brandon_sunt@brown.edu",
+    email: "brandon_sun1@brown.edu",
   },
   {
     name: "Justin Park",
@@ -107,14 +108,14 @@ const teamMembers = [
 // Team Section Component
 function TeamSection() {
   return (
-    <Box sx={{ backgroundColor: '#f5f5f5', py: 8, minHeight: '100vh' }}>
+    <Box sx={{ backgroundColor: colors.background.main, pb: 6, minHeight: '100vh' }}>
       <Container maxWidth="lg">
         <Typography
           variant="h4"
           component="h1"
           sx={{
             textAlign: 'center',
-            mb: 6,
+            mb: 2,
             fontWeight: 'bold',
             color: '#333',
             pt: 4,
@@ -122,7 +123,17 @@ function TeamSection() {
         >
           Our Team
         </Typography>
-        
+
+        <Typography
+          variant="body1"
+          sx={{
+            textAlign: 'center',
+            mb: 6,
+            color: '#666',
+          }}
+        >
+          CNTR AISLE is a collaborative effort of students, researchers, and faculty members.
+        </Typography>
         <Grid container spacing={4}>
           {teamMembers.map((member, index) => (
             <Grid size={{ xs: 12, md: 4 }} key={index}>
@@ -203,7 +214,7 @@ function TeamSection() {
 // Main Page Component
 export default function OurTeamPage() {
   return (
-    <Box sx={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+    <Box sx={{ backgroundColor: colors.background.main, minHeight: '100vh' }}>
       <ResponsiveAppBar />
       <TeamSection />
       <Footer />

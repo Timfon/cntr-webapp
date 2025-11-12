@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, addDoc, collection, query, where, getDocs, orderBy, runTransaction, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { User, Submission, Bill } from '@/types/database';
 import { userService } from './users';
@@ -11,29 +11,35 @@ export const databaseService = {
   // ===== USER PROGRESS OPERATIONS =====
 
   /**
-   * Update user's in-progress bill
+   * Update user's in-progress bill using transaction to prevent race conditions
    */
   async updateUserProgress(uid: string, billId: string, answers: Record<string, any>, flags?: Record<string, boolean>, notes?: Record<string, string>, currentSection?: string): Promise<void> {
     try {
-      const userDoc = doc(db, "users", uid);
-      const userSnap = await getDoc(userDoc);
-      const userData = userSnap.data() as User;
-      
-      // Get existing inProgress data or create new
-      const existingProgress = userData?.inProgress;
-      const isNewBill = !existingProgress || existingProgress.billId !== billId;
-      
-      await updateDoc(userDoc, {
-        inProgress: {
-          billId,
-          currentSection: currentSection || existingProgress?.currentSection || 'general',
-          answers,
-          flags: flags || existingProgress?.flags || {},
-          notes: notes || existingProgress?.notes || {},
-          lastUpdated: new Date().toISOString(),
-          startedAt: isNewBill ? new Date().toISOString() : existingProgress?.startedAt || new Date().toISOString(),
-        },
-        updatedAt: new Date().toISOString(),
+      const userDocRef = doc(db, "users", uid);
+
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userDocRef);
+
+        if (!userDoc.exists()) {
+          throw new Error('User does not exist');
+        }
+
+        const userData = userDoc.data() as User;
+        const existingProgress = userData?.inProgress;
+        const isNewBill = !existingProgress || existingProgress.billId !== billId;
+
+        transaction.update(userDocRef, {
+          inProgress: {
+            billId,
+            currentSection: currentSection || existingProgress?.currentSection || 'general',
+            answers,
+            flags: flags || existingProgress?.flags || {},
+            notes: notes || existingProgress?.notes || {},
+            lastUpdated: new Date().toISOString(),
+            startedAt: isNewBill ? new Date().toISOString() : existingProgress?.startedAt || new Date().toISOString(),
+          },
+          updatedAt: new Date().toISOString(),
+        });
       });
     } catch (error) {
       console.error('Error updating user progress:', error);
@@ -42,24 +48,32 @@ export const databaseService = {
   },
 
   /**
-   * Update user's current section
+   * Update user's current section using transaction
    */
   async updateCurrentSection(uid: string, currentSection: string): Promise<void> {
     try {
-      const userDoc = doc(db, "users", uid);
-      const userSnap = await getDoc(userDoc);
-      const userData = userSnap.data() as User;
-      
-      if (userData?.inProgress) {
-        await updateDoc(userDoc, {
-          inProgress: {
-            ...userData.inProgress,
-            currentSection,
-            lastUpdated: new Date().toISOString(),
-          },
-          updatedAt: new Date().toISOString(),
-        });
-      }
+      const userDocRef = doc(db, "users", uid);
+
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userDocRef);
+
+        if (!userDoc.exists()) {
+          throw new Error('User does not exist');
+        }
+
+        const userData = userDoc.data() as User;
+
+        if (userData?.inProgress) {
+          transaction.update(userDocRef, {
+            inProgress: {
+              ...userData.inProgress,
+              currentSection,
+              lastUpdated: new Date().toISOString(),
+            },
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      });
     } catch (error) {
       console.error('Error updating current section:', error);
       throw new Error('Failed to update current section');
@@ -67,24 +81,32 @@ export const databaseService = {
   },
 
   /**
-   * Update user's flags
+   * Update user's flags using transaction
    */
   async updateUserFlags(uid: string, flags: Record<string, boolean>): Promise<void> {
     try {
-      const userDoc = doc(db, "users", uid);
-      const userSnap = await getDoc(userDoc);
-      const userData = userSnap.data() as User;
-      
-      if (userData?.inProgress) {
-        await updateDoc(userDoc, {
-          inProgress: {
-            ...userData.inProgress,
-            flags,
-            lastUpdated: new Date().toISOString(),
-          },
-          updatedAt: new Date().toISOString(),
-        });
-      }
+      const userDocRef = doc(db, "users", uid);
+
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userDocRef);
+
+        if (!userDoc.exists()) {
+          throw new Error('User does not exist');
+        }
+
+        const userData = userDoc.data() as User;
+
+        if (userData?.inProgress) {
+          transaction.update(userDocRef, {
+            inProgress: {
+              ...userData.inProgress,
+              flags,
+              lastUpdated: new Date().toISOString(),
+            },
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      });
     } catch (error) {
       console.error('Error updating user flags:', error);
       throw new Error('Failed to update user flags');
@@ -92,24 +114,32 @@ export const databaseService = {
   },
 
   /**
-   * Update user's notes
+   * Update user's notes using transaction
    */
   async updateUserNotes(uid: string, notes: { [questionId: string]: string }): Promise<void> {
     try {
-      const userDoc = doc(db, "users", uid);
-      const userSnap = await getDoc(userDoc);
-      const userData = userSnap.data() as User;
-      
-      if (userData?.inProgress) {
-        await updateDoc(userDoc, {
-          inProgress: {
-            ...userData.inProgress,
-            notes,
-            lastUpdated: new Date().toISOString(),
-          },
-          updatedAt: new Date().toISOString(),
-        });
-      }
+      const userDocRef = doc(db, "users", uid);
+
+      await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userDocRef);
+
+        if (!userDoc.exists()) {
+          throw new Error('User does not exist');
+        }
+
+        const userData = userDoc.data() as User;
+
+        if (userData?.inProgress) {
+          transaction.update(userDocRef, {
+            inProgress: {
+              ...userData.inProgress,
+              notes,
+              lastUpdated: new Date().toISOString(),
+            },
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      });
     } catch (error) {
       console.error('Error updating user notes:', error);
       throw new Error('Failed to update user notes');
@@ -171,42 +201,63 @@ export const databaseService = {
   },
 
   /**
-   * Get all bills
+   * Get all bills with optional pagination
+   * @param pageSize - Number of bills to fetch (default: 50)
+   * @param lastDoc - Last document from previous page for cursor-based pagination
    */
-  async getAllBills(): Promise<Bill[]> {
+  async getBills(pageSize: number = 50, lastDoc?: QueryDocumentSnapshot<DocumentData>): Promise<{ bills: Bill[], lastDoc: QueryDocumentSnapshot<DocumentData> | null }> {
     try {
-      // Try to get bills ordered by createdAt if it exists, otherwise just get all
+      // Build query with pagination
+      let billsQuery = query(
+        collection(db, "bills"),
+        orderBy("createdAt", "desc"),
+        limit(pageSize)
+      );
+
+      // Add cursor if provided
+      if (lastDoc) {
+        billsQuery = query(
+          collection(db, "bills"),
+          orderBy("createdAt", "desc"),
+          startAfter(lastDoc),
+          limit(pageSize)
+        );
+      }
+
       try {
-        const billsQuery = query(collection(db, "bills"), orderBy("createdAt", "desc"));
         const billsSnap = await getDocs(billsQuery);
-        
-        // If createdAt ordering returns 0 bills, try without ordering
-        if (billsSnap.docs.length === 0) {
-          const billsQueryNoOrder = query(collection(db, "bills"));
+
+        // If no bills or createdAt doesn't exist, try without ordering
+        if (billsSnap.docs.length === 0 && !lastDoc) {
+          const billsQueryNoOrder = query(collection(db, "bills"), limit(pageSize));
           const billsSnapNoOrder = await getDocs(billsQueryNoOrder);
-          return billsSnapNoOrder.docs.map(doc => ({
+          return {
+            bills: billsSnapNoOrder.docs.map(doc => ({
+              billId: doc.id,
+              ...(doc.data() as any)
+            })) as Bill[],
+            lastDoc: billsSnapNoOrder.docs[billsSnapNoOrder.docs.length - 1] || null
+          };
+        }
+
+        return {
+          bills: billsSnap.docs.map(doc => ({
             billId: doc.id,
             ...(doc.data() as any)
-          })) as Bill[];
-        }
-        
-        return billsSnap.docs.map(doc => ({
-          billId: doc.id,
-          ...(doc.data() as any)
-        })) as Bill[];
+          })) as Bill[],
+          lastDoc: billsSnap.docs[billsSnap.docs.length - 1] || null
+        };
       } catch (orderError: any) {
-        // If createdAt ordering fails, get all bills without ordering
-        try {
-          const billsQuery = query(collection(db, "bills"));
-          const billsSnap = await getDocs(billsQuery);
-          return billsSnap.docs.map(doc => ({
+        // If ordering fails, get bills without ordering
+        const billsQueryNoOrder = query(collection(db, "bills"), limit(pageSize));
+        const billsSnap = await getDocs(billsQueryNoOrder);
+        return {
+          bills: billsSnap.docs.map(doc => ({
             billId: doc.id,
             ...(doc.data() as any)
-          })) as Bill[];
-        } catch (queryError: any) {
-          console.error('Error getting bills:', queryError);
-          throw queryError;
-        }
+          })) as Bill[],
+          lastDoc: billsSnap.docs[billsSnap.docs.length - 1] || null
+        };
       }
     } catch (error: any) {
       console.error('Error getting bills:', error);
@@ -215,6 +266,15 @@ export const databaseService = {
       }
       throw new Error(`Failed to get bills: ${error?.message || 'Unknown error'}`);
     }
+  },
+
+  /**
+   * Get all bills (simple version for backwards compatibility)
+   * Note: This fetches all bills without pagination - use getAllBills() with pagination instead
+   */
+  async getAllBills(): Promise<Bill[]> {
+    const { bills } = await this.getBills(1000); // Fetch up to 1000 bills
+    return bills;
   },
 
   /**
@@ -245,7 +305,8 @@ export const databaseService = {
         uid: submissionData.uid,
         answers: submissionData.answers,
         notes: submissionData.notes,
-        createdAt: submissionData.createdAt,
+        submissionDate: submissionData.submissionDate || new Date().toISOString(),
+        version: submissionData.version || '1.0',
       });
       return submissionRef.id;
     } catch (error) {
@@ -315,22 +376,4 @@ export const databaseService = {
       throw new Error('Failed to get all submissions');
     }
   },
-
-  // ===== UTILITY OPERATIONS =====
-
-  /**
-   * Check if user has access to a bill
-   */
-  async userHasAccessToBill(uid: string, billId: string): Promise<boolean> {
-    try {
-      const user = await userService.getUser(uid);
-      if (!user) return false;
-      
-      // Check if user has access to this bill
-      return user.assignedBills.includes(billId) || user.role === 'admin';
-    } catch (error) {
-      console.error('Error checking bill access:', error);
-      return false;
-    }
-  }
 };

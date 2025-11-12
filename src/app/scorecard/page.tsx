@@ -335,22 +335,28 @@ function ScorecardContent() {
     }
 
     const submissionId = await databaseService.createSubmission({
-      version: version,
       billId: decodedBill,
       answers,
       uid: user.uid,
       notes,
-      createdAt: new Date().toISOString(),
+      submissionDate: new Date().toISOString(),
+      version: version,
     });
 
     // Add bill to completed bills
     const currentUser = await userService.getUser(user.uid);
+    const existingCompleted = currentUser?.completedBills || {};
+    const existingAssigned = currentUser?.assignedBills || [];
+    const updatedAssigned = existingAssigned.filter((id) => id !== decodedBill);
+
     await userService.updateUser({
       uid: user.uid,
       completedBills: {
-        ...(currentUser?.completedBills || {}),
+        ...existingCompleted,
         [decodedBill]: submissionId
-      }
+      },
+      assignedBills: updatedAssigned,
+      completedBillsCount: (currentUser?.completedBillsCount || 0) + 1,
     });
 
     // Clear saved progress

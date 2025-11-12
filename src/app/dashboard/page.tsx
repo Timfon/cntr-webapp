@@ -86,7 +86,29 @@ export default function DashboardPage() {
     try {
       const user = await userService.getUser(uid);
       if (!user) return;
-      const allBills = await databaseService.getAllBills();
+      const assignedBillIds = new Set(user.assignedBills || []);
+      const completedBillIdsSet = new Set(Object.keys(user.completedBills || {}));
+      const inProgressId = user.inProgress?.billId;
+
+      const relevantIds = new Set<string>([
+        ...assignedBillIds,
+        ...completedBillIdsSet,
+      ]);
+      if (inProgressId) {
+        relevantIds.add(inProgressId);
+      }
+
+      const relevantBills = await Promise.all(
+        Array.from(relevantIds).map(async (billId) => {
+          const bill = await databaseService.getBill(billId);
+          return bill ? { ...bill, billId } : null;
+        })
+      );
+      const billsMap = new Map(
+        relevantBills
+          .filter((bill): bill is NonNullable<typeof bill> => bill !== null)
+          .map((bill) => [bill.billId, bill])
+      );
       const billsData: BillData[] = [];
       
       // Creating Bill Data Entry
@@ -102,12 +124,9 @@ export default function DashboardPage() {
         };
       };
       
-      // completed bill ids to exclude from in-progress
-      const completedBillIds = user.completedBills ? Object.keys(user.completedBills) : [];
-      
       // Add in-progress bill if it exists and it's not already completed
-      if (user.inProgress && !completedBillIds.includes(user.inProgress.billId)) {
-        const bill = allBills.find(b => b.billId === user.inProgress!.billId);
+      if (user.inProgress && !completedBillIdsSet.has(user.inProgress.billId)) {
+        const bill = billsMap.get(user.inProgress.billId);
         if (bill) {
           billsData.push(createBillData(bill, 'inProgress'));
         }
@@ -116,7 +135,7 @@ export default function DashboardPage() {
       // add completed bills
       if (user.completedBills && Object.keys(user.completedBills).length > 0) {
         Object.keys(user.completedBills).forEach((billId) => {
-          const bill = allBills.find(b => b.billId === billId);
+          const bill = billsMap.get(billId);
           if (bill) {
             billsData.push(createBillData(bill, 'scored'));
           }
@@ -128,42 +147,13 @@ export default function DashboardPage() {
         user.assignedBills.forEach((billId) => {
           // Only add if not already in progress or completed
           if (!billsData.find((b) => b.id === billId)) {
-            const bill = allBills.find(b => b.billId === billId);
+            const bill = billsMap.get(billId);
             if (bill) {
               billsData.push(createBillData(bill, 'assigned'));
             }
           }
         });
       }
-
-      // TEMPORARY FIX WILL CHANGE: For now just show 10 random bills as demo (different per user)
-      // TODO: Remove this when we make bill assignment work properly
-      const hasRealAssignedBills = user.assignedBills && user.assignedBills.length > 0;
-      
-      // If no real assigned bills, show 10 random bills as demo (different per user)
-      if (!hasRealAssignedBills && allBills.length > 0) {
-        // each user always sees the same 10 random bills
-        const seed = uid.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        
-        // Filter out bills already in billsData
-        const availableBills = allBills.filter(bill => 
-          !billsData.find(b => b.id === bill.billId)
-        );
-        
-        let randomSeed = seed;
-        const seededRandom = () => {
-          randomSeed = (randomSeed * 9301 + 49297) % 233280;
-          return randomSeed / 233280;
-        };
-        const shuffled = [...availableBills].sort(() => seededRandom() - 0.5);
-        
-        const randomBills = shuffled.slice(0, 10);
-        
-        randomBills.forEach((bill) => {
-          billsData.push(createBillData(bill, 'assigned'));
-        });
-      }
-      //END OF TEMPORARY CAN REMOVE UNTIL HERE LATER
 
       setBills(billsData);
 
@@ -211,15 +201,17 @@ export default function DashboardPage() {
         return;
       }
 
-      // Check if user already has a bill in progress (and it's not already completed)
-      const userData = await userService.getUser(user.uid);
-      if (userData?.inProgress) {
-        const completedBillIds = userData.completedBills ? Object.keys(userData.completedBills) : [];
-        // If the in-progress bill is already completed, clear it and allow starting a new one
-        if (completedBillIds.includes(userData.inProgress.billId)) {
+      const latestUser = await userService.getUser(user.uid);
+      if (!latestUser) {
+        router.push('/signin');
+        return;
+      }
+
+      if (latestUser.inProgress) {
+        const completedBillIds = new Set(Object.keys(latestUser.completedBills || {}));
+        if (completedBillIds.has(latestUser.inProgress.billId)) {
           await databaseService.clearUserProgress(user.uid);
         } else {
-          // if bill already in progress when you click assigned
           setAlertDialog({
             open: true,
             message: 'You already have a bill in progress. Please complete it before starting another one.',
@@ -227,10 +219,6 @@ export default function DashboardPage() {
           return;
         }
       }
-
-      // Get bill name for confirmation
-      const allBills = await databaseService.getAllBills();
-      const bill = allBills.find(b => b.billId === billId);
 
       // Confirmation dialog
       setConfirmDialog({
@@ -287,9 +275,13 @@ export default function DashboardPage() {
         return;
       }
 
-      // Get the submission ID from completed bills
-      const userData = await userService.getUser(user.uid);
-      const submissionId = userData?.completedBills?.[billId];
+      const latestUser = await userService.getUser(user.uid);
+      if (!latestUser) {
+        router.push('/signin');
+        return;
+      }
+
+      const submissionId = latestUser.completedBills?.[billId];
       
       if (!submissionId) {
         setAlertDialog({

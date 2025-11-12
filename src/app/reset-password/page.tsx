@@ -21,7 +21,9 @@ export default function ResetPasswordPage() {
           alignItems: "center",
         }}
       >
-        <ResetPassword />
+        <React.Suspense fallback={null}>
+          <ResetPassword />
+        </React.Suspense>
       </Box>
       <Footer />
     </Box>

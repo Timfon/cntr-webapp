@@ -21,14 +21,20 @@ const teamMembers = [
     email: "suresh_venkatasubramanian@brown.edu",
   },
   {
-    name: "Meredith Mendola", 
+    name: "Tomo Lazovich",
+    role: "Assistant Professor of the Practice, AI Governance and Policy, CNTR AISLE Policy Director",
+    image: "/tomo.png",
+    email: "tomo_lazovich@brown.edu",
+  },
+  {
+    name: "Meredith Mendola",
     role: "CNTR Program Manager, CNTR AISLE Product Director, SRCH: Accessibility and Product Advisor",
     image: "/Meredith-25.jpeg",
     email: "meredith_mendola@brown.edu",
   },
   {
     name: "Tuan Pham",
-    role: "Former Research Associate in Neuroscience, Current PhD Student at Virginia Tech", 
+    role: "Former Research Associate in Neuroscience, Current PhD Student at Virginia Tech",
     image: "/tuan.png",
     email: "tuanhpham@brown.edu",
   },

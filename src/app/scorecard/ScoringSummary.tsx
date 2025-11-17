@@ -27,10 +27,14 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
   return (
     <Box>
       <Typography
-        variant="h5"
+        variant="h4"
+        component="h1"
         sx={{
+          textAlign: "center",
           mb: 2,
-          color: colors.text.primary
+          fontWeight: "bold",
+          color: "#333",
+          pt: 4,
         }}
       >
         Scoring Summary
@@ -41,45 +45,70 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
           p: 3,
           mb: 4,
           borderRadius: 3,
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Typography sx={{ fontWeight: 500 }}>
               Total Sections Completed:
             </Typography>
-            <Chip 
-              label={`${completedSections} of ${totalSections}`} 
-              color={completedSections === totalSections ? "success" : "default" as any}
+            <Chip
+              label={`${completedSections} of ${totalSections}`}
+              color={
+                completedSections === totalSections
+                  ? "success"
+                  : ("default" as any)
+              }
             />
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Typography sx={{ fontWeight: 500 }}>
               Questions Answered:
             </Typography>
-            <Chip 
-              label={`${answeredQuestions} of ${totalQuestions}`} 
-              color={answeredQuestions === totalQuestions ? "success" : "default" as any}
+            <Chip
+              label={`${answeredQuestions} of ${totalQuestions}`}
+              color={
+                answeredQuestions === totalQuestions
+                  ? "success"
+                  : ("default" as any)
+              }
             />
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontWeight: 500 }}>
-              Questions Flagged:
-            </Typography>
-            <Chip 
-              label={flaggedQuestions} 
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography sx={{ fontWeight: 500 }}>Questions Flagged:</Typography>
+            <Chip
+              label={flaggedQuestions}
               color={flaggedQuestions === 0 ? "success" : "warning"}
             />
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ fontWeight: 500 }}>
-              Notes Added:
-            </Typography>
-            <Chip 
-              label={sectionsWithNotes} 
-              color="info"
-            />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography sx={{ fontWeight: 500 }}>Notes Added:</Typography>
+            <Chip label={sectionsWithNotes} color="info" />
           </Box>
         </Box>
       </Paper>

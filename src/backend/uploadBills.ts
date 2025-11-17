@@ -1,51 +1,27 @@
 import * as Papa from 'papaparse';
 import fs from 'fs';
 import path from 'path';
-import { Bill } from '@/types/database';
+import { createClient } from '@supabase/supabase-js';
 
-// For server-side admin operations, use Firebase Admin SDK
-let adminDb: any = null;
+let supabaseClient: any = null;
 
-// Lazy initialize Firebase Admin SDK
-async function getAdminDb() {
-  if (adminDb) return adminDb;
-  
+// Initialize Supabase client
+function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+
   if (typeof window !== 'undefined') {
     throw new Error('uploadBills can only be called from server-side code');
   }
-  
-  try {
-    const admin = await import('firebase-admin');
-    
-    if (!admin.apps.length) {
-      let serviceAccount: any = null;
-      
-      if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      } else {
-        const serviceAccountPath = path.join(process.cwd(), 'firebase-admin.json');
-        if (fs.existsSync(serviceAccountPath)) {
-          serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
-        }
-      }
-      
-      if (serviceAccount) {
-        // Use service account from file or environment
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount)
-        });
-      } else {
-        // Use default credentials (e.g., on Google Cloud, local emulator with credentials)
-        admin.initializeApp();
-      }
-    }
-    
-    adminDb = admin.firestore();
-    return adminDb;
-  } catch (error) {
-    console.error('Failed to initialize Firebase Admin:', error);
-    throw error;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
   }
+
+  supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+  return supabaseClient;
 }
 
 interface CSVBill {
@@ -88,112 +64,130 @@ export interface UploadBillsResult {
 }
 
 /**
- * Parse bills from CSV and upload them to Firestore
- * Bill ID format: {state} {bill_number} {first_action_date}
- * 
+ * Parse bills from CSV and upload them to Supabase
+ * external_id format: {state} {bill_number} {first_action_date}
+ *
  * @returns Upload result with statistics
  */
 export async function uploadBills(): Promise<UploadBillsResult> {
   try {
     console.log('Reading bills.csv...');
-    
+
     // Get the CSV file path
     const csvPath = path.join(process.cwd(), 'src/app/data/bills.csv');
-    
+
     // Check if file exists
     if (!fs.existsSync(csvPath)) {
       throw new Error(`CSV file not found at: ${csvPath}`);
     }
-    
+
     const csvContent = fs.readFileSync(csvPath, 'utf-8');
-    
+
     // Parse CSV with PapaParse
     const parseResult = Papa.parse<CSVBill>(csvContent, {
       header: true,
       skipEmptyLines: true,
       transformHeader: (header: string) => header.trim(),
     });
-    
+
     console.log(`Parsed ${parseResult.data.length} bills from CSV`);
-    
+
     if (parseResult.errors.length > 0) {
       console.warn('CSV parsing warnings:', parseResult.errors.slice(0, 5));
     }
-    
-    // Transform CSV data to Bill format
-    const bills: (Bill & { billId: string })[] = [];
-    
+
+    // Transform CSV data to Supabase bill format
+    const bills: any[] = [];
+
     for (const row of parseResult.data) {
       try {
-        // Generate bill ID: {state} {bill_number} {first_action_date}
-        const billId = `${row.state} ${row.bill_number} ${row.first_action_date}`.trim();
-        
-        // Extract year from session or first_action_date
-        const year = row.first_action_date?.split('-')[0];
-        
-        const bill: Bill & { billId: string } = {
-          billId: billId,
+        // Generate external_id: {state} {bill_number} {first_action_date}
+        const externalId = `${row.state} ${row.bill_number} ${row.first_action_date}`.trim();
+
+        // Extract year from first_action_date
+        const year = parseInt(row.first_action_date?.split('-')[0]) || new Date().getFullYear();
+
+        // Map body to enum value (lowercase)
+        const bodyValue = row.body?.trim().toLowerCase();
+        let body: 'house' | 'senate' | 'assembly';
+        if (bodyValue === 'house') {
+          body = 'house';
+        } else if (bodyValue === 'senate') {
+          body = 'senate';
+        } else if (bodyValue === 'assembly') {
+          body = 'assembly';
+        } else {
+          console.warn(`Unknown body type: ${row.body}, defaulting to 'house'`);
+          body = 'house';
+        }
+
+        const bill = {
+          external_id: externalId,
           title: row.title?.trim() || "",
-          description: row.description?.trim() || "",
+          summary: row.description?.trim() || "",
           url: row.state_link?.trim() || "",
-          versionDate: row.first_action_date?.trim() || "",
+          version_date: row.first_action_date?.trim() || null,
           state: row.state?.trim() || "",
-          year: parseInt(year) || new Date().getFullYear(),
-          number: row.bill_number?.trim() || "",
-          body: row.body?.trim() || "",
-        };  
-        
+          year: year,
+          bill_number: row.bill_number?.trim() || "",
+          body: body,
+        };
+
         bills.push(bill);
       } catch (error) {
         console.error('Error processing row:', error);
         console.error('Row data:', row);
       }
     }
-    
+
     console.log(`Transformed ${bills.length} bills`);
-    
-    // Get Firestore admin instance
-    const db = await getAdminDb();
-    
-    // Upload to Firestore
-    console.log(`Uploading ${bills.length} bills to Firestore...`);
-    
+
+    // Get Supabase client
+    const supabase = getSupabaseClient();
+
+    // Upload to Supabase in batches
+    console.log(`Uploading ${bills.length} bills to Supabase...`);
+
     let successCount = 0;
     let errorCount = 0;
     const errorMessages: string[] = [];
-    
-    for (const bill of bills) {
+
+    // Upload in batches of 100 for better performance
+    const batchSize = 100;
+    for (let i = 0; i < bills.length; i += batchSize) {
+      const batch = bills.slice(i, i + batchSize);
+
       try {
-        // Use bill.billId as the document ID
-        await db.collection('bills').doc(bill.billId).set({
-          title: bill.title,
-          description: bill.description,
-          url: bill.url,
-          versionDate: bill.versionDate,
-          state: bill.state,
-          year: bill.year,
-          number: bill.number,
-          body: bill.body,
-        });
-        successCount++;
-        
-        if (successCount % 100 === 0) {
-          console.log(`  Progress: ${successCount}/${bills.length} bills uploaded...`);
+        const { data, error } = await supabase
+          .from('bills')
+          .upsert(batch, {
+            onConflict: 'external_id',
+            ignoreDuplicates: false
+          });
+
+        if (error) {
+          const errorMsg = `Error uploading batch ${i / batchSize + 1}: ${error.message}`;
+          console.error(errorMsg);
+          errorMessages.push(errorMsg);
+          errorCount += batch.length;
+        } else {
+          successCount += batch.length;
+          console.log(`  Progress: ${Math.min(i + batchSize, bills.length)}/${bills.length} bills uploaded...`);
         }
       } catch (error: any) {
-        const errorMsg = `Error uploading bill ${bill.billId}: ${error.message}`;
-        console.error(`${errorMsg}`);
+        const errorMsg = `Error uploading batch ${i / batchSize + 1}: ${error.message}`;
+        console.error(errorMsg);
         errorMessages.push(errorMsg);
-        errorCount++;
+        errorCount += batch.length;
       }
     }
-    
+
     console.log('\n🎉 Bill upload complete!');
     console.log(`✅ Successfully uploaded: ${successCount} bills`);
     if (errorCount > 0) {
-      console.log(`Errors: ${errorCount} bills`);
+      console.log(`❌ Errors: ${errorCount} bills`);
     }
-    
+
     return {
       success: errorCount === 0,
       total: bills.length,
@@ -201,7 +195,7 @@ export async function uploadBills(): Promise<UploadBillsResult> {
       errors: errorCount,
       errorMessages: errorMessages.length > 0 ? errorMessages : undefined
     };
-    
+
   } catch (error: any) {
     console.error('Fatal error:', error);
     throw error;

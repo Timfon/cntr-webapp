@@ -9,15 +9,7 @@ import {
   Grid,
 } from '@mui/material';
 import { colors } from '@/app/theme/colors';
-
-interface BillData {
-  id: string;
-  name: string;
-  date: string;
-  description: string;
-  status: 'inProgress' | 'assigned' | 'scored';
-  billIdentifier: string;
-}
+import { BillData } from './useDashboardData';
 
 interface BillBoxProps {
   bill: BillData;

@@ -1,295 +1,62 @@
-"use client";
-import React, { useState, useEffect, Suspense } from "react";
-import { auth } from "@/firebase";
-import { databaseService } from "@/backend/database";
-import { userService } from "@/backend/users";
-import Loading from "@/app/components/Loading";
-import { questionBank } from "../data/questionBank";
-import { filterQuestionsByDependencies, findDependentQuestions } from "./scoreCardUtils";
+'use client';
 
-import {
-  Box,
-  Typography,
-  IconButton,
-} from "@mui/material";
+import React, { Suspense } from 'react';
+import { Box, Typography, IconButton } from '@mui/material';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import { useRouter, useSearchParams } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
+import { useState } from 'react';
 
-import ResponsiveAppBar from "@/app/components/ResponsiveAppBar";
-import Footer from "@/app/components/Footer";
+import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
+import Footer from '@/app/components/Footer';
+import Loading from '@/app/components/Loading';
+import ScorecardSidebar from '@/app/scorecard/ScorecardSidebar';
+import QuestionCard from '@/app/scorecard/QuestionCard';
+import NotesSection from '@/app/scorecard/NotesSection';
+import NavigationButtons from '@/app/components/NavigationButtons';
+import SubmissionPage from './submission';
+import GlossaryPanel from '@/app/components/GlossaryPanel';
+import BillInfoHeader from './BillInfoHeader';
 
-import ScorecardSidebar from "@/app/scorecard/ScorecardSidebar";
-import QuestionCard from "@/app/scorecard/QuestionCard";
-import NotesSection from "@/app/scorecard/NotesSection";
-import NavigationButtons from "@/app/components/NavigationButtons";
-import SubmissionPage from "./submission";
-import GlossaryPanel from "@/app/components/GlossaryPanel";
-
-import { sections } from "../data/sections";
-import { validateAllAnswers } from "./scoreCardUtils";
+import { useScorecardData } from './useScorecardData';
+import { questionBank } from '../data/questionBank';
+import { sections } from '../data/sections';
+import { filterQuestionsByDependencies } from './scoreCardUtils';
+import { colors } from '@/app/theme/colors';
 
 function ScorecardContent() {
-  const [currentSection, setCurrentSection] = useState("general");
-  const [answers, setAnswers] = useState({});
-  const [selectedBill, setSelectedBill] = useState<string | null>(null);
-
-  // flags is a map from question number to boolean
-  const [flags, setFlags] = useState({});
-  const [notes, setNotes] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [billDetails, setBillDetails] = useState<any>(null);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const billParam = searchParams.get('bill');
-  const decodedBill = billParam ? decodeURIComponent(billParam) : null;
-  
-  const currentIndex = sections.findIndex((s) => s.id === currentSection);
+  const {
+    loading,
+    currentSection,
+    answers,
+    flags,
+    notes,
+    selectedBill,
+    billDetails,
+    decodedBill,
+    setCurrentSection,
+    handleAnswer,
+    handleFlag,
+    handleNotesChange,
+    handleSubmit,
+    saveProgress,
+  } = useScorecardData();
+
+  const currentIndex = sections.findIndex(s => s.id === currentSection);
   const currentSectionData = sections[currentIndex];
   const allCurrentQuestions = questionBank[currentSection] || [];
   const currentQuestions = filterQuestionsByDependencies(allCurrentQuestions, answers);
-  const version = questionBank.version;
-
-  // Helper: Find which section a question belongs to
-  const getSectionForQuestion = (questionId: string): string => {
-    for (const section of sections) {
-      if (section.id === 'submit') continue;
-      const sectionQuestions = questionBank[section.id] || [];
-      if (sectionQuestions.some((q: any) => q.id === questionId)) {
-        return section.id;
-      }
-    }
-    return 'general';
-  };
-
-  // Convert flat answers to nested structure for database
-  const convertToNestedAnswers = (flatAnswers: Record<string, any>): Record<string, Record<string, any>> => {
-    const nested: Record<string, Record<string, any>> = {};
-    Object.entries(flatAnswers).forEach(([questionId, answer]) => {
-      const sectionId = getSectionForQuestion(questionId);
-      if (!nested[sectionId]) {
-        nested[sectionId] = {};
-      }
-      nested[sectionId][questionId] = answer;
-    });
-    return nested;
-  };
-
-  // Flatten nested answers to flat structure
-  const flattenAnswers = (nestedAnswers: Record<string, Record<string, any>>): Record<string, any> => {
-    const flat: Record<string, any> = {};
-    Object.entries(nestedAnswers).forEach(([sectionId, sectionAnswers]) => {
-      if (typeof sectionAnswers === 'object' && sectionAnswers !== null && !Array.isArray(sectionAnswers)) {
-        Object.entries(sectionAnswers).forEach(([questionId, answer]) => {
-          flat[questionId] = answer;
-        });
-      }
-    });
-    return flat;
-  };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.push("/signin");
-        return;
-      }
-
-      // bill has to be preselected
-      if (!billParam || !decodedBill) {
-        router.push("/dashboard");
-        return;
-      }
-      
-      // Fetch saved progress
-      const data = await userService.getUser(user.uid);
-      
-      // Get bill details from database to show proper name
-      let billName = decodedBill;
-      try {
-        const details = await databaseService.getBill(decodedBill);
-        if (details) {
-          setBillDetails(details);
-          billName = details.title || decodedBill;
-          setSelectedBill(billName);
-        } else {
-          setSelectedBill(decodedBill);
-        }
-      } catch (error) {
-        setSelectedBill(decodedBill);
-      }
-      
-      // If there's existing progress for this bill, load it
-      if (data?.inProgress && data.inProgress.billId === decodedBill) {
-        // Convert nested answers back to flat structure
-        const nestedAnswers = data.inProgress.answers || {};
-        let existingAnswers: Record<string, any> = {};
-        
-        // Check if answers are nested or already flat (backward compatibility)
-        if (typeof nestedAnswers === 'object' && !Array.isArray(nestedAnswers)) {
-          // Check if it's nested structure (has section keys like 'general', 'impact', etc.)
-          const hasSectionKeys = Object.keys(nestedAnswers).some(key => 
-            sections.some(s => s.id === key && s.id !== 'submit')
-          );
-          if (hasSectionKeys) {
-            existingAnswers = flattenAnswers(nestedAnswers as Record<string, Record<string, any>>);
-          } else {
-            // Already flat, use as-is
-            Object.assign(existingAnswers, nestedAnswers);
-          }
-        } else {
-          existingAnswers = nestedAnswers;
-        }
-        
-        // Ensure question 00 is answered (bill is always pre-selected)
-        if (!existingAnswers['00']) {
-          existingAnswers['00'] = billName;
-          // Save the updated answer to progress
-          setTimeout(async () => {
-            try {
-              const user = auth.currentUser;
-              if (user && billName) {
-                const nestedAnswers = convertToNestedAnswers(existingAnswers);
-                await databaseService.updateUserProgress(
-                  user.uid,
-                  decodedBill,
-                  nestedAnswers,
-                  data.inProgress?.flags || {},
-                  data.inProgress?.notes || {},
-                  data.inProgress?.currentSection || "general"
-                );
-              }
-            } catch (error) {
-              console.error('Error saving question 00 answer:', error);
-            }
-          }, 100);
-        }
-        setAnswers(existingAnswers);
-        setFlags(data.inProgress.flags || {});
-        setNotes(data.inProgress.notes || {});
-        setCurrentSection(data.inProgress.currentSection || "general");
-      } else {
-        // New bill - start fresh with bill pre-selected (auto-answer question 00)
-        const initialAnswers = { '00': billName };
-        setAnswers(initialAnswers);
-        setFlags({});
-        setNotes({});
-        setCurrentSection("general");
-        // Save the initial answer to progress
-        setTimeout(async () => {
-          try {
-            const user = auth.currentUser;
-            if (user && billName) {
-              const nestedAnswers = convertToNestedAnswers(initialAnswers);
-              await databaseService.updateUserProgress(
-                user.uid,
-                decodedBill,
-                nestedAnswers,
-                {},
-                {},
-                "general"
-              );
-            }
-          } catch (error) {
-            console.error('Error saving initial question 00 answer:', error);
-          }
-        }, 100);
-      }
-
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [router, billParam]);
-
 
   if (loading) {
     return <Loading />;
   }
 
-  const saveProgress = async (data) => {
-    const user = auth.currentUser;
-    if (!user || !decodedBill) return;
-    
-    try {
-      const updatedAnswers = data.answers ? { ...answers, ...data.answers } : answers;
-      const updatedFlags = data.flags ? { ...flags, ...data.flags } : flags;
-      const updatedNotes = data.notes ? { ...notes, ...data.notes } : notes;
-      
-      // Convert flat answers to nested structure for database
-      const nestedAnswers = convertToNestedAnswers(updatedAnswers);
-      
-      await databaseService.updateUserProgress(
-        user.uid, 
-        decodedBill,
-        nestedAnswers, 
-        updatedFlags, 
-        updatedNotes, 
-        currentSection
-      );
-    } catch (error) {
-      console.error('Error saving progress:', error);
-    }
-  };
-
-  const handleAnswer = (questionId, answer) => {
-    if (questionId === "00") {
-      setSelectedBill(answer);
-      saveProgress({ answers: { "00": answer } });
-      return;
-    }
-    
-    let updatedAnswers = { ...answers, [questionId]: answer };
-    
-    // If the answer is "No" or "N/A", clear dependent question answers
-    if (answer === 'no' || answer === 'N/A') {
-      const dependentQuestions = findDependentQuestions(questionId);
-      
-      dependentQuestions.forEach((dependentId) => {
-        updatedAnswers[dependentId] = ['N/A'];
-      });
-      
-      const updatedFlags = { ...flags };
-      dependentQuestions.forEach((dependentId) => {
-        delete updatedFlags[dependentId];
-      });
-      setFlags(updatedFlags);
-      
-      saveProgress({ 
-        answers: updatedAnswers, 
-        flags: updatedFlags, 
-      });
-    } else {
-      const dependentQuestions = findDependentQuestions(questionId);
-      dependentQuestions.forEach((dependentId) => {
-        delete updatedAnswers[dependentId];
-      });
-    }
-    
-    setAnswers(updatedAnswers);
-    saveProgress({ answers: updatedAnswers });
-  };
-
-  const handleFlag = (questionId) => {
-    const updated = { ...flags, [questionId]: !flags[questionId] };
-    setFlags(updated);
-    saveProgress({ flags: updated });
-  };
-
-  const handleNotesChange = (sectionId, value) => {
-    const updated = { ...notes, [sectionId]: value };
-    setNotes(updated);
-    saveProgress({ notes: updated });
-  };
-
-  const handleSectionChange = (sectionId) => {
+  const handleSectionChange = (sectionId: string) => {
     setCurrentSection(sectionId);
   };
 
-  const handleNavigateToQuestion = (sectionId, questionId) => {
+  const handleNavigateToQuestion = (sectionId: string, questionId: string) => {
     setCurrentSection(sectionId);
-    // Scroll to the specific question after a short delay to allow section to load
     setTimeout(() => {
       const element = document.getElementById(`question-${questionId}`);
       if (element) {
@@ -298,80 +65,18 @@ function ScorecardContent() {
     }, 100);
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (currentIndex >= 0 && currentIndex < sections.length - 1) {
       handleSectionChange(sections[currentIndex + 1].id);
-      window.scrollTo({ top: 0, behavior: "instant" });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
   };
 
-  const handleSubmit = async () => {
-    const firstUnanswered = validateAllAnswers(answers);
-    const flaggedQuestions = Object.entries(flags)
-      .filter(([_, value]) => value === true)
-      .map(([key, _]) => key);
-
-    // If there are unanswered questions or flagged questions, show error
-    if (firstUnanswered || flaggedQuestions.length > 0) {
-      let errorMessage = "Cannot submit. Please address the following issues:\n\n";
-      
-      if (firstUnanswered) {
-        errorMessage += `• Unanswered questions: ${firstUnanswered.id}\n`;
-      }
-      
-      if (flaggedQuestions.length > 0) {
-        errorMessage += `• Flagged questions: ${flaggedQuestions.join(", ")}\n`;
-      }
-      
-      errorMessage += "\nPlease review and complete all questions before submitting.";
-      
-      alert(errorMessage);
-      return;
-    }
-    const user = auth.currentUser;
-    if (!user || !decodedBill) {
-      alert('Unable to identify bill. Please try again.');
-      return;
-    }
-
-    const submissionId = await databaseService.createSubmission({
-      version: version,
-      billId: decodedBill,
-      answers,
-      uid: user.uid,
-      notes,
-      createdAt: new Date().toISOString(),
-    });
-
-    // Add bill to completed bills
-    const currentUser = await userService.getUser(user.uid);
-    await userService.updateUser({
-      uid: user.uid,
-      completedBills: {
-        ...(currentUser?.completedBills || {}),
-        [decodedBill]: submissionId
-      }
-    });
-
-    // Clear saved progress
-    await databaseService.clearUserProgress(user.uid);
-
-// Reset local state
-setAnswers({});
-setFlags({});
-setNotes({});
-setCurrentSection("general");
-setSelectedBill('');
-
-alert("Form submitted!");
-window.scrollTo({ top: 0, behavior: "smooth" });
-router.push("/dashboard");
-
-  };
   return (
     <Box>
       <ResponsiveAppBar />
-      {/* Glossary Toggle Button*/}
+
+      {/* Glossary Toggle Button */}
       <IconButton
         onClick={() => setGlossaryOpen(!glossaryOpen)}
         sx={{
@@ -379,78 +84,45 @@ router.push("/dashboard");
           right: glossaryOpen ? 320 : 0,
           top: '120px',
           zIndex: 1400,
-          backgroundColor: '#0C6431',
+          backgroundColor: colors.primary,
           color: 'white',
           borderRadius: glossaryOpen ? '0' : '8px 0 0 8px',
           width: '48px',
           height: '72px',
           boxShadow: '2px 0 8px rgba(0, 0, 0, 0.2)',
           '&:hover': {
-            backgroundColor: '#094d26',
+            backgroundColor: colors.primaryDark,
           },
-          transition: 'right 0.0s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.0s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'right 0.0s, border-radius 0.0s',
         }}
-        title={glossaryOpen ? "Close Glossary" : "Open Glossary"}
+        title={glossaryOpen ? 'Close Glossary' : 'Open Glossary'}
       >
         <MenuBookIcon sx={{ fontSize: '28px' }} />
       </IconButton>
+
       <Box
         sx={{
-          minHeight: "100vh",
-          backgroundColor: "#F6FBF7",
-          position: "relative",
+          minHeight: '100vh',
+          backgroundColor: colors.background.main,
+          position: 'relative',
           p: 3,
-          display: "flex",
+          display: 'flex',
         }}
       >
+        {/* Sidebar */}
         <Box>
-          <Box
-      sx={{
-        p: 1.5,
-        mb: 2,
-        borderRadius: 2,
-        position: "sticky",
-        top: 30,
-        backgroundColor: '#ffffffff',
-        fontWeight: 500,
-        color: '#333333',
-        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-
-        fontSize: '1rem',
-        maxWidth: 300,
-        whiteSpace: 'normal',
-        wordBreak: 'break-word'
-      }}
-      >
-      {billDetails ? (
-        <>
-          <Box sx={{ fontWeight: 600, mb: 0.5, fontSize: '0.85rem', color: '#4CAF50' }}>
-            {billDetails.state} {billDetails.type}{billDetails.number} ({billDetails.year})
-          </Box>
-          <Box sx={{ fontSize: '0.9rem', color: '#666' }}>
-            {selectedBill || 'No bill selected'}
-          </Box>
-        </>
-      ) : (
-        selectedBill || 'No bill selected'
-      )}
-    </Box>
+          <BillInfoHeader billDetails={billDetails} selectedBill={selectedBill} />
           <ScorecardSidebar
             currentSection={currentSection}
             onSectionChange={handleSectionChange}
             answers={answers}
             flags={flags}
             saveProgress={saveProgress}
-            />
+          />
         </Box>
 
         {/* Main Content */}
-        <Box
-          sx={{
-            // marginLeft: '350px',
-            maxWidth: 800,
-          }}
-        >
+        <Box sx={{ maxWidth: 800 }}>
           {currentSection === 'submit' ? (
             <SubmissionPage
               answers={answers}
@@ -466,7 +138,7 @@ router.push("/dashboard");
                 <Typography
                   variant="body2"
                   sx={{
-                    color: "#333333",
+                    color: colors.text.primary,
                     mb: 2,
                     mt: 4,
                   }}
@@ -477,17 +149,18 @@ router.push("/dashboard");
                 <Typography
                   variant="h4"
                   sx={{
-                    fontWeight: "100",
-                    color: "#333333",
+                    fontWeight: '100',
+                    color: colors.text.primary,
                     mb: 2,
                   }}
                 >
                   {currentSectionData?.name || 'Unknown Section'}
                 </Typography>
               </Box>
-              {currentQuestions.map((question) => {
-                //bill preselected from dashboard
-                if (question.id === '00' && billParam) {
+
+              {currentQuestions.map(question => {
+                // Bill preselected from dashboard
+                if (question.id === '00' && decodedBill) {
                   return null;
                 }
                 return (
@@ -502,11 +175,13 @@ router.push("/dashboard");
                   />
                 );
               })}
+
               <NotesSection
                 notes={notes}
                 currentSection={currentSection}
                 onNotesChange={handleNotesChange}
               />
+
               <NavigationButtons
                 currentSection={currentSection}
                 onSectionChange={handleSectionChange}
@@ -520,6 +195,7 @@ router.push("/dashboard");
         {/* Glossary Panel */}
         <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
       </Box>
+
       <Footer />
     </Box>
   );

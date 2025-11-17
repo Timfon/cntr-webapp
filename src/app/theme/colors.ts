@@ -13,6 +13,7 @@ export const colors = {
   background: {
     main: '#F6FBF7',
     signup: '#D9E8DF',
+    light: '#D9E8DF',
     card: '#ffffff',
     white: '#ffffff',
   },

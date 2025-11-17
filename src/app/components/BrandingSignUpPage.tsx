@@ -36,34 +36,21 @@ export default function BrandingSignUpPage() {
   const handleGoogleSignUp = async () => {
     setLoading(true);
     try {
+      // triggers a redirect to Google OAuth
       const result = await authService.signInWithGoogle();
-      if (result.success) {
-        if (result.isNewUser) {
-          sessionStorage.setItem('completeSignupData', JSON.stringify({
-            email: result.user.email || '',
-            firstName: result.user.displayName?.split(' ')[0] || '',
-            lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
-            password: '',
-            isGoogleUser: true,
-          }));
-          router.push('/signup/account');
-        } else {
-          router.push('/dashboard');
-        }
-      } else {
+      if (!result.success) {
         console.error('Google sign-up error:', result.error);
         alert(`Google sign-up failed: ${result.error}`);
+        setLoading(false);
       }
     } catch (error) {
       console.error('Google sign-up error:', error);
       alert('Google sign-up failed');
-    } finally {
       setLoading(false);
     }
   };
 
   const handleEmailSignUp = () => {
-    // Email users go to account information page first
     router.push('/signup/account');
   };
 

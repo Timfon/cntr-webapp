@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { auth } from "@/firebase";
-import { databaseService } from "@/backend/database";
-import { onAuthStateChanged } from "firebase/auth";
+import { authService } from "@/backend/auth";
+import { billService, submissionService } from "@/backend/database";
 import Loading from "@/app/components/Loading";
 import ResponsiveAppBar from "@/app/components/ResponsiveAppBar";
 import Footer from "@/app/components/Footer";
@@ -26,53 +25,49 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { sections } from "@/app/data/sections";
 import { questionBank } from "@/app/data/questionBank";
+import { colors } from "@/app/theme/colors";
 
 function ViewSubmissionContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const submissionIdParam = searchParams.get("submission");
+  const billParam = searchParams.get("bill");
 
   const [loading, setLoading] = useState(true);
   const [submission, setSubmission] = useState<any>(null);
   const [billDetails, setBillDetails] = useState<any>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = authService.onAuthStateChanged(async (user) => {
       if (!user) {
         router.push("/signin");
         return;
       }
 
-      if (!submissionIdParam) {
+      if (!billParam) {
         router.push("/dashboard");
         return;
       }
 
+      const decodedBill = decodeURIComponent(billParam);
+
       try {
-        // Fetch submission
-        const submissionData = await databaseService.getSubmission(
-          decodeURIComponent(submissionIdParam)
-        );
+        // Fetch bill details first
+        const bill = await billService.getBill(decodedBill);
+        if (bill) {
+          setBillDetails(bill);
+        }
+
+        // Fetch user's submission for this bill
+        const userSubmissions = await submissionService.getUserSubmissions(user.id);
+        const submissionData = userSubmissions.find(s => s.bill_id === decodedBill);
 
         if (!submissionData) {
-          alert("Submission not found.");
+          alert("Submission not found for this bill.");
           router.push("/dashboard");
           return;
         }
 
         setSubmission(submissionData);
-
-        // Fetch bill details
-        if (submissionData.billId) {
-          try {
-            const bill = await databaseService.getBill(submissionData.billId);
-            if (bill) {
-              setBillDetails(bill);
-            }
-          } catch (error) {
-            console.error("Error fetching bill details:", error);
-          }
-        }
       } catch (error) {
         console.error("Error loading submission:", error);
         alert("Failed to load submission.");
@@ -83,7 +78,7 @@ function ViewSubmissionContent() {
     });
 
     return () => unsubscribe();
-  }, [router, submissionIdParam]);
+  }, [router, billParam]);
 
   if (loading) {
     return <Loading />;
@@ -157,78 +152,15 @@ function ViewSubmissionContent() {
       <Box
         sx={{
           minHeight: "100vh",
-          backgroundColor: "#F6FBF7",
+          backgroundColor: colors.background.main,
           position: "relative",
           p: 3,
           display: "flex",
+          justifyContent: "center",
         }}
       >
-        {/* Left Sidebar */}
-        <Box>
-          <Box
-            sx={{
-              p: 1.5,
-              mb: 2,
-              borderRadius: 2,
-              position: "sticky",
-              top: 30,
-              backgroundColor: "#ffffffff",
-              fontWeight: 500,
-              color: "#333333",
-              boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-              fontSize: "1rem",
-              maxWidth: 300,
-              whiteSpace: "normal",
-              wordBreak: "break-word",
-            }}
-          >
-            {billDetails ? (
-              <>
-                <Box
-                  sx={{
-                    fontWeight: 600,
-                    mb: 0.5,
-                    fontSize: "0.85rem",
-                    color: "#4CAF50",
-                  }}
-                >
-                  {billDetails.state} {billDetails.type}
-                  {billDetails.number} ({billDetails.year})
-                </Box>
-                <Box sx={{ fontSize: "0.9rem", color: "#666" }}>
-                  {billDetails.name}
-                </Box>
-              </>
-            ) : (
-              <Box>Bill: {submission.billId}</Box>
-            )}
-          </Box>
-        </Box>
-
         {/* Main Content */}
-        <Box sx={{ maxWidth: 800, flex: 1, ml: 3 }}>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: "bold",
-              mb: 2,
-              color: "#333333",
-            }}
-          >
-            View Submission
-          </Typography>
-
-          <Typography
-            variant="body1"
-            sx={{
-              mb: 4,
-              color: "#666",
-              lineHeight: 1.6,
-            }}
-          >
-            Here is a summary of your completed submission for this bill. Past submissions cannot be edited. 
-          </Typography>
-
+        <Box sx={{ maxWidth: 900, width: "100%" }}>
           <ScoringSummary
             completedSections={completedSections}
             totalSections={sections.length - 1}
@@ -241,11 +173,14 @@ function ViewSubmissionContent() {
           {/* Section Accordions */}
           <Box sx={{ mb: 4 }}>
             <Typography
-              variant="h5"
+              variant="h4"
+              component="h1"
               sx={{
-                fontWeight: "bold",
+                textAlign: "center",
                 mb: 2,
-                color: "#333333",
+                fontWeight: "bold",
+                color: colors.text.primary,
+                pt: 4,
               }}
             >
               Your Answers
@@ -268,6 +203,7 @@ function ViewSubmissionContent() {
                       mb: 2,
                       boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                       borderRadius: "12px !important",
+                      backgroundColor: colors.background.white,
                       "&:before": {
                         display: "none",
                       },
@@ -276,10 +212,10 @@ function ViewSubmissionContent() {
                     <AccordionSummary
                       expandIcon={<ExpandMoreIcon />}
                       sx={{
-                        backgroundColor: "#f5f5f5",
+                        backgroundColor: colors.background.white,
                         borderRadius: "12px",
                         "&:hover": {
-                          backgroundColor: "#eeeeee",
+                          backgroundColor: colors.border.lighter,
                         },
                         "&.Mui-expanded": {
                           borderBottomLeftRadius: 0,
@@ -287,7 +223,13 @@ function ViewSubmissionContent() {
                         },
                       }}
                     >
-                      <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
                         <Typography
                           sx={{
                             fontWeight: "bold",
@@ -302,7 +244,9 @@ function ViewSubmissionContent() {
                           sx={{
                             ml: 2,
                           }}
-                          color={answeredCount === totalCount ? "success" : "default"}
+                          color={
+                            answeredCount === totalCount ? "success" : "default"
+                          }
                         />
                       </Box>
                     </AccordionSummary>
@@ -316,11 +260,13 @@ function ViewSubmissionContent() {
                       >
                         <Table>
                           <TableHead>
-                            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                            <TableRow
+                              sx={{ backgroundColor: colors.neutral.gray100 }}
+                            >
                               <TableCell
                                 sx={{
                                   fontWeight: 600,
-                                  borderBottom: "1px solid #e0e0e0",
+                                  borderBottom: `1px solid ${colors.border.light}`,
                                 }}
                               >
                                 Section
@@ -328,7 +274,7 @@ function ViewSubmissionContent() {
                               <TableCell
                                 sx={{
                                   fontWeight: 600,
-                                  borderBottom: "1px solid #e0e0e0",
+                                  borderBottom: `1px solid ${colors.border.light}`,
                                 }}
                               >
                                 Question
@@ -336,7 +282,7 @@ function ViewSubmissionContent() {
                               <TableCell
                                 sx={{
                                   fontWeight: 600,
-                                  borderBottom: "1px solid #e0e0e0",
+                                  borderBottom: `1px solid ${colors.border.light}`,
                                 }}
                               >
                                 Answer
@@ -350,29 +296,33 @@ function ViewSubmissionContent() {
                                 sx={{
                                   "&:last-child td": { borderBottom: 0 },
                                   "&:hover": {
-                                    backgroundColor: "#fafafa",
+                                    backgroundColor: colors.neutral.gray50,
                                   },
                                 }}
                               >
                                 <TableCell
                                   sx={{
-                                    borderBottom: "1px solid #e0e0e0",
+                                    borderBottom: `1px solid ${colors.border.light}`,
                                   }}
                                 >
                                   {section.name}
                                 </TableCell>
                                 <TableCell
                                   sx={{
-                                    borderBottom: "1px solid #e0e0e0",
+                                    borderBottom: `1px solid ${colors.border.light}`,
                                   }}
                                 >
                                   {question.id}. {question.text}
                                 </TableCell>
                                 <TableCell
                                   sx={{
-                                    borderBottom: "1px solid #e0e0e0",
-                                    color: question.hasAnswer ? "#333" : "#999",
-                                    fontStyle: question.hasAnswer ? "normal" : "italic",
+                                    borderBottom: `1px solid ${colors.border.light}`,
+                                    color: question.hasAnswer
+                                      ? colors.text.primary
+                                      : colors.text.tertiary,
+                                    fontStyle: question.hasAnswer
+                                      ? "normal"
+                                      : "italic",
                                   }}
                                 >
                                   {formatAnswer(question.answer)}
@@ -382,27 +332,27 @@ function ViewSubmissionContent() {
                           </TableBody>
                         </Table>
                       </TableContainer>
-                      
+
                       {sectionNotes && sectionNotes.trim() && (
                         <Box
                           sx={{
                             p: 2,
                             backgroundColor: "#e3f2fd",
-                            borderTop: "2px solid #2196F3",
+                            borderTop: `2px solid ${colors.status.info}`,
                           }}
                         >
                           <Typography
                             sx={{
                               fontWeight: "bold",
                               mb: 1,
-                              color: "#333",
+                              color: colors.text.primary,
                             }}
                           >
                             Section Notes
                           </Typography>
                           <Typography
                             sx={{
-                              color: "#333",
+                              color: colors.text.primary,
                               whiteSpace: "pre-wrap",
                             }}
                           >

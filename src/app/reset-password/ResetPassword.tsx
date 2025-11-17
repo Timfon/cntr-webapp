@@ -10,18 +10,15 @@ import {
   Link,
 } from "@mui/material";
 import NextLink from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { authService } from "@/backend/auth";
 import { colors } from "@/app/theme/colors";
+import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 type ResetStatus = "checking" | "ready" | "error" | "success";
 
 const ResetPassword: React.FC = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const oobCode = searchParams.get("oobCode");
-  const mode = searchParams.get("mode");
-  const fallbackEmail = searchParams.get("email") ?? "";
 
   const [status, setStatus] = useState<ResetStatus>("checking");
   const [email, setEmail] = useState("");
@@ -32,41 +29,80 @@ const ResetPassword: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!oobCode || mode !== "resetPassword") {
-      setError("Invalid or missing password reset code.");
-      setStatus("error");
-      return;
-    }
-
-    let isMounted = true;
-
-    const verify = async () => {
+    const checkSession = async () => {
       setStatus("checking");
-      const result = await authService.verifyPasswordResetCode(oobCode);
-      if (!isMounted) return;
 
-      if (result.success) {
-        setEmail(result.email || fallbackEmail);
+      const supabase = createBrowserSupabaseClient();
+
+      // Listen for password recovery events (in case they land directly here with hash)
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
+          // User clicked password reset link
+          if (session?.user) {
+            setEmail(session.user.email || "");
+            setStatus("ready");
+          } else {
+            setError("Invalid reset link. Please request a new one.");
+            setStatus("error");
+          }
+        }
+      });
+
+      // Check for code parameter first 
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+
+      if (code) {
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (exchangeError) {
+          console.error("Error exchanging code:", exchangeError);
+          setError("Invalid or expired reset link. Please request a new one.");
+          setStatus("error");
+          subscription.unsubscribe();
+          return;
+        }
+
+        if (data?.user) {
+          setEmail(data.user.email || "");
+          setStatus("ready");
+          // Clean up URL
+          window.history.replaceState({}, "", "/reset-password");
+        } else {
+          setError("Invalid reset link. Please request a new one.");
+          setStatus("error");
+        }
+        subscription.unsubscribe();
+        return;
+      }
+
+      // Check for existing session (user already authenticated)
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        // User has a valid session - allow password reset
+        setEmail(session.user.email || "");
         setStatus("ready");
       } else {
-        setError(result.error || "Reset link has expired or is invalid.");
-        setStatus("error");
+        // No session and no code - invalid access
+        setTimeout(() => {
+          if (status === "checking") {
+            setError("Invalid or expired reset link. Please request a new one.");
+            setStatus("error");
+          }
+        }, 1000);
       }
+
+      return () => {
+        subscription.unsubscribe();
+      };
     };
 
-    verify();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [fallbackEmail, mode, oobCode]);
+    checkSession();
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!oobCode) {
-      setError("Missing reset code. Please request a new reset link.");
-      return;
-    }
 
     if (newPassword.trim().length < 8) {
       setError("Password must be at least 8 characters long.");
@@ -82,10 +118,7 @@ const ResetPassword: React.FC = () => {
     setError(null);
     setSuccess(null);
 
-    const result = await authService.confirmPasswordReset(
-      oobCode,
-      newPassword.trim()
-    );
+    const result = await authService.updatePassword(newPassword.trim());
 
     setLoading(false);
 
@@ -94,6 +127,9 @@ const ResetPassword: React.FC = () => {
       setStatus("success");
       setNewPassword("");
       setConfirmPassword("");
+
+      // Sign out after password reset so user can sign in with new password
+      await authService.signOut();
     } else {
       setError(result.error || "Failed to reset password. Please try again.");
     }

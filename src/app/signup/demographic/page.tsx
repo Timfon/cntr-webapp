@@ -15,16 +15,16 @@ import {
   MenuItem,
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/backend/auth';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
-import { UserRole } from '@/types/user';
+import { UserRole, Cohort } from '@/types/database';
 import { getSignupData } from '../signupUtils';
+import { cohortService } from '@/backend/database';
 
 interface DemographicFormData {
   role: UserRole;
-  cohort: string;
+  cohortId: string;
 }
 
 interface SignupData {
@@ -38,26 +38,40 @@ interface SignupData {
 export default function DemographicPage() {
   const [formData, setFormData] = useState<DemographicFormData>({
     role: 'general',
-    cohort: '',
+    cohortId: '',
   });
   const [signupData, setSignupData] = useState<SignupData | null>(null);
+  const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const data = getSignupData();
-    if (data) {
-      setSignupData(data);
-      if (data.demographic) {
-        setFormData({
-          role: (data.demographic.role || 'general') as UserRole,
-          cohort: data.demographic.cohort || '',
-        });
+    const loadData = async () => {
+      // Load cohorts from database
+      try {
+        const allCohorts = await cohortService.getAllCohorts();
+        setCohorts(allCohorts);
+      } catch (err) {
+        console.error('Failed to load cohorts:', err);
       }
-    } else {
-      router.push('/signup/account');
-    }
+
+      // Load signup data from session
+      const data = getSignupData();
+      if (data) {
+        setSignupData(data);
+        if (data.demographic) {
+          setFormData({
+            role: (data.demographic.role || 'general') as UserRole,
+            cohortId: data.demographic.cohortId || '',
+          });
+        }
+      } else {
+        router.push('/signup/account');
+      }
+    };
+
+    loadData();
   }, [router]);
 
   const handleSelectChange = (field: keyof DemographicFormData) => (
@@ -76,23 +90,29 @@ export default function DemographicPage() {
 
   const handleNext = async () => {
     if (!signupData) return;
-    
-    if (!formData.cohort) {
+
+    if (!formData.cohortId) {
       setError('Please select a cohort');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
+      // Find the selected cohort name
+      const selectedCohort = cohorts.find(c => c.id === formData.cohortId);
+
       // Store all data for the review step
       const completeData = {
         ...signupData,
-        demographic: formData,
+        demographic: {
+          ...formData,
+          cohortName: selectedCohort?.name || '',
+        },
       };
       sessionStorage.setItem('completeSignupData', JSON.stringify(completeData));
-      
+
       // Navigate to review page
       router.push('/signup/review');
     } catch (err) {
@@ -189,11 +209,15 @@ export default function DemographicPage() {
                 <FormControl fullWidth required>
                   <InputLabel>Cohort</InputLabel>
                   <Select
-                    value={formData.cohort}
+                    value={formData.cohortId}
                     label="Cohort"
-                    onChange={handleSelectChange('cohort')}
+                    onChange={handleSelectChange('cohortId')}
                   >
-                    <MenuItem value="fall-2025">Fall 2025</MenuItem>
+                    {cohorts.map((cohort) => (
+                      <MenuItem key={cohort.id} value={cohort.id}>
+                        {cohort.name}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>

@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { auth } from '@/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { authService } from "@/backend/auth";
 import { useRouter } from 'next/navigation';
@@ -15,9 +13,9 @@ export default function BrandingSignInPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = authService.onAuthStateChanged(async (user) => {
       if (user) {
-        const hasCompleted = await authService.hasCompletedProfile(user.uid);
+        const hasCompleted = await authService.hasCompletedProfile(user.id);
         if (hasCompleted) {
           router.push('/dashboard');
         }
@@ -30,28 +28,16 @@ export default function BrandingSignInPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
+      // triggers a redirect to Google OAuth
       const result = await authService.signInWithGoogle();
-      if (result.success) {
-        if (result.isNewUser) {
-          await sessionStorage.setItem('completeSignupData', JSON.stringify({
-            email: result.user.email || '',
-            firstName: result.user.displayName?.split(' ')[0] || '',
-            lastName: result.user.displayName?.split(' ').slice(1).join(' ') || '',
-            password: '',
-            isGoogleUser: true,
-          }));
-          router.push('/signup/account');
-        } else {
-          router.push('/dashboard');
-        }
-      } else {
+      if (!result.success) {
         setError(result.error || 'Google sign-in failed');
+        setLoading(false);
       }
     } catch (err) {
       setError('Google sign-in failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -60,11 +46,11 @@ export default function BrandingSignInPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await authService.signInWithEmail(email, password);
       if (result.success) {
-        router.push('/dashboard');  
+        router.push('/dashboard');
       } else {
         setError(result.error || 'Sign-in failed. Please try again');
       }

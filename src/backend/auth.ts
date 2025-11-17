@@ -1,6 +1,7 @@
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { userService } from './users';
 import { UserRole } from '@/types/database';
+import { getSiteUrl } from '@/utils/siteUrl';
 
 /**
  * Authentication service
@@ -15,7 +16,7 @@ export const authService = {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${getSiteUrl()}/auth/callback`
         }
       });
 
@@ -184,7 +185,7 @@ export const authService = {
     try {
       const supabase = createBrowserSupabaseClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: `${getSiteUrl()}/reset-password`
       });
 
       if (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
   Box,
   Card,
@@ -16,6 +16,7 @@ import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
+import Loading from '@/app/components/Loading';
 import "@fontsource/rubik";
 import { getSignupData } from '../signupUtils';
 
@@ -27,7 +28,7 @@ interface AccountInfoFormData {
   confirmPassword: string;
 }
 
-export default function AccountInfoPage() {
+function AccountInfoContent() {
   const [formData, setFormData] = useState<AccountInfoFormData>({
     email: '',
     firstName: '',
@@ -283,5 +284,13 @@ export default function AccountInfoPage() {
       </Box>
       <Footer />
     </Box>
+  );
+}
+
+export default function AccountInfoPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <AccountInfoContent />
+    </Suspense>
   );
 }

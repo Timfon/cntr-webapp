@@ -14,15 +14,12 @@ import {
   MenuItem,
 } from '@mui/material';
 import Link from 'next/link';
-import { User } from 'firebase/auth';
-import { onAuthStateChanged } from 'firebase/auth';
-
 import { useRouter } from 'next/navigation';
 import "@fontsource/rubik";
 import MenuIcon from '@mui/icons-material/Menu';
-import { auth } from '@/firebase';
 import { authService } from "@/backend/auth";
 import { colors } from '@/app/theme/colors';
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 
 const pages = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -31,11 +28,11 @@ const pages = [
 ];
 
 export default function ResponsiveAppBar() {
-  const [user, setUser] = React.useState<User | null>(null);
+  const [user, setUser] = React.useState<any | null>(null);
   const router = useRouter();
   const settings = user
   ? [
-      { label: user.email, onClick: () => {} },
+      { label: user.email || 'User', onClick: () => {} },
       {
         label: 'Settings',
         onClick: () => router.push('/settings'),
@@ -46,6 +43,7 @@ export default function ResponsiveAppBar() {
           try {
             const result = await authService.signOut();
             if (result.success) {
+              setUser(null); 
               router.push('/signin');
             } else {
               console.error("Error signing out:", result.error);
@@ -83,11 +81,23 @@ export default function ResponsiveAppBar() {
 
 
 React.useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    setUser(firebaseUser);
+  const supabase = createBrowserSupabaseClient();
+  
+  supabase.auth.getUser().then(({ data: { user } }) => {
+    setUser(user);
   });
 
-  return () => unsubscribe();
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    setUser(session?.user || null);
+    
+    if (event === 'SIGNED_OUT') {
+      setUser(null);
+    }
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
 }, []);
 
   return (

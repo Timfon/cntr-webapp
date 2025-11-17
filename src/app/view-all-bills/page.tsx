@@ -1,9 +1,8 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/firebase';
-import { databaseService } from '@/backend/database';
-import { onAuthStateChanged } from 'firebase/auth';
+import { authService } from '@/backend/auth';
+import { billService } from '@/backend/database';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import Loading from '@/app/components/Loading';
@@ -54,7 +53,7 @@ export default function ViewAllBillsPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = authService.onAuthStateChanged(async (user) => {
       if (!user) {
         router.push('/signin');
         return;
@@ -67,14 +66,14 @@ export default function ViewAllBillsPage() {
 
   const loadBills = async () => {
     try {
-      const allBills = await databaseService.getAllBills();
+      const allBills = await billService.getAllBills();
       setBills(allBills);
-      
+
       // Initialize date range to full range
       const validDates = allBills
-        .map(bill => new Date(bill.versionDate || 0).getTime())
+        .map(bill => new Date(bill.version_date || 0).getTime())
         .filter(time => !isNaN(time) && time > 0);
-      
+
       if (validDates.length > 0) {
         const minStr = new Date(Math.min(...validDates)).toISOString().split('T')[0];
         const maxStr = new Date(Math.max(...validDates)).toISOString().split('T')[0];
@@ -95,32 +94,32 @@ export default function ViewAllBillsPage() {
       // Search filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        const billId = `${bill.state} ${bill.number || ''}`.toLowerCase();
+        const billId = `${bill.state} ${bill.bill_number || ''}`.toLowerCase();
         const title = (bill.title || '').toLowerCase();
-        const description = (bill.description || '').toLowerCase();
-        if (!billId.includes(searchLower) && !title.includes(searchLower) && !description.includes(searchLower)) {
+        const summary = (bill.summary || '').toLowerCase();
+        if (!billId.includes(searchLower) && !title.includes(searchLower) && !summary.includes(searchLower)) {
           return false;
         }
       }
-      
+
       // State filter
       if (selectedState && bill.state !== selectedState) return false;
-      
+
       // Date range filter
       if (startDate && endDate) {
-        const billTime = new Date(bill.versionDate || 0).getTime();
+        const billTime = new Date(bill.version_date || 0).getTime();
         const startTime = new Date(startDate).setHours(0, 0, 0, 0);
         const endTime = new Date(endDate).setHours(23, 59, 59, 999);
         if (isNaN(billTime) || billTime < startTime || billTime > endTime) return false;
       }
-      
+
       return true;
     });
 
     // Sort by newest first
     filtered.sort((a, b) => {
-      const dateA = new Date(a.versionDate || 0).getTime();
-      const dateB = new Date(b.versionDate || 0).getTime();
+      const dateA = new Date(a.version_date || 0).getTime();
+      const dateB = new Date( b.version_date || 0).getTime();
       return dateB - dateA;
     });
 
@@ -144,15 +143,15 @@ export default function ViewAllBillsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const formatBillId = (bill: Bill) => `${bill.state} ${bill.number || ''}`;
+  const formatBillId = (bill: Bill) => `${bill.state} ${bill.bill_number || ''}`;
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('en-US', { 
-      month: '2-digit', 
-      day: '2-digit', 
-      year: 'numeric' 
+    return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
     });
   };
 
@@ -184,19 +183,6 @@ export default function ViewAllBillsPage() {
     <Box sx={{ minHeight: '100vh', backgroundColor: colors.background.main }}>
       <ResponsiveAppBar />
       <Container maxWidth={false} sx={{ py: 6, px: 4 }}>
-        <Typography
-          variant="h4"
-          sx={{
-            textAlign: 'center',
-            mb: 5,
-            mt: 2,
-            fontWeight: 'bold',
-            color: colors.text.primary,
-          }}
-        >
-          View All Bills
-        </Typography>
-
         {/* Search and Filter Bar */}
         <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', maxWidth: '1200px', mx: 'auto' }}>
           <TextField
@@ -371,27 +357,27 @@ export default function ViewAllBillsPage() {
                 ) : (
                   currentBills.map((bill) => (
                     <TableRow
-                      key={bill.billId}
+                      key={bill.id}
                       sx={{
                         '&:hover': {
                           backgroundColor: colors.neutral.gray50,
                         },
                       }}
                     >
-                      <TableCell sx={{ 
-                        fontWeight: 'bold', 
+                      <TableCell sx={{
+                        fontWeight: 'bold',
                         color: colors.text.primary,
                         fontSize: '1.05rem',
                         py: 2,
                       }}>
                         {formatBillId(bill)}
                       </TableCell>
-                      <TableCell sx={{ 
+                      <TableCell sx={{
                         color: colors.text.primary,
                         fontSize: '0.95rem',
                         py: 2,
                       }}>
-                        {formatDate(bill.versionDate)}
+                        {formatDate(bill.version_date)}
                       </TableCell>
                       <TableCell sx={{ py: 2 }}>
                         <Button
@@ -479,17 +465,17 @@ export default function ViewAllBillsPage() {
               </Typography>
 
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5, color: colors.text.secondary }}>
-                Description
+                Summary
               </Typography>
               <Typography variant="body1" sx={{ mb: 2, whiteSpace: 'pre-wrap', color: colors.text.primary }}>
-                {selectedBill.description || 'No description available'}
+                {selectedBill.summary || 'No summary available'}
               </Typography>
 
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5, color: colors.text.secondary }}>
                 Version Date
               </Typography>
               <Typography variant="body1" sx={{ mb: 2, color: colors.text.primary }}>
-                {formatDate(selectedBill.versionDate)}
+                {formatDate(selectedBill.version_date)}
               </Typography>
 
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 0.5, color: colors.text.secondary }}>

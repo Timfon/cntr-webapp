@@ -13,7 +13,7 @@ import {
   Link,
 } from '@mui/material';
 import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
@@ -39,11 +39,30 @@ export default function AccountInfoPage() {
   const [error, setError] = useState<string | null>(null);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const emailParam = searchParams.get('email');
+    const nameParam = searchParams.get('name');
+    const providerParam = searchParams.get('provider');
+
+    if (providerParam === 'google' && emailParam) {
+      const nameParts = (nameParam || '').split(' ');
+      setIsGoogleUser(true);
+      setFormData({
+        email: emailParam,
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        password: '',
+        confirmPassword: '',
+      });
+      return;
+    }
+
+    // Fall back to sessionStorage data
     const signupData = getSignupData();
     const shouldAutoFill = signupData?.isGoogleUser || signupData?.demographic;
-    
+
     if (shouldAutoFill && signupData) {
       setIsGoogleUser(signupData.isGoogleUser);
       setFormData({
@@ -54,7 +73,7 @@ export default function AccountInfoPage() {
         confirmPassword: signupData.isGoogleUser ? '' : signupData.password || '',
       });
     }
-  }, []);
+  }, [searchParams]);
 
   const handleInputChange = (field: keyof AccountInfoFormData) => (
     event: React.ChangeEvent<HTMLInputElement>

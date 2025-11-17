@@ -9,8 +9,7 @@ import {
   Alert,
 } from "@mui/material";
 import Loading from "@/app/components/Loading";
-import { auth } from "@/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { authService } from "@/backend/auth";
 import { userService } from "@/backend/users";
 import { useRouter } from "next/navigation";
 import { colors } from "@/app/theme/colors";
@@ -19,22 +18,22 @@ export default function Settings() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);  
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // User data
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = authService.onAuthStateChanged(async (user) => {
       if (user) {
+        setCurrentUserId(user.id);
         try {
-          const userProfile = await userService.getUserProfile(user.uid);
+          const userProfile = await userService.getUser(user.id);
           if (userProfile) {
-            setFirstName(userProfile.firstName || "");
-            setLastName(userProfile.lastName || "");
+            setName(userProfile.name || "");
             setEmail(user.email || "");
           }
         } catch (error) {
@@ -52,26 +51,21 @@ export default function Settings() {
   }, [router]);
 
   const handleSave = async () => {
+    if (!currentUserId) {
+      setError("No user logged in");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const user = auth.currentUser;
-      if (!user) {
-        setError("No user logged in");
-        setSaving(false);
-        return;
-      }
-
-      await userService.updateUser({
-        uid: user.uid,
-        firstName: firstName,
-        lastName: lastName,
+      await userService.updateUser(currentUserId, currentUserId, {
+        name: name,
       });
-
       setSuccess("Settings updated successfully");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating settings:", error);
       setError("Failed to update settings. Please try again.");
     } finally {
@@ -131,39 +125,18 @@ export default function Settings() {
       </Typography>
 
       <Box sx={{ maxWidth: 600 }}>
-        {/* First Name */}
+        {/* Name */}
         <Box sx={{ mb: 2 }}>
           <Typography
             variant="body2"
             sx={{ mb: 0.5, fontWeight: 500, color: colors.text.secondary }}
           >
-            First Name
+            Name
           </Typography>
           <TextField
             fullWidth
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            size="small"
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: colors.background.white,
-              },
-            }}
-          />
-        </Box>
-
-        {/* Last Name */}
-        <Box sx={{ mb: 2 }}>
-          <Typography
-            variant="body2"
-            sx={{ mb: 0.5, fontWeight: 500, color: colors.text.secondary }}
-          >
-            Last Name
-          </Typography>
-          <TextField
-            fullWidth
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             size="small"
             sx={{
               "& .MuiOutlinedInput-root": {

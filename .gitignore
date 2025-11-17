@@ -32,7 +32,6 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-firebase-admin.json
 /scripts
 
 # vercel
@@ -43,6 +42,6 @@ firebase-admin.json
 next-env.d.ts
 
 # emulator logs
-firebase-debug.log*
-firestore-debug.log*
 
+# database
+database.sql

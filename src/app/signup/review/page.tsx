@@ -18,21 +18,40 @@ import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import "@fontsource/rubik";
 import { getSignupData, SignupData } from '../signupUtils';
-import { UserRole } from '@/types/user';
+import { UserRole } from '@/types/database';
+import { cohortService } from '@/backend/database';
 
 export default function ReviewPage() {
   const [signupData, setSignupData] = useState<SignupData | null>(null);
+  const [cohortName, setCohortName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const data = getSignupData();
-    if (data?.demographic) {
-      setSignupData(data);
-    } else {
-      router.push('/signup/account');
-    }
+    const loadData = async () => {
+      const data = getSignupData();
+      if (data?.demographic) {
+        setSignupData(data);
+
+        if (data.demographic.cohortName) {
+          setCohortName(data.demographic.cohortName);
+        } else if (data.demographic.cohortId) {
+          try {
+            const cohort = await cohortService.getCohort(data.demographic.cohortId);
+            if (cohort) {
+              setCohortName(cohort.name);
+            }
+          } catch (err) {
+            console.error('Failed to load cohort:', err);
+          }
+        }
+      } else {
+        router.push('/signup/account');
+      }
+    };
+    
+    loadData();
   }, [router]);
 
   const handlePrevious = () => {
@@ -41,65 +60,70 @@ export default function ReviewPage() {
 
   const handleSubmit = async () => {
     if (!signupData) return;
-    
+
     if (!signupData.demographic) {
       setError('Demographic information is missing');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
+      const fullName = `${signupData.firstName} ${signupData.lastName}`.trim();
+      const cohortId = signupData.demographic.cohortId || undefined;
+
       if (signupData.isGoogleUser) {
-        const currentUser = authService.getCurrentUser();
+        // Google user - already authenticated, just create profile
+        const currentUser = await authService.getCurrentUser();
         if (!currentUser) {
           setError('No authenticated user found. Please sign in again.');
+          setLoading(false);
           return;
         }
-        
-        await userService.createUserProfile(
-          currentUser.uid,
-          signupData.email,
-          signupData.firstName,
-          signupData.lastName,
-          signupData.demographic.role as any,
-          signupData.demographic.cohort
-        );
+
+        await userService.createUser({
+          id: currentUser.id,
+          email: signupData.email,
+          name: fullName,
+          role: signupData.demographic.role as UserRole,
+          cohort_id: cohortId,
+        });
       } else {
+        // Email user - create auth account (profile will be created after email verification)
         const result = await authService.signUpWithEmail(
           signupData.email,
           signupData.password,
-          signupData.firstName,
-          signupData.lastName,
+          fullName,
           signupData.demographic.role as UserRole,
-          signupData.demographic.cohort
+          cohortId
         );
-        
+
         if (!result.success || !result.user) {
           setError(result.error || 'Failed to create account');
+          setLoading(false);
           return;
         }
+
+
+        sessionStorage.removeItem('completeSignupData');
+
+        // Navigate to success page with email verification status
+        const successUrl = result.requiresEmailVerification
+          ? '/signup/success?verify=email'
+          : '/signup/success';
+        router.push(successUrl);
+        return;
       }
-      
-      // Clear session storage
+
+      // Clear session storage (for Google users)
       sessionStorage.removeItem('completeSignupData');
-      
+
       // Navigate to success page
       router.push('/signup/success');
     } catch (err: any) {
       console.error('Signup error:', err);
-      
-      // Handle specific Firebase errors
-      if (err?.code === 'auth/email-already-in-use') {
-        setError('This email is already registered. Please sign in instead.');
-      } else if (err?.code === 'auth/weak-password') {
-        setError('Password is too weak. Please choose a stronger password.');
-      } else if (err?.code === 'auth/invalid-email') {
-        setError('Please enter a valid email address.');
-      } else {
-        setError('Failed to create account. Please try again.');
-      }
+      setError(err?.message || 'Failed to create account. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -221,9 +245,7 @@ export default function ReviewPage() {
                       : 'Not specified'}
                   </Typography>
                   <Typography>
-                    <strong>Cohort:</strong> {signupData.demographic?.cohort 
-                      ? signupData.demographic.cohort.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-                      : 'Not specified'}
+                    <strong>Cohort:</strong> {cohortName || 'Not specified'}
                   </Typography>
                 </Box>
               </Box>

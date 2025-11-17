@@ -1,198 +1,45 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/firebase';
-import { userService } from '@/backend/users';
-import { databaseService } from '@/backend/database';
-import { onAuthStateChanged } from 'firebase/auth';
+import { Box, Container } from '@mui/material';
+import { assignmentService, draftService } from '@/backend/database';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import Loading from '@/app/components/Loading';
-import BillBox from '@/app/dashboard/BillBox';
-import { authService } from '@/backend/auth';
 import { colors } from '@/app/theme/colors';
-import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  TextField,
-  InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-
-type FilterType = 'all' | 'inProgress' | 'assigned' | 'scored';
-
-interface BillData {
-  id: string;
-  name: string;
-  date: string;
-  description: string;
-  status: 'inProgress' | 'assigned' | 'scored';
-  billIdentifier: string; // format is "NY S6953" (state + type + number)
-}
+import { useDashboardData } from './useDashboardData';
+import DashboardStats from './DashboardStats';
+import DashboardFilters from './DashboardFilters';
+import BillSection from './BillSection';
+import { ConfirmStartDialog, AlertDialog } from './DashboardDialogs';
+import { FilterType } from '@/types/dashboard';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const {
+    loading,
+    currentUserId,
+    bills,
+    stats,
+    error,
+    setError,
+    refreshBills,
+  } = useDashboardData();
+
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [bills, setBills] = useState<BillData[]>([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    assigned: 0,
-    scored: 0,
-    inProgress: 0,
-  });
   const [confirmDialog, setConfirmDialog] = useState({
     open: false,
     billId: '',
+    assignmentId: '',
   });
-  const [alertDialog, setAlertDialog] = useState({
-    open: false,
-    message: '',
-  });
+  const [alertMessage, setAlertMessage] = useState('');
   const [expandedBills, setExpandedBills] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.push('/signin');
-      } else {
-        // Check if user has completed profile setup
-        const hasCompleted = await authService.hasCompletedProfile(user.uid);
-        if (!hasCompleted) {
-          // Redirect to signup flow if profile is incomplete
-          router.push('/signup/account');
-          return;
-        }
-        
-        await loadUserBills(user.uid);
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
-
-  const loadUserBills = async (uid: string) => {
-    try {
-      const user = await userService.getUser(uid);
-      if (!user) return;
-      const allBills = await databaseService.getAllBills();
-      const billsData: BillData[] = [];
-      
-      // Creating Bill Data Entry
-      const createBillData = (bill: any, status: 'inProgress' | 'assigned' | 'scored'): BillData => {
-        const billIdShort = `${bill.state} ${bill.number || ''}`;
-        return {
-          id: bill.billId,
-          name: billIdShort, // title right now is just state + number, can change later?
-          date: bill.versionDate,
-          description: bill.description || bill.title || bill.name || 'No description available',
-          status,
-          billIdentifier: billIdShort,
-        };
-      };
-      
-      // completed bill ids to exclude from in-progress
-      const completedBillIds = user.completedBills ? Object.keys(user.completedBills) : [];
-      
-      // Add in-progress bill if it exists and it's not already completed
-      if (user.inProgress && !completedBillIds.includes(user.inProgress.billId)) {
-        const bill = allBills.find(b => b.billId === user.inProgress!.billId);
-        if (bill) {
-          billsData.push(createBillData(bill, 'inProgress'));
-        }
-      }
-
-      // add completed bills
-      if (user.completedBills && Object.keys(user.completedBills).length > 0) {
-        Object.keys(user.completedBills).forEach((billId) => {
-          const bill = allBills.find(b => b.billId === billId);
-          if (bill) {
-            billsData.push(createBillData(bill, 'scored'));
-          }
-        });
-      }
-
-      // add assigned bills (from user.assignedBills)
-      if (user.assignedBills && user.assignedBills.length > 0) {
-        user.assignedBills.forEach((billId) => {
-          // Only add if not already in progress or completed
-          if (!billsData.find((b) => b.id === billId)) {
-            const bill = allBills.find(b => b.billId === billId);
-            if (bill) {
-              billsData.push(createBillData(bill, 'assigned'));
-            }
-          }
-        });
-      }
-
-      // TEMPORARY FIX WILL CHANGE: For now just show 10 random bills as demo (different per user)
-      // TODO: Remove this when we make bill assignment work properly
-      const hasRealAssignedBills = user.assignedBills && user.assignedBills.length > 0;
-      
-      // If no real assigned bills, show 10 random bills as demo (different per user)
-      if (!hasRealAssignedBills && allBills.length > 0) {
-        // each user always sees the same 10 random bills
-        const seed = uid.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        
-        // Filter out bills already in billsData
-        const availableBills = allBills.filter(bill => 
-          !billsData.find(b => b.id === bill.billId)
-        );
-        
-        let randomSeed = seed;
-        const seededRandom = () => {
-          randomSeed = (randomSeed * 9301 + 49297) % 233280;
-          return randomSeed / 233280;
-        };
-        const shuffled = [...availableBills].sort(() => seededRandom() - 0.5);
-        
-        const randomBills = shuffled.slice(0, 10);
-        
-        randomBills.forEach((bill) => {
-          billsData.push(createBillData(bill, 'assigned'));
-        });
-      }
-      //END OF TEMPORARY CAN REMOVE UNTIL HERE LATER
-
-      setBills(billsData);
-
-      // each individual status count
-      const inProgressCount = billsData.filter(b => b.status === 'inProgress').length;
-      const assignedCount = billsData.filter(b => b.status === 'assigned').length;
-      const scoredCount = billsData.filter(b => b.status === 'scored').length;
-      
-      setStats({
-        total: billsData.length,
-        inProgress: inProgressCount,
-        assigned: assignedCount,
-        scored: scoredCount,
-      });
-    } catch (error: any) {
-      console.error('Error loading user bills:', error);
-      setAlertDialog({
-        open: true,
-        message: `Failed to load bills: ${error?.message || 'Unknown error'}.`
-      });
-      setBills([]);
-      setStats({ total: 0, inProgress: 0, assigned: 0, scored: 0 });
-    }
-  };
 
   const filteredBills = bills.filter((bill) => {
     const matchesFilter = filter === 'all' || bill.status === filter;
     const searchLower = searchTerm.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       bill.name.toLowerCase().includes(searchLower) ||
       bill.description.toLowerCase().includes(searchLower) ||
       bill.billIdentifier.toLowerCase().includes(searchLower);
@@ -205,107 +52,72 @@ export default function DashboardPage() {
 
   const handleScoreBill = async (billId: string) => {
     try {
-      const user = auth.currentUser;
-      if (!user) {
+      if (!currentUserId) {
         router.push('/signin');
         return;
       }
 
-      // Check if user already has a bill in progress (and it's not already completed)
-      const userData = await userService.getUser(user.uid);
-      if (userData?.inProgress) {
-        const completedBillIds = userData.completedBills ? Object.keys(userData.completedBills) : [];
-        // If the in-progress bill is already completed, clear it and allow starting a new one
-        if (completedBillIds.includes(userData.inProgress.billId)) {
-          await databaseService.clearUserProgress(user.uid);
-        } else {
-          // if bill already in progress when you click assigned
-          setAlertDialog({
-            open: true,
-            message: 'You already have a bill in progress. Please complete it before starting another one.',
-          });
-          return;
-        }
+      const inProgressAssignment = await assignmentService.getUserInProgressAssignment(currentUserId);
+      if (inProgressAssignment) {
+        setAlertMessage('You already have a bill in progress. Please complete it before starting another one.');
+        return;
       }
 
-      // Get bill name for confirmation
-      const allBills = await databaseService.getAllBills();
-      const bill = allBills.find(b => b.billId === billId);
-
-      // Confirmation dialog
+      const billData = bills.find(b => b.id === billId);
       setConfirmDialog({
         open: true,
         billId,
+        assignmentId: billData?.assignmentId || '',
       });
-    } catch (error) {
-      setAlertDialog({
-        open: true,
-        message: 'Failed to start bill. Please try again.',
-      });
+    } catch (err) {
+      setAlertMessage('Failed to start bill. Please try again.');
     }
   };
 
   const confirmStartBill = async () => {
     try {
-      const user = auth.currentUser;
-      if (!user) {
+      if (!currentUserId) {
         router.push('/signin');
         return;
       }
 
-      const { billId } = confirmDialog;
+      const { billId, assignmentId } = confirmDialog;
 
-      // Start the bill by creating in-progress entry
-      await databaseService.updateUserProgress(
-        user.uid,
-        billId,
-        {},
-        {},
-        {},
-        'general'
-      );
-      setConfirmDialog({ open: false, billId: '' });
+      if (assignmentId) {
+        await assignmentService.updateAssignmentStatus(currentUserId, assignmentId, 'in_progress');
+        await draftService.saveDraft(currentUserId, billId, assignmentId, {
+          answers: {},
+          flags: {},
+          currentSection: 'general'
+        });
+      }
 
-      // Reload the bills to show updated status
-      await loadUserBills(user.uid);
-      
-      // Navigate to scorecard with this bill
+      setConfirmDialog({ open: false, billId: '', assignmentId: '' });
+      await refreshBills();
       router.push(`/scorecard?bill=${encodeURIComponent(billId)}`);
-    } catch (error) {
-      setAlertDialog({
-        open: true,
-        message: 'Failed to start bill. Please try again.',
-      });
+    } catch (err) {
+      setAlertMessage('Failed to start bill. Please try again.');
     }
   };
 
   const handleViewBill = async (billId: string) => {
     try {
-      const user = auth.currentUser;
-      if (!user) {
+      if (!currentUserId) {
         router.push('/signin');
         return;
       }
 
-      // Get the submission ID from completed bills
-      const userData = await userService.getUser(user.uid);
-      const submissionId = userData?.completedBills?.[billId];
-      
-      if (!submissionId) {
-        setAlertDialog({
-          open: true,
-          message: 'Submission not found for this bill.',
-        });
+      const assignments = await assignmentService.getUserAssignments(currentUserId, 'completed');
+      const assignment = assignments.find(a => a.bill_id === billId);
+
+      if (!assignment) {
+        setAlertMessage('Submission not found for this bill.');
         return;
       }
 
-      // Navigate to view page with submission ID
-      router.push(`/scorecard/view?submission=${encodeURIComponent(submissionId)}`);
-    } catch (error) {
-      setAlertDialog({
-        open: true,
-        message: 'Failed to load submission. Please try again.',
-      });
+      router.push(`/scorecard/view-submission?bill=${encodeURIComponent(billId)}`);
+    } catch (err) {
+      setAlertMessage('Failed to load submission. Please try again.');
     }
   };
 
@@ -314,309 +126,42 @@ export default function DashboardPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: colors.background.main }}>
+    <Box sx={{ minHeight: '100vh', backgroundColor: colors.background.main }}>
       <ResponsiveAppBar />
       <Container maxWidth={false} sx={{ py: 4, px: 4 }}>
-        {/* Search and Filter */}
-        <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            mb: 4,
-            flexWrap: "wrap",
-            maxWidth: "1200px",
-            mx: "auto",
-          }}
-        >
-          <TextField
-            placeholder="Search bills"
-            variant="outlined"
-            size="small"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{
-              flexGrow: 1,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: "white",
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Box sx={{ display: "flex", gap: 1 }}>
-            {(["all", "inProgress", "assigned", "scored"] as FilterType[]).map(
-              (f) => (
-                <Button
-                  key={f}
-                  variant={filter === f ? "contained" : "outlined"}
-                  onClick={() => setFilter(f)}
-                  sx={{
-                    backgroundColor:
-                      filter === f ? colors.primary : "transparent",
-                    color: filter === f ? colors.text.white : colors.primary,
-                    borderColor: colors.primary,
-                    textTransform: "capitalize",
-                    "&:hover": {
-                      backgroundColor:
-                        filter === f
-                          ? colors.primaryHover
-                          : colors.primaryLight,
-                    },
-                  }}
-                >
-                  {f === "inProgress" ? "In Progress" : f}
-                </Button>
-              )
-            )}
-          </Box>
-        </Box>
-
-        {/* Stats Cards */}
-        <Grid
-          container
-          spacing={2}
-          sx={{ mb: 4, maxWidth: "1200px", mx: "auto" }}
-        >
-          <Grid size={{ xs: 4, sm: 4 }}>
-            <Card
-              sx={{
-                backgroundColor: colors.background.white,
-                boxShadow: "0px 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <CardContent sx={{ py: 2 }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.text.secondary, fontSize: "0.875rem" }}
-                >
-                  Total Bills
-                </Typography>
-                <Typography
-                  sx={{ color: colors.primary, fontSize: "2.5rem", mt: 0.5 }}
-                >
-                  {stats.total}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 4, sm: 4 }}>
-            <Card
-              sx={{
-                backgroundColor: colors.background.white,
-                boxShadow: "0px 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <CardContent sx={{ py: 2 }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.text.secondary, fontSize: "0.875rem" }}
-                >
-                  Assigned
-                </Typography>
-                <Typography
-                  sx={{ color: colors.primary, fontSize: "2.5rem", mt: 0.5 }}
-                >
-                  {stats.assigned}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 4, sm: 4 }}>
-            <Card
-              sx={{
-                backgroundColor: colors.background.white,
-                boxShadow: "0px 1px 3px rgba(0,0,0,0.1)",
-              }}
-            >
-              <CardContent sx={{ py: 2 }}>
-                <Typography
-                  variant="body2"
-                  sx={{ color: colors.text.secondary, fontSize: "0.875rem" }}
-                >
-                  Scored
-                </Typography>
-                <Typography
-                  sx={{ color: colors.primary, fontSize: "2.5rem", mt: 0.5 }}
-                >
-                  {stats.scored}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Bill Cards - Grouped by Status */}
-        {(() => {
-          const inProgressBills = filteredBills.filter(
-            (b) => b.status === "inProgress"
-          );
-          const assignedBills = filteredBills.filter(
-            (b) => b.status === "assigned"
-          );
-          const scoredBills = filteredBills.filter(
-            (b) => b.status === "scored"
-          );
-
-          return (
-            <Box sx={{ maxWidth: "1200px", mx: "auto" }}>
-              {inProgressBills.length > 0 && (
-                <Grid container spacing={3} sx={{ mb: 5 }}>
-                  {inProgressBills.map((bill) => (
-                    <BillBox
-                      key={bill.id}
-                      bill={bill}
-                      isInProgress={true}
-                      onContinue={handleContinue}
-                      onScoreBill={handleScoreBill}
-                      onViewBill={handleViewBill}
-                      expandedBills={expandedBills}
-                      setExpandedBills={setExpandedBills}
-                    />
-                  ))}
-                </Grid>
-              )}
-
-              {/* Assigned Section */}
-              {assignedBills.length > 0 && (
-                <Box sx={{ mb: 5 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "#333",
-                        fontSize: "1.25rem",
-                      }}
-                    >
-                      Assigned
-                    </Typography>
-                  </Box>
-                  <Grid container spacing={3}>
-                    {assignedBills.map((bill) => (
-                      <BillBox
-                        key={bill.id}
-                        bill={bill}
-                        isInProgress={false}
-                        onContinue={handleContinue}
-                        onScoreBill={handleScoreBill}
-                        onViewBill={handleViewBill}
-                        expandedBills={expandedBills}
-                        setExpandedBills={setExpandedBills}
-                      />
-                    ))}
-                  </Grid>
-                </Box>
-              )}
-
-              {/* Scored Section */}
-              {scoredBills.length > 0 && (
-                <Box sx={{ mb: 5 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "#333",
-                        fontSize: "1.25rem",
-                      }}
-                    >
-                      Scored
-                    </Typography>
-                  </Box>
-                  <Grid container spacing={3}>
-                    {scoredBills.map((bill) => (
-                      <BillBox
-                        key={bill.id}
-                        bill={bill}
-                        isInProgress={false}
-                        onContinue={handleContinue}
-                        onScoreBill={handleScoreBill}
-                        onViewBill={handleViewBill}
-                        expandedBills={expandedBills}
-                        setExpandedBills={setExpandedBills}
-                      />
-                    ))}
-                  </Grid>
-                </Box>
-              )}
-
-              {filteredBills.length === 0 && (
-                <Box sx={{ textAlign: "center", py: 8 }}>
-                  <Typography
-                    variant="h6"
-                    sx={{ color: colors.text.secondary }}
-                  >
-                    No bills found
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          );
-        })()}
+        <DashboardFilters
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filter={filter}
+          onFilterChange={setFilter}
+        />
+        <DashboardStats stats={stats} />
+        <BillSection
+          bills={filteredBills}
+          expandedBills={expandedBills}
+          setExpandedBills={setExpandedBills}
+          onContinue={handleContinue}
+          onScoreBill={handleScoreBill}
+          onViewBill={handleViewBill}
+        />
       </Container>
 
-      {/* Confirmation Dialog */}
-      <Dialog
+      <ConfirmStartDialog
         open={confirmDialog.open}
-        onClose={() => setConfirmDialog({ open: false, billId: "" })}
-      >
-        <DialogTitle>Start Scoring Bill</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: colors.text.primary }}>
-            Are you sure you want to start scoring "{confirmDialog.billId}"?
-            <br />
-            <br />
-            <strong>Important:</strong> To score another bill, you must first
-            complete this bill.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmDialog({ open: false, billId: "" })}>
-            Cancel
-          </Button>
-          <Button
-            onClick={confirmStartBill}
-            variant="contained"
-            sx={{
-              backgroundColor: "#0C6431",
-              "&:hover": { backgroundColor: "#094d26" },
-            }}
-          >
-            Start Bill
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onClose={() => setConfirmDialog({ open: false, billId: '', assignmentId: '' })}
+        onConfirm={confirmStartBill}
+      />
 
-      {/* Alert Dialog */}
-      <Dialog
-        open={alertDialog.open}
-        onClose={() => setAlertDialog({ open: false, message: "" })}
-      >
-        <DialogTitle>Bill Already In Progress</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: colors.text.primary }}>
-            {alertDialog.message}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setAlertDialog({ open: false, message: "" })}
-            variant="contained"
-            sx={{
-              backgroundColor: "#0C6431",
-              "&:hover": { backgroundColor: "#094d26" },
-            }}
-          >
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AlertDialog
+        open={!!alertMessage || !!error}
+        message={alertMessage || error || ''}
+        onClose={() => {
+          setAlertMessage('');
+          setError(null);
+        }}
+      />
 
       <Footer />
     </Box>
   );
 }
-

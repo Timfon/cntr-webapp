@@ -14,12 +14,12 @@ import { assignmentService } from '@/backend/database';
 import { Bill, UserWithCohort } from '@/types/database';
 
 interface BillWithAssignee extends Bill {
-  assignee: {
+  assignees: Array<{
     id: string;
     name: string;
     email: string;
-  } | null;
-  assignmentId: string | null;
+    assignmentId: string;
+  }>;
 }
 
 interface CreateAssignmentSectionProps {
@@ -40,9 +40,10 @@ export default function CreateAssignmentSection({
   const [userSearchValue, setUserSearchValue] = useState<string>('');
 // UPDATE CURRENT COHORT WHENEVER SEMESTER CHANGES
   const CURRENT_COHORT = 'Fall 2025';
+  const MAX_ASSIGNEES_PER_BILL = 3;
 
-  // Get unassigned bills for search
-  const unassignedBills = bills.filter(b => !b.assignee);
+  // Get bills that have less than max assignees
+  const availableBills = bills.filter(b => b.assignees.length < MAX_ASSIGNEES_PER_BILL);
 
   // Filter users to only current cohort
   const currentCohortUsers = useMemo(() => {
@@ -54,14 +55,14 @@ export default function CreateAssignmentSection({
 
   // Filter bills based on search input
   const filteredBills = useMemo(() => {
-    if (!billSearchValue) return unassignedBills;
+    if (!billSearchValue) return availableBills;
     
     const searchLower = billSearchValue.toLowerCase().trim();
-    return unassignedBills.filter(bill => {
+    return availableBills.filter(bill => {
       const billId = formatBillId(bill).toLowerCase();
       return billId.includes(searchLower);
     });
-  }, [unassignedBills, billSearchValue]);
+  }, [availableBills, billSearchValue]);
 
   // Format user for display: "Name" or "Email"
   const formatUser = (user: UserWithCohort) => user.name || user.email || 'Unknown';
@@ -80,6 +81,19 @@ export default function CreateAssignmentSection({
   const handleCreateAssignment = async () => {
     if (!selectedBillId || !selectedUserId) {
       alert('Please select both a bill and a user');
+      return;
+    }
+
+    // Check if bill already has max assignees
+    const selectedBill = bills.find(b => b.id === selectedBillId);
+    if (selectedBill && selectedBill.assignees.length >= MAX_ASSIGNEES_PER_BILL) {
+      alert(`This bill already has ${MAX_ASSIGNEES_PER_BILL} assignees. Maximum is ${MAX_ASSIGNEES_PER_BILL}.`);
+      return;
+    }
+
+    // Check if user is already assigned to this bill
+    if (selectedBill && selectedBill.assignees.some(a => a.id === selectedUserId)) {
+      alert('This user is already assigned to this bill.');
       return;
     }
 
@@ -131,7 +145,7 @@ export default function CreateAssignmentSection({
                 setBillSearchValue(formatBillId(newValue));
               } else if (typeof newValue === 'string' && newValue.trim()) {
                 // Try to find bill by typed ID
-                const foundBill = unassignedBills.find(bill => 
+                const foundBill = availableBills.find(bill => 
                   formatBillId(bill).toLowerCase() === newValue.toLowerCase().trim()
                 );
                 if (foundBill) {

@@ -27,18 +27,19 @@ import AssignBillDialog from './AssignBillDialog';
 import CreateAssignmentSection from './CreateAssignmentSection';
 
 interface BillWithAssignee extends Bill {
-  assignee: {
+  assignees: Array<{
     id: string;
     name: string;
     email: string;
-  } | null;
-  assignmentId: string | null;
+    assignmentId: string;
+  }>;
 }
 
 type SearchByType = 'users' | 'title' | 'number' | 'year';
 type BillFilterType = 'all' | 'assigned' | 'unassigned';
 
 const BILLS_PER_PAGE = 10;
+const MAX_ASSIGNEES_PER_BILL = 3;
 
 export default function Assignments() {
   const [bills, setBills] = useState<BillWithAssignee[]>([]);
@@ -47,7 +48,7 @@ export default function Assignments() {
   const [searchBy, setSearchBy] = useState<SearchByType>('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [billFilter, setBillFilter] = useState<BillFilterType>('all');
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [selectedBill, setSelectedBill] = useState<BillWithAssignee | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -60,23 +61,26 @@ export default function Assignments() {
         adminService.getAllAssignmentsWithUsers(),
       ]);
 
-      // Create assignment map for quick lookup
-      const assignmentMap = new Map<string, typeof allAssignments[0]>();
+      // Group assignments by bill ID
+      const assignmentsByBill = new Map<string, typeof allAssignments>();
       allAssignments.forEach(a => {
-        assignmentMap.set(a.billId, a);
+        if (!assignmentsByBill.has(a.billId)) {
+          assignmentsByBill.set(a.billId, []);
+        }
+        assignmentsByBill.get(a.billId)!.push(a);
       });
 
       // Combine bills with assignee info
       const billsWithAssignee: BillWithAssignee[] = allBills.map(bill => {
-        const assignment = assignmentMap.get(bill.id);
+        const assignments = assignmentsByBill.get(bill.id) || [];
         return {
           ...bill,
-          assignee: assignment ? {
-            id: assignment.userId,
-            name: assignment.userName,
-            email: assignment.userEmail,
-          } : null,
-          assignmentId: assignment?.assignmentId || null,
+          assignees: assignments.map(a => ({
+            id: a.userId,
+            name: a.userName,
+            email: a.userEmail,
+            assignmentId: a.assignmentId,
+          })),
         };
       });
 
@@ -96,8 +100,8 @@ export default function Assignments() {
   const filteredBills = useMemo(() => {
     return bills.filter((bill) => {
       // Filter by assigned/unassigned
-      if (billFilter === 'assigned' && !bill.assignee) return false;
-      if (billFilter === 'unassigned' && bill.assignee) return false;
+      if (billFilter === 'assigned' && bill.assignees.length === 0) return false;
+      if (billFilter === 'unassigned' && bill.assignees.length > 0) return false;
 
       // Search filtering
       if (!searchTerm) return true;
@@ -106,10 +110,10 @@ export default function Assignments() {
 
       switch (searchBy) {
         case 'users':
-          if (bill.assignee) {
-            return (
-              bill.assignee.name.toLowerCase().includes(searchLower) ||
-              bill.assignee.email.toLowerCase().includes(searchLower)
+          if (bill.assignees.length > 0) {
+            return bill.assignees.some(assignee =>
+              assignee.name.toLowerCase().includes(searchLower) ||
+              assignee.email.toLowerCase().includes(searchLower)
             );
           }
           return false;
@@ -138,7 +142,7 @@ export default function Assignments() {
     setCurrentPage(1);
   }, [searchBy, searchTerm, billFilter]);
 
-  const handleAssignBill = (bill: Bill) => {
+  const handleAssignBill = (bill: BillWithAssignee) => {
     setSelectedBill(bill);
     setAssignDialogOpen(true);
   };
@@ -265,7 +269,7 @@ export default function Assignments() {
                   key={bill.id}
                   sx={{
                     p: 2,
-                    backgroundColor: bill.assignee ? colors.background.main : colors.neutral.gray100,
+                    backgroundColor: bill.assignees.length > 0 ? colors.background.main : colors.neutral.gray100,
                     borderRadius: 1,
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -288,16 +292,32 @@ export default function Assignments() {
                       >
                         {bill.state} {bill.bill_number}
                       </Typography>
-                      {bill.assignee ? (
-                        <Chip
-                          label={bill.assignee.name}
-                          size="small"
-                          sx={{
-                            backgroundColor: colors.sidebar.activeBackground,
-                            color: colors.text.primary,
-                            fontSize: '0.75rem',
-                          }}
-                        />
+                      {bill.assignees.length > 0 ? (
+                        <>
+                          {bill.assignees.map((assignee) => (
+                            <Chip
+                              key={assignee.id}
+                              label={assignee.name}
+                              size="small"
+                              sx={{
+                                backgroundColor: colors.sidebar.activeBackground,
+                                color: colors.text.primary,
+                                fontSize: '0.75rem',
+                              }}
+                            />
+                          ))}
+                          {bill.assignees.length < MAX_ASSIGNEES_PER_BILL && (
+                            <Chip
+                              label={`${bill.assignees.length}/${MAX_ASSIGNEES_PER_BILL}`}
+                              size="small"
+                              sx={{
+                                backgroundColor: colors.neutral.gray200,
+                                color: colors.text.secondary,
+                                fontSize: '0.75rem',
+                              }}
+                            />
+                          )}
+                        </>
                       ) : (
                         <Chip
                           label="No Assignee"
@@ -311,7 +331,7 @@ export default function Assignments() {
                       )}
                     </Box>
                   </Box>
-                  {!bill.assignee && (
+                  {bill.assignees.length < MAX_ASSIGNEES_PER_BILL && (
                     <Button
                       variant="contained"
                       size="small"

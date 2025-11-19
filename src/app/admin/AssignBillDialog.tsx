@@ -16,15 +16,25 @@ import { colors } from '@/app/theme/colors';
 import { assignmentService } from '@/backend/database';
 import { Bill, UserWithCohort } from '@/types/database';
 
+interface BillWithAssignee extends Bill {
+  assignees: Array<{
+    id: string;
+    name: string;
+    email: string;
+    assignmentId: string;
+  }>;
+}
+
 interface AssignBillDialogProps {
   open: boolean;
   onClose: () => void;
-  bill: Bill;
+  bill: BillWithAssignee;
   users: UserWithCohort[];
   onAssignmentCreated: () => void;
 }
 // UPDATE CURRENT COHORT WHENEVER SEMESTER CHANGES
 const CURRENT_COHORT = 'Fall 2025';
+const MAX_ASSIGNEES_PER_BILL = 3;
 
 export default function AssignBillDialog({
   open,
@@ -58,6 +68,18 @@ export default function AssignBillDialog({
 
   const handleAssign = async () => {
     if (!selectedUserId) return;
+
+    // Check if bill already has max assignees
+    if (bill.assignees.length >= MAX_ASSIGNEES_PER_BILL) {
+      alert(`This bill already has ${MAX_ASSIGNEES_PER_BILL} assignees. Maximum is ${MAX_ASSIGNEES_PER_BILL}.`);
+      return;
+    }
+
+    // Check if user is already assigned to this bill
+    if (bill.assignees.some(a => a.id === selectedUserId)) {
+      alert('This user is already assigned to this bill.');
+      return;
+    }
 
     try {
       setAssigning(true);
@@ -102,15 +124,41 @@ export default function AssignBillDialog({
           >
             {bill.state} {bill.bill_number}
           </Typography>
-          <Chip
-            label="No Assignee"
-            size="small"
-            sx={{
-              backgroundColor: colors.neutral.gray200,
-              color: colors.text.secondary,
-              fontSize: '0.75rem',
-            }}
-          />
+          {bill.assignees.length > 0 ? (
+            <>
+              {bill.assignees.map((assignee) => (
+                <Chip
+                  key={assignee.id}
+                  label={assignee.name}
+                  size="small"
+                  sx={{
+                    backgroundColor: colors.sidebar.activeBackground,
+                    color: colors.text.primary,
+                    fontSize: '0.75rem',
+                  }}
+                />
+              ))}
+              <Chip
+                label={`${bill.assignees.length}/${MAX_ASSIGNEES_PER_BILL}`}
+                size="small"
+                sx={{
+                  backgroundColor: colors.neutral.gray200,
+                  color: colors.text.secondary,
+                  fontSize: '0.75rem',
+                }}
+              />
+            </>
+          ) : (
+            <Chip
+              label="No Assignee"
+              size="small"
+              sx={{
+                backgroundColor: colors.neutral.gray200,
+                color: colors.text.secondary,
+                fontSize: '0.75rem',
+              }}
+            />
+          )}
         </Box>
       </DialogTitle>
 

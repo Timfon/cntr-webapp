@@ -7,3 +7,4 @@ export { assignmentService } from './assignments';
 export { draftService } from './drafts';
 export { submissionService } from './submissions';
 export { cohortService } from './cohorts';
+export { adminService } from './admin';

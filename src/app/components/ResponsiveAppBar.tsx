@@ -20,6 +20,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { authService } from "@/backend/auth";
 import { colors } from '@/app/theme/colors';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { adminService } from '@/backend/admin';
 
 const pages = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -29,7 +30,9 @@ const pages = [
 
 export default function ResponsiveAppBar() {
   const [user, setUser] = React.useState<any | null>(null);
+  const [isAdmin, setIsAdmin] = React.useState(false);
   const router = useRouter();
+  
   const settings = user
   ? [
       { label: user.email || 'User', onClick: () => {} },
@@ -83,15 +86,23 @@ export default function ResponsiveAppBar() {
 React.useEffect(() => {
   const supabase = createBrowserSupabaseClient();
   
-  supabase.auth.getUser().then(({ data: { user } }) => {
+  supabase.auth.getUser().then(async ({ data: { user } }) => {
     setUser(user);
+    if (user) {
+      const admin = await adminService.isAdmin(user.id);
+      setIsAdmin(admin);
+    }
   });
 
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
     setUser(session?.user || null);
     
     if (event === 'SIGNED_OUT') {
       setUser(null);
+      setIsAdmin(false);
+    } else if (session?.user) {
+      const admin = await adminService.isAdmin(session.user.id);
+      setIsAdmin(admin);
     }
   });
 
@@ -162,10 +173,15 @@ React.useEffect(() => {
               sx={{ display: { xs: 'block', md: 'none' } }}
             >
               {pages.map((page) => (
-  <MenuItem key={page.name} onClick={handleCloseNavMenu}>
-    <Typography sx={{ textAlign: 'center' }}>{page.name}</Typography>
-  </MenuItem>
-))}
+                <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); router.push(page.href); }}>
+                  <Typography sx={{ textAlign: 'center' }}>{page.name}</Typography>
+                </MenuItem>
+              ))}
+              {isAdmin && (
+                <MenuItem onClick={() => { handleCloseNavMenu(); router.push('/admin'); }}>
+                  <Typography sx={{ textAlign: 'center' }}>Admin Dashboard</Typography>
+                </MenuItem>
+              )}
             </Menu>
           </Box>
 
@@ -202,6 +218,21 @@ React.useEffect(() => {
       </Button>
     </Link>
   ))}
+  {isAdmin && (
+    <Link href="/admin" style={{ textDecoration: 'none' }}>
+      <Button
+        onClick={handleCloseNavMenu}
+        sx={{
+          my: 2,
+          color: colors.primary,
+          display: 'block',
+          mx: 1.5,
+        }}
+      >
+        Admin Dashboard
+      </Button>
+    </Link>
+  )}
 </Box>
 
           <Box sx={{ flexGrow: 0 }}>

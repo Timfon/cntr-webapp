@@ -44,15 +44,20 @@ export default function ResponsiveAppBar() {
         label: 'Logout',
         onClick: async () => {
           try {
+            setUser(null);
+            setIsAdmin(false);
+
+            // Sign out from Supabase
             const result = await authService.signOut();
             if (result.success) {
-              setUser(null); 
-              router.push('/signin');
+              window.location.href = '/signin';
             } else {
               console.error("Error signing out:", result.error);
+              window.location.href = '/signin';
             }
           } catch (error) {
             console.error("Error signing out:", error);
+            window.location.href = '/signin';
           }
         },
       },

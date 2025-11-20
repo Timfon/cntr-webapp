@@ -92,11 +92,13 @@ export function useDashboardData() {
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChanged(async (user) => {
       if (!user) {
+        setLoading(false);
         router.push('/signin');
       } else {
         setCurrentUserId(user.id);
         const hasCompleted = await authService.hasCompletedProfile(user.id);
         if (!hasCompleted) {
+          setLoading(false);
           router.push('/signup/account');
           return;
         }

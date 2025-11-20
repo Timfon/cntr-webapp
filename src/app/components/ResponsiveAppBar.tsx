@@ -1,26 +1,25 @@
 "use client";
 import * as React from 'react';
-import { 
-  AppBar, 
-  Box, 
-  Toolbar, 
-  IconButton, 
-  Typography, 
-  Menu, 
-  Container, 
-  Avatar, 
-  Button, 
-  Tooltip, 
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Menu,
+  Container,
+  Avatar,
+  Button,
+  Tooltip,
   MenuItem,
 } from '@mui/material';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import "@fontsource/rubik";
 import MenuIcon from '@mui/icons-material/Menu';
-import { authService } from "@/backend/auth";
 import { colors } from '@/app/theme/colors';
-import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { adminService } from '@/backend/admin';
+import { useAuth } from '@/contexts/AuthContext';
 
 const pages = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -29,10 +28,10 @@ const pages = [
 ];
 
 export default function ResponsiveAppBar() {
-  const [user, setUser] = React.useState<any | null>(null);
+  const { user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = React.useState(false);
   const router = useRouter();
-  
+
   const settings = user
   ? [
       { label: user.email || 'User', onClick: () => {} },
@@ -43,22 +42,7 @@ export default function ResponsiveAppBar() {
       {
         label: 'Logout',
         onClick: async () => {
-          try {
-            setUser(null);
-            setIsAdmin(false);
-
-            // Sign out from Supabase
-            const result = await authService.signOut();
-            if (result.success) {
-              window.location.href = '/signin';
-            } else {
-              console.error("Error signing out:", result.error);
-              window.location.href = '/signin';
-            }
-          } catch (error) {
-            console.error("Error signing out:", error);
-            window.location.href = '/signin';
-          }
+          await signOut();
         },
       },
     ]
@@ -87,44 +71,19 @@ export default function ResponsiveAppBar() {
     setAnchorElUser(null);
   };
 
-
-React.useEffect(() => {
-  const supabase = createBrowserSupabaseClient();
-  
-  supabase.auth.getUser().then(async ({ data: { user } }) => {
-    setUser(user);
-    if (user) {
-      try {
+  // Check if user is admin
+  React.useEffect(() => {
+    const checkAdmin = async () => {
+      if (user) {
         const admin = await adminService.isAdmin(user.id);
         setIsAdmin(admin);
-      } catch (error) {
-        // Silently fail - user might not have profile yet (during signup)
+      } else {
         setIsAdmin(false);
       }
-    }
-  });
+    };
 
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-    setUser(session?.user || null);
-    
-    if (event === 'SIGNED_OUT') {
-      setUser(null);
-      setIsAdmin(false);
-    } else if (session?.user) {
-      try {
-        const admin = await adminService.isAdmin(session.user.id);
-        setIsAdmin(admin);
-      } catch (error) {
-        // Silently fail - user might not have profile yet (during signup)
-        setIsAdmin(false);
-      }
-    }
-  });
-
-  return () => {
-    subscription.unsubscribe();
-  };
-}, []);
+    checkAdmin();
+  }, [user]);
 
   return (
     <AppBar position="static" sx={{ backgroundColor: colors.background.white }}>

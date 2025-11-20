@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { authService } from '@/backend/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { billService } from '@/backend/database';
 import { Bill } from '@/types/database';
 
@@ -15,7 +14,7 @@ export interface ViewAllBillsState {
 }
 
 export function useViewAllBillsData() {
-  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [bills, setBills] = useState<Bill[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,16 +24,22 @@ export function useViewAllBillsData() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async (user) => {
-      if (!user) {
-        router.push('/signin');
+    const initialize = async () => {
+      if (authLoading) {
         return;
       }
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       await loadBills();
       setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [router]);
+    };
+
+    initialize();
+  }, [user, authLoading]);
 
   const loadBills = async () => {
     try {
@@ -99,7 +104,7 @@ export function useViewAllBillsData() {
   }, [bills]);
 
   return {
-    loading,
+    loading: loading || authLoading,
     bills,
     filteredBills,
     uniqueStates,

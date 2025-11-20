@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authService } from "@/backend/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { billService, submissionService } from "@/backend/database";
 import Loading from "@/app/components/Loading";
 import ResponsiveAppBar from "@/app/components/ResponsiveAppBar";
@@ -29,6 +29,7 @@ import { colors } from "@/app/theme/colors";
 
 function ViewSubmissionContent() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const billParam = searchParams.get("bill");
 
@@ -37,9 +38,13 @@ function ViewSubmissionContent() {
   const [billDetails, setBillDetails] = useState<any>(null);
 
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async (user) => {
+    const initialize = async () => {
+      if (authLoading) {
+        return;
+      }
+
       if (!user) {
-        router.push("/signin");
+        setLoading(false);
         return;
       }
 
@@ -75,12 +80,12 @@ function ViewSubmissionContent() {
       } finally {
         setLoading(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, [router, billParam]);
+    initialize();
+  }, [user, authLoading, router, billParam]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return <Loading />;
   }
 

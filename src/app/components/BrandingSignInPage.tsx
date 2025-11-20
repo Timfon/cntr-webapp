@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { authService } from "@/backend/auth";
-import { useRouter } from 'next/navigation';
 import { Typography, Link, TextField, Button, Box, Alert } from '@mui/material';
 import NextLink from 'next/link';
 
@@ -10,9 +9,6 @@ export default function BrandingSignInPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-
-  // Note: Removed redundant auth state listener - middleware handles redirects for authenticated users
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -25,6 +21,7 @@ export default function BrandingSignInPage() {
         setError(result.error || 'Google sign-in failed');
         setLoading(false);
       }
+      // On success, OAuth callback will handle redirect
     } catch (err) {
       setError('Google sign-in failed');
       setLoading(false);
@@ -39,7 +36,8 @@ export default function BrandingSignInPage() {
     try {
       const result = await authService.signInWithEmail(email, password);
       if (result.success) {
-        router.push('/dashboard');
+        // Force a hard reload to ensure middleware runs
+        window.location.href = '/dashboard';
       } else {
         setError(result.error || 'Sign-in failed. Please try again');
       }

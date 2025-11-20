@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { authService } from '@/backend/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { billService } from '@/backend/database';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
@@ -38,6 +38,7 @@ const BILLS_PER_PAGE = 30;
 
 export default function ViewAllBillsPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [bills, setBills] = useState<Bill[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,16 +54,22 @@ export default function ViewAllBillsPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async (user) => {
-      if (!user) {
-        router.push('/signin');
+    const initialize = async () => {
+      if (authLoading) {
         return;
       }
+
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       await loadBills();
       setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [router]);
+    };
+
+    initialize();
+  }, [user, authLoading]);
 
   const loadBills = async () => {
     try {
@@ -175,7 +182,7 @@ export default function ViewAllBillsPage() {
   };
 
 
-  if (loading) {
+  if (loading || authLoading) {
     return <Loading />;
   }
 

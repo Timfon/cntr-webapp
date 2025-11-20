@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { authService } from "@/backend/auth";
 import { useRouter } from 'next/navigation';
 import { Typography, Link, TextField, Button, Box, Alert } from '@mui/material';
@@ -12,18 +12,7 @@ export default function BrandingSignInPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async (user) => {
-      if (user) {
-        const hasCompleted = await authService.hasCompletedProfile(user.id);
-        if (hasCompleted) {
-          router.push('/dashboard');
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
+  // Note: Removed redundant auth state listener - middleware handles redirects for authenticated users
 
   const handleGoogleSignIn = async () => {
     setLoading(true);

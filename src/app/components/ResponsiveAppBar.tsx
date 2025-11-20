@@ -89,8 +89,13 @@ React.useEffect(() => {
   supabase.auth.getUser().then(async ({ data: { user } }) => {
     setUser(user);
     if (user) {
-      const admin = await adminService.isAdmin(user.id);
-      setIsAdmin(admin);
+      try {
+        const admin = await adminService.isAdmin(user.id);
+        setIsAdmin(admin);
+      } catch (error) {
+        // Silently fail - user might not have profile yet (during signup)
+        setIsAdmin(false);
+      }
     }
   });
 
@@ -101,8 +106,13 @@ React.useEffect(() => {
       setUser(null);
       setIsAdmin(false);
     } else if (session?.user) {
-      const admin = await adminService.isAdmin(session.user.id);
-      setIsAdmin(admin);
+      try {
+        const admin = await adminService.isAdmin(session.user.id);
+        setIsAdmin(admin);
+      } catch (error) {
+        // Silently fail - user might not have profile yet (during signup)
+        setIsAdmin(false);
+      }
     }
   });
 

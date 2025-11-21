@@ -1,5 +1,4 @@
 "use client";
-import * as React from "react";
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -9,49 +8,51 @@ import {
   Alert,
 } from "@mui/material";
 import Loading from "@/app/components/Loading";
-import { authService } from "@/backend/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/backend/users";
-import { useRouter } from "next/navigation";
 import { colors } from "@/app/theme/colors";
 
 export default function Settings() {
-  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // User data
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async (user) => {
-      if (user) {
-        setCurrentUserId(user.id);
-        try {
-          const userProfile = await userService.getUser(user.id);
-          if (userProfile) {
-            setName(userProfile.name || "");
-            setEmail(user.email || "");
-          }
-        } catch (error) {
-          console.error("Error loading user profile:", error);
-          setError("Failed to load user profile");
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        router.push("/signin");
+    const loadUserProfile = async () => {
+      if (authLoading) {
+        return;
       }
-    });
 
-    return () => unsubscribe();
-  }, [router]);
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userProfile = await userService.getUser(user.id);
+        if (userProfile) {
+          setName(userProfile.name || "");
+          setEmail(user.email || "");
+        }
+      } catch (error) {
+        console.error("Error loading user profile:", error);
+        setError("Failed to load user profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, [user, authLoading]);
 
   const handleSave = async () => {
-    if (!currentUserId) {
+    if (!user) {
       setError("No user logged in");
       return;
     }
@@ -61,7 +62,7 @@ export default function Settings() {
     setSuccess(null);
 
     try {
-      await userService.updateUser(currentUserId, currentUserId, {
+      await userService.updateUser(user.id, user.id, {
         name: name,
       });
       setSuccess("Settings updated successfully");
@@ -73,7 +74,7 @@ export default function Settings() {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return <Loading />;
   }
 

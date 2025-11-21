@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useState } from 'react';

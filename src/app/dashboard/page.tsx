@@ -53,7 +53,6 @@ export default function DashboardPage() {
   const handleScoreBill = async (billId: string) => {
     try {
       if (!currentUserId) {
-        router.push('/signin');
         return;
       }
 
@@ -77,7 +76,6 @@ export default function DashboardPage() {
   const confirmStartBill = async () => {
     try {
       if (!currentUserId) {
-        router.push('/signin');
         return;
       }
 
@@ -103,7 +101,6 @@ export default function DashboardPage() {
   const handleViewBill = async (billId: string) => {
     try {
       if (!currentUserId) {
-        router.push('/signin');
         return;
       }
 

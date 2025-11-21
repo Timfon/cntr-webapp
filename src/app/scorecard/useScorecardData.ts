@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { authService } from '@/backend/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { billService, assignmentService, draftService, submissionService } from '@/backend/database';
 import { questionBank } from '../data/questionBank';
 import { sections } from '../data/sections';
@@ -36,6 +36,7 @@ interface UseScorecardDataResult {
 }
 
 export function useScorecardData(): UseScorecardDataResult {
+  const { user, loading: authLoading } = useAuth();
   const [currentSection, setCurrentSection] = useState('general');
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [selectedBill, setSelectedBill] = useState<string | null>(null);
@@ -43,7 +44,6 @@ export function useScorecardData(): UseScorecardDataResult {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [billDetails, setBillDetails] = useState<Bill | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [assignmentId, setAssignmentId] = useState<string | null>(null);
 
   const router = useRouter();
@@ -65,13 +65,16 @@ export function useScorecardData(): UseScorecardDataResult {
 
   // Load user data and draft on mount
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async user => {
-      if (!user) {
-        router.push('/signin');
+    const initializeScorecard = async () => {
+      if (authLoading) {
+        // Wait for auth to load
         return;
       }
 
-      setCurrentUserId(user.id);
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       if (!billParam || !decodedBill) {
         router.push('/dashboard');
@@ -154,24 +157,24 @@ export function useScorecardData(): UseScorecardDataResult {
       }
 
       setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
-  }, [router, billParam, decodedBill]);
+    initializeScorecard();
+  }, [user, authLoading, router, billParam, decodedBill]);
 
   const saveProgress = async (data: {
     answers?: Record<string, any>;
     flags?: Record<string, boolean>;
     notes?: Record<string, string>;
   }) => {
-    if (!currentUserId || !decodedBill || !assignmentId) return;
+    if (!user || !decodedBill || !assignmentId) return;
 
     try {
       const updatedAnswers = data.answers ? { ...answers, ...data.answers } : answers;
       const updatedFlags = data.flags ? { ...flags, ...data.flags } : flags;
       const updatedNotes = data.notes ? { ...notes, ...data.notes } : notes;
 
-      await draftService.saveDraft(currentUserId, decodedBill, assignmentId, {
+      await draftService.saveDraft(user.id, decodedBill, assignmentId, {
         answers: updatedAnswers,
         flags: updatedFlags,
         notes: updatedNotes,
@@ -255,22 +258,22 @@ export function useScorecardData(): UseScorecardDataResult {
       return;
     }
 
-    if (!currentUserId || !decodedBill || !assignmentId) {
+    if (!user || !decodedBill || !assignmentId) {
       alert('Unable to identify bill or assignment. Please try again.');
       return;
     }
 
     try {
       await submissionService.createSubmission({
-        userId: currentUserId,
+        userId: user.id,
         billId: decodedBill,
         assignmentId: assignmentId,
         answers: answers,
         notes: notes,
       });
 
-      await assignmentService.updateAssignmentStatus(currentUserId, assignmentId, 'completed');
-      await draftService.deleteDraft(currentUserId, decodedBill);
+      await assignmentService.updateAssignmentStatus(user.id, assignmentId, 'completed');
+      await draftService.deleteDraft(user.id, decodedBill);
 
       setAnswers({});
       setFlags({});
@@ -288,14 +291,14 @@ export function useScorecardData(): UseScorecardDataResult {
   };
 
   return {
-    loading,
+    loading: loading || authLoading,
     currentSection,
     answers,
     flags,
     notes,
     selectedBill,
     billDetails,
-    currentUserId,
+    currentUserId: user?.id || null,
     assignmentId,
     decodedBill,
     setCurrentSection,

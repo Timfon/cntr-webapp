@@ -8,7 +8,7 @@ import Loading from '@/app/components/Loading';
 import { colors } from '@/app/theme/colors';
 import UserManagement from './UserManagement';
 import Assignments from './Assignments';
-import { authService } from '@/backend/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { adminService } from '@/backend/admin';
 
 interface TabPanelProps {
@@ -34,19 +34,23 @@ function TabPanel(props: TabPanelProps) {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
 
   React.useEffect(() => {
     const checkAdminAccess = async () => {
-      try {
-        const user = await authService.getCurrentUser();
-        if (!user) {
-          router.push('/signin');
-          return;
-        }
+      if (authLoading) {
+        return;
+      }
 
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
         const admin = await adminService.isAdmin(user.id);
         if (!admin) {
           router.push('/dashboard');
@@ -56,20 +60,20 @@ export default function AdminDashboard() {
         setIsAuthorized(true);
       } catch (error) {
         console.error('Error checking admin access:', error);
-        router.push('/signin');
+        router.push('/dashboard');
       } finally {
         setLoading(false);
       }
     };
 
     checkAdminAccess();
-  }, [router]);
+  }, [user, authLoading, router]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return <Loading />;
   }
 

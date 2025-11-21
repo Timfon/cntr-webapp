@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/backend/auth';
 import { assignmentService } from '@/backend/database';
 import { UserBillAssignmentWithBill } from '@/types/database';
@@ -23,8 +24,8 @@ export interface DashboardStats {
 
 export function useDashboardData() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [bills, setBills] = useState<BillData[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     total: 0,
@@ -90,12 +91,17 @@ export function useDashboardData() {
   };
 
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged(async (user) => {
+    const initializeDashboard = async () => {
+      if (authLoading) {
+        return;
+      }
+
       if (!user) {
         setLoading(false);
-        router.push('/signin');
-      } else {
-        setCurrentUserId(user.id);
+        return;
+      }
+
+      try {
         const hasCompleted = await authService.hasCompletedProfile(user.id);
         if (!hasCompleted) {
           setLoading(false);
@@ -104,21 +110,25 @@ export function useDashboardData() {
         }
 
         await loadUserBills(user.id);
+      } catch (err) {
+        console.error('Error initializing dashboard:', err);
+      } finally {
         setLoading(false);
       }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    };
+
+    initializeDashboard();
+  }, [user, authLoading, router]);
 
   const refreshBills = async () => {
-    if (currentUserId) {
-      await loadUserBills(currentUserId);
+    if (user) {
+      await loadUserBills(user.id);
     }
   };
 
   return {
-    loading,
-    currentUserId,
+    loading: loading || authLoading,
+    currentUserId: user?.id || null,
     bills,
     stats,
     error,

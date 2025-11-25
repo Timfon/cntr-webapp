@@ -1,7 +1,9 @@
+"use client";
+import React from 'react';
 import {
   Box,
-  Button,
   Typography,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -15,78 +17,89 @@ import { Bill } from '@/types/database';
 import { colors } from '@/app/theme/colors';
 import { formatDate, formatBillId } from '@/utils/formatters';
 
-const BILLS_PER_PAGE = 30;
-
 interface BillTableProps {
   bills: Bill[];
   currentPage: number;
-  onPageChange: (page: number) => void;
+  totalPages: number;
+  totalCount: number;
+  onPageChange: (_: unknown, value: number) => void;
   onViewBill: (bill: Bill) => void;
 }
 
-export default function BillTable({ bills, currentPage, onPageChange, onViewBill }: BillTableProps) {
-  const totalPages = Math.ceil(bills.length / BILLS_PER_PAGE);
-  const currentBills = bills.slice(
-    (currentPage - 1) * BILLS_PER_PAGE,
-    currentPage * BILLS_PER_PAGE
-  );
+const BILLS_PER_PAGE = 30;
 
+export default function BillTable({
+  bills,
+  currentPage,
+  totalPages,
+  totalCount,
+  onPageChange,
+  onViewBill,
+}: BillTableProps) {
   return (
-    <Box sx={{ maxWidth: '1200px', mx: 'auto', mt: 2 }}>
-      <TableContainer
-        component={Paper}
-        sx={{
-          backgroundColor: colors.background.white,
-          boxShadow: '0px 2px 8px rgba(0,0,0,0.1)',
-          borderRadius: 2,
-          overflow: 'hidden',
-        }}
-      >
+    <>
+      <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: colors.neutral.gray100 }}>
-              <TableCell sx={{ fontWeight: 'bold', color: colors.text.primary, fontSize: '0.95rem', py: 2 }}>
-                Bill ID
+            <TableRow sx={{ backgroundColor: colors.neutral.gray50 }}>
+              <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
+                Bill
               </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: colors.text.primary, fontSize: '0.95rem', py: 2 }}>
+              <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
                 Date
               </TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: colors.text.primary, fontSize: '0.95rem', py: 2 }}>
+              <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
                 Action
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {currentBills.length === 0 ? (
+            {bills.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography sx={{ color: colors.text.secondary }}>No bills found</Typography>
+                  <Typography variant="body2" sx={{ color: colors.text.secondary }}>
+                    No bills found
+                  </Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              currentBills.map((bill) => (
-                <TableRow
-                  key={bill.id}
-                  sx={{ '&:hover': { backgroundColor: colors.neutral.gray50 } }}
-                >
-                  <TableCell sx={{ fontWeight: 'bold', color: colors.text.primary, fontSize: '1.05rem', py: 2 }}>
-                    {formatBillId(bill)}
+              bills.map((bill) => (
+                <TableRow key={bill.id} hover>
+                  <TableCell>
+                    <Box>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: colors.text.primary, fontWeight: 500 }}
+                      >
+                        {bill.title || 'N/A'}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: colors.text.secondary, fontSize: '0.75rem' }}
+                      >
+                        {formatBillId(bill)}
+                      </Typography>
+                    </Box>
                   </TableCell>
-                  <TableCell sx={{ color: colors.text.primary, fontSize: '0.95rem', py: 2 }}>
-                    {formatDate(bill.version_date)}
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: colors.text.primary }}
+                    >
+                      {formatDate(bill.version_date)}
+                    </Typography>
                   </TableCell>
-                  <TableCell sx={{ py: 2 }}>
+                  <TableCell>
                     <Button
-                      variant="outlined"
+                      variant="text"
                       size="small"
                       onClick={() => onViewBill(bill)}
                       sx={{
-                        borderColor: colors.primary,
                         color: colors.primary,
+                        textTransform: 'none',
                         fontWeight: 500,
                         '&:hover': {
-                          borderColor: colors.primaryHover,
-                          backgroundColor: colors.primaryLight,
+                          backgroundColor: colors.primaryLighter,
                         },
                       }}
                     >
@@ -100,15 +113,16 @@ export default function BillTable({ bills, currentPage, onPageChange, onViewBill
         </Table>
       </TableContainer>
 
-      {bills.length > 0 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+          <Typography variant="body2" sx={{ color: colors.text.secondary }}>
+            Showing {((currentPage - 1) * BILLS_PER_PAGE) + 1}-{Math.min(currentPage * BILLS_PER_PAGE, totalCount)} of {totalCount}
+          </Typography>
           <Pagination
             count={totalPages}
             page={currentPage}
-            onChange={(_, value) => {
-              onPageChange(value);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onChange={onPageChange}
             color="primary"
             sx={{
               '& .MuiPaginationItem-root': {
@@ -116,14 +130,19 @@ export default function BillTable({ bills, currentPage, onPageChange, onViewBill
                 '&.Mui-selected': {
                   backgroundColor: colors.primary,
                   color: colors.text.white,
-                  '&:hover': { backgroundColor: colors.primaryHover },
+                  '&:hover': {
+                    backgroundColor: colors.primaryHover,
+                  },
                 },
-                '&:hover': { backgroundColor: colors.primaryLight },
+                '&:hover': {
+                  backgroundColor: colors.primaryLight,
+                },
               },
             }}
           />
         </Box>
       )}
-    </Box>
+    </>
   );
 }
+

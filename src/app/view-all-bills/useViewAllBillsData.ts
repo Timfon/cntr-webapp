@@ -1,122 +1,158 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { billService } from '@/backend/database';
 import { Bill } from '@/types/database';
 
-export interface ViewAllBillsState {
+const BILLS_PER_PAGE = 30;
+
+export interface UseViewAllBillsDataReturn {
   loading: boolean;
   bills: Bill[];
-  searchTerm: string;
-  selectedState: string | null;
-  startDate: string;
-  endDate: string;
+  totalCount: number;
+  totalPages: number;
   currentPage: number;
+  setCurrentPage: (page: number) => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  activeSearchTerm: string;
+  setActiveSearchTerm: (term: string) => void;
+  selectedState: string | null;
+  setSelectedState: (state: string | null) => void;
+  startDate: string;
+  setStartDate: (date: string) => void;
+  endDate: string;
+  setEndDate: (date: string) => void;
+  uniqueStates: string[];
+  handleSearchKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleSearchClick: () => void;
+  handleClearSearch: () => void;
+  handleDateRangeChange: (start: string, end: string) => void;
+  handleDateRangeClear: () => void;
+  handlePageChange: (_: unknown, value: number) => void;
 }
 
-export function useViewAllBillsData() {
-  const { user, loading: authLoading } = useAuth();
+export function useViewAllBillsData(): UseViewAllBillsDataReturn {
+  const { loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [bills, setBills] = useState<Bill[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeSearchTerm, setActiveSearchTerm] = useState('');
   const [selectedState, setSelectedState] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [uniqueStates, setUniqueStates] = useState<string[]>([]);
 
+  // Load unique states once on mount
   useEffect(() => {
-    const initialize = async () => {
-      if (authLoading) {
-        return;
+    const loadStates = async () => {
+      try {
+        const result = await billService.getBills({ page: 1, pageSize: 1000 });
+        const states = [...new Set(result.bills.map(b => b.state))].sort();
+        setUniqueStates(states);
+      } catch (error) {
+        console.error('Error loading states:', error);
       }
-
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      await loadBills();
-      setLoading(false);
     };
+    if (!authLoading) {
+      loadStates();
+    }
+  }, [authLoading]);
 
-    initialize();
-  }, [user, authLoading]);
-
-  const loadBills = async () => {
+  // Load bills with server-side pagination
+  const loadBills = useCallback(async (page: number = 1) => {
     try {
-      const allBills = await billService.getAllBills();
-      setBills(allBills);
+      setLoading(true);
+      
+      const result = await billService.getBills({
+        page,
+        pageSize: BILLS_PER_PAGE,
+        search: activeSearchTerm || undefined,
+        state: selectedState || undefined,
+        dateRange: startDate && endDate ? { start: startDate, end: endDate } : undefined,
+        orderBy: 'version_date',
+        ascending: false, // Newest first
+      });
 
-      const validDates = allBills
-        .map(bill => new Date(bill.version_date || 0).getTime())
-        .filter(time => !isNaN(time) && time > 0);
-
-      if (validDates.length > 0) {
-        const minStr = new Date(Math.min(...validDates)).toISOString().split('T')[0];
-        const maxStr = new Date(Math.max(...validDates)).toISOString().split('T')[0];
-        setStartDate(minStr);
-        setEndDate(maxStr);
-      }
+      setBills(result.bills);
+      setTotalCount(result.total);
+      setTotalPages(Math.ceil(result.total / BILLS_PER_PAGE));
     } catch (error) {
       console.error('Error loading bills:', error);
       setBills([]);
+      setTotalCount(0);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeSearchTerm, selectedState, startDate, endDate]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    loadBills(currentPage);
+  }, [currentPage, loadBills, authLoading]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeSearchTerm, selectedState, startDate, endDate]);
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setActiveSearchTerm(searchTerm);
     }
   };
 
-  const filteredBills = useMemo(() => {
-    let filtered = bills.filter(bill => {
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const billId = `${bill.state} ${bill.bill_number || ''}`.toLowerCase();
-        const title = (bill.title || '').toLowerCase();
-        const summary = (bill.summary || '').toLowerCase();
-        if (!billId.includes(searchLower) && !title.includes(searchLower) && !summary.includes(searchLower)) {
-          return false;
-        }
-      }
+  const handleSearchClick = () => {
+    setActiveSearchTerm(searchTerm);
+  };
 
-      if (selectedState && bill.state !== selectedState) return false;
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setActiveSearchTerm('');
+  };
 
-      if (startDate && endDate) {
-        const billTime = new Date(bill.version_date || 0).getTime();
-        const startTime = new Date(startDate).setHours(0, 0, 0, 0);
-        const endTime = new Date(endDate).setHours(23, 59, 59, 999);
-        if (isNaN(billTime) || billTime < startTime || billTime > endTime) return false;
-      }
+  const handleDateRangeChange = (start: string, end: string) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
 
-      return true;
-    });
+  const handleDateRangeClear = () => {
+    setStartDate('');
+    setEndDate('');
+  };
 
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.version_date || 0).getTime();
-      const dateB = new Date(b.version_date || 0).getTime();
-      return dateB - dateA;
-    });
-
-    return filtered;
-  }, [bills, searchTerm, selectedState, startDate, endDate]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedState, startDate, endDate]);
-
-  const uniqueStates = useMemo(() => {
-    return [...new Set(bills.map(b => b.state))].sort();
-  }, [bills]);
+  const handlePageChange = (_: unknown, value: number) => {
+    setCurrentPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return {
-    loading: loading || authLoading,
+    loading,
     bills,
-    filteredBills,
-    uniqueStates,
+    totalCount,
+    totalPages,
+    currentPage,
+    setCurrentPage,
     searchTerm,
     setSearchTerm,
+    activeSearchTerm,
+    setActiveSearchTerm,
     selectedState,
     setSelectedState,
     startDate,
     setStartDate,
     endDate,
     setEndDate,
-    currentPage,
-    setCurrentPage,
+    uniqueStates,
+    handleSearchKeyPress,
+    handleSearchClick,
+    handleClearSearch,
+    handleDateRangeChange,
+    handleDateRangeClear,
+    handlePageChange,
   };
 }
+

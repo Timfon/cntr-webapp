@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { Bill } from '@/types/database';
 import { colors } from '@/app/theme/colors';
+import { formatBillId, formatDate } from '@/utils/formatters';
 
 interface BillDetailsDialogProps {
   bill: Bill | null;
@@ -17,19 +18,6 @@ interface BillDetailsDialogProps {
 }
 
 export default function BillDetailsDialog({ bill, open, onClose }: BillDetailsDialogProps) {
-  const formatBillId = (b: Bill) => `${b.state} ${b.bill_number || ''}`;
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return isNaN(date.getTime())
-      ? dateString
-      : date.toLocaleDateString('en-US', {
-          month: '2-digit',
-          day: '2-digit',
-          year: 'numeric',
-        });
-  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>

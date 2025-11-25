@@ -90,6 +90,24 @@ export interface QuestionBank {
   updated_at: string;
 }
 
+export interface BillAssignmentOverview {
+  bill_id: string; 
+  total_assigned: number;
+  in_progress: number;
+  completed: number;
+  not_started: number;
+  last_updated: string;
+}
+
+export interface UserStatistics {
+  user_id: string;
+  total_bills_assigned: number;
+  bills_in_progress: number;
+  bills_completed: number;
+  bills_not_started: number;
+  last_updated: string;
+}
+
 // Extended types for joined queries
 export interface UserBillAssignmentWithBill extends UserBillAssignment {
   bill: Bill;
@@ -102,4 +120,12 @@ export interface UserBillAssignmentWithDraft extends UserBillAssignment {
 
 export interface SubmissionWithBill extends Submission {
   bill: Bill;
+}
+
+export interface UserWithStatistics extends UserWithCohort {
+  statistics?: UserStatistics | null;
+}
+
+export interface BillWithOverview extends Bill {
+  overview?: BillAssignmentOverview | null;
 }

@@ -342,7 +342,7 @@ function ViewSubmissionContent() {
                         <Box
                           sx={{
                             p: 2,
-                            backgroundColor: "#e3f2fd",
+                            backgroundColor: colors.neutral.gray50,
                             borderTop: `2px solid ${colors.status.info}`,
                           }}
                         >

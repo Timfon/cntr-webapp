@@ -10,6 +10,7 @@ import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import { useRouter } from 'next/navigation';
 import "@fontsource/rubik";
+import { colors } from '@/app/theme/colors';
 
 
 // Hero Section Component
@@ -64,14 +65,14 @@ function HeroSection() {
           variant="contained"
           onClick={() => router.push('/signin')}
           sx={{
-            backgroundColor: '#0C6431',
-            color: 'white',
+            backgroundColor: colors.primary,
+            color: colors.text.white,
             px: 3,
             py: 1.2,
             fontSize: '1rem',
             fontWeight: 'bold',
             '&:hover': {
-              backgroundColor: '#094d26',
+              backgroundColor: colors.primaryHover,
             },
           }}
         >
@@ -95,7 +96,7 @@ function AboutSection() {
             sx={{
               mb: 4,
               fontWeight: 'bold',
-              color: '#333',
+              color: colors.text.primary,
             }}
           >
             More About CNTR AISLE
@@ -106,7 +107,7 @@ function AboutSection() {
             sx={{
               mb: 3,
               lineHeight: 1.6,
-              color: '#666',
+              color: colors.text.secondary,
             }}
           >
             Over 1,000 AI-related bills were introduced in the US from January 2023 to January 2025. With a lack of efforts to identify key policy elements that assess the maturity and robustness of AI legislation, a comprehensive assessment framework is urgently needed for policymakers, media, and the public.
@@ -117,7 +118,7 @@ function AboutSection() {
             sx={{
               mb: 4,
               lineHeight: 1.6,
-              color: '#666',
+              color: colors.text.secondary,
             }}
           >
             The mission of the Center is to redefine computer science education, research, and technology to center the needs, problems, and aspirations of all — and especially those that technology has left behind.
@@ -130,12 +131,12 @@ function AboutSection() {
             variant="contained"
             onClick={() => router.push('/signin')}
             sx={{
-              backgroundColor: '#0C6431',
-              color: 'white',
+              backgroundColor: colors.primary,
+              color: colors.text.white,
               px: 3,
               py: 1.0,
               '&:hover': {
-                backgroundColor: '#094d26',
+                backgroundColor: colors.primaryHover,
               },
             }}
           >
@@ -158,7 +159,7 @@ function AboutSection() {
     maxWidth: '400px',
     height: '300px',
     backgroundImage: 'url(/loGO.png)',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.neutral.gray100,
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
     backgroundSize: 'cover', // or 'cover', depending on how you want it to scale
@@ -167,7 +168,7 @@ function AboutSection() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#666',
+    color: colors.text.secondary,
   }}
 >
 </Box>
@@ -181,7 +182,7 @@ function AboutSection() {
 // Main App Component
 function App() {
   return (
-    <Box sx={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+    <Box sx={{ backgroundColor: colors.background.white, minHeight: '100vh' }}>
       <ResponsiveAppBar />
       <HeroSection />
       <AboutSection />

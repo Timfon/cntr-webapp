@@ -24,11 +24,12 @@ const NavigationButtons = ({
         }}
         disabled={currentIndex === 0}
         sx={{ 
-          color: colors.text.secondary,
-          borderColor: colors.border.default,
+          borderColor: colors.primary,
+          color: colors.primary,
           minWidth: 110,
           '&:hover': {
-            backgroundColor: colors.neutral.gray100
+            borderColor: colors.primaryDark,
+            backgroundColor: colors.primaryLighter
           }
         }}
       >
@@ -39,11 +40,11 @@ const NavigationButtons = ({
           variant="contained"
           onClick={onSubmit}
           sx={{
-            backgroundColor: colors.status.success,
+            backgroundColor: colors.primary,
             minWidth: 110,
             width: 100,
             '&:hover': {
-              backgroundColor: colors.status.successDark
+              backgroundColor: colors.primaryHover
             }
           }}
         >
@@ -54,11 +55,11 @@ const NavigationButtons = ({
           variant="contained" 
           onClick={onNext}
           sx={{ 
-            backgroundColor: colors.status.success,
+            backgroundColor: colors.primary,
             minWidth: 110,
             width: 100,
             '&:hover': {
-              backgroundColor: colors.status.successDark
+              backgroundColor: colors.primaryHover
             }
           }}
         >

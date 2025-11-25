@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { authService } from '@/backend/auth';
-import { assignmentService } from '@/backend/database';
+import { assignmentService, statisticsService } from '@/backend/database';
 import { UserBillAssignmentWithBill } from '@/types/database';
 
 export interface BillData {
@@ -71,17 +71,24 @@ export function useDashboardData() {
 
       setBills(billsData);
 
-      const inProgressCount = billsData.filter(b => b.status === 'inProgress').length;
-      const assignedCount = billsData.filter(b => b.status === 'assigned').length;
-      const scoredCount = billsData.filter(b => b.status === 'scored').length;
+      const userStats = await statisticsService.getUserStatistics(uid);
 
-      setStats({
-        total: billsData.length,
-        inProgress: inProgressCount,
-        // Assigned includes both 'assigned' and 'inProgress' bills
-        assigned: assignedCount + inProgressCount,
-        scored: scoredCount,
-      });
+      if (userStats) {
+        setStats({
+          total: userStats.total_bills_assigned,
+          inProgress: userStats.bills_in_progress,
+          assigned: userStats.bills_not_started + userStats.bills_in_progress,
+          scored: userStats.bills_completed,
+        });
+      } else {
+        // Fallback if no statistics exist (no assignments yet)
+        setStats({
+          total: 0,
+          inProgress: 0,
+          assigned: 0,
+          scored: 0,
+        });
+      }
     } catch (err: any) {
       console.error('Error loading user bills:', err);
       setError(`Failed to load bills: ${err?.message || 'Unknown error'}.`);

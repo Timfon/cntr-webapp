@@ -135,7 +135,7 @@ export default function SignupLayout({
                       py: 1,
                       '&:hover': {
                         borderColor: colors.primaryDark,
-                        backgroundColor: 'rgba(12, 100, 49, 0.04)',
+                        backgroundColor: colors.primaryLighter,
                       },
                     }}
                   >

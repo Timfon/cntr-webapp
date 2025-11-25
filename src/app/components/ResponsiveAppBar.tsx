@@ -22,9 +22,9 @@ import { adminService } from '@/backend/admin';
 import { useAuth } from '@/contexts/AuthContext';
 
 const pages = [
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Our Team', href: '/our-team' },
-  { name: 'View All Bills', href: '/view-all-bills' },
+  { name: "Dashboard", href: "/dashboard" },
+  { name: "View All Bills", href: "/view-all-bills" },
+  { name: "Our Team", href: "/our-team" },
 ];
 
 export default function ResponsiveAppBar() {
@@ -86,40 +86,27 @@ export default function ResponsiveAppBar() {
   }, [user]);
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: colors.background.white }}>
+    <AppBar position="static" elevation={0} sx={{ backgroundColor: colors.background.white, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <Avatar 
-            src="/cntr_logo.png"
-            alt="Logo"
-            sx={{ 
-              display: { xs: 'none', md: 'flex' }, 
-              mr: 2,
-              
-              width: 50,
-              height: 50
-            }} 
-          />
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 5,
-              display: { xs: 'none', md: 'flex' },
-              fontFamily: "Rubik-ExtraBold",
-              fontWeight: '900',
-              fontSize: '2.0rem',
-              // letterSpacing: '.1rem',
-              color: colors.primary,
-              textDecoration: 'none',
-            }}
-          >
-            CNTR AISLE
-          </Typography>
-          
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+          <Box sx={{ display: { xs: "none", md: "flex" }, mr: 2 }}>
+            <Link
+              href="/"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <img
+                src="/cntr_logo.png"
+                alt="CNTR logo"
+                style={{ height: 50 }}
+              />
+            </Link>
+          </Box>
+
+          <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -134,28 +121,43 @@ export default function ResponsiveAppBar() {
               id="menu-appbar"
               anchorEl={anchorElNav}
               anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'left',
+                vertical: "bottom",
+                horizontal: "left",
               }}
               keepMounted
               transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
+                vertical: "top",
+                horizontal: "left",
               }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
-              sx={{ display: { xs: 'block', md: 'none' } }}
+              sx={{ display: { xs: "block", md: "none" } }}
             >
-              {pages.map((page) => (
-                <MenuItem key={page.name} onClick={() => { handleCloseNavMenu(); router.push(page.href); }}>
-                  <Typography sx={{ textAlign: 'center' }}>{page.name}</Typography>
-                </MenuItem>
-              ))}
               {isAdmin && (
-                <MenuItem onClick={() => { handleCloseNavMenu(); router.push('/admin'); }}>
-                  <Typography sx={{ textAlign: 'center' }}>Admin Dashboard</Typography>
+                <MenuItem
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    router.push("/admin");
+                  }}
+                >
+                  <Typography sx={{ textAlign: "center" }}>
+                    Admin Dashboard
+                  </Typography>
                 </MenuItem>
               )}
+              {pages.map((page) => (
+                <MenuItem
+                  key={page.name}
+                  onClick={() => {
+                    handleCloseNavMenu();
+                    router.push(page.href);
+                  }}
+                >
+                  <Typography sx={{ textAlign: "center" }}>
+                    {page.name}
+                  </Typography>
+                </MenuItem>
+              ))}
             </Menu>
           </Box>
 
@@ -166,82 +168,95 @@ export default function ResponsiveAppBar() {
             href="#app-bar-with-responsive-menu"
             sx={{
               mr: 2,
-              display: { xs: 'flex', md: 'none' },
+              display: { xs: "flex", md: "none" },
               flexGrow: 1,
               fontWeight: 700,
-              letterSpacing: '.3rem',
+              letterSpacing: ".3rem",
               color: colors.primary,
-              textDecoration: 'none',
+              textDecoration: "none",
             }}
           >
             LOGO
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-  {pages.map((page) => (
-    <Link key={page.name} href={page.href} style={{ textDecoration: 'none' }}>
-      <Button
-        onClick={handleCloseNavMenu}
-        sx={{
-          my: 2,
-          color: colors.primary,
-          display: 'block',
-          mx: 1.5,
-        }}
-      >
-        {page.name}
-      </Button>
-    </Link>
-  ))}
-  {isAdmin && (
-    <Link href="/admin" style={{ textDecoration: 'none' }}>
-      <Button
-        onClick={handleCloseNavMenu}
-        sx={{
-          my: 2,
-          color: colors.primary,
-          display: 'block',
-          mx: 1.5,
-        }}
-      >
-        Admin Dashboard
-      </Button>
-    </Link>
-  )}
-</Box>
+          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
+            {pages.map((page) => (
+              <Link
+                key={page.name}
+                href={page.href}
+                style={{ textDecoration: "none" }}
+              >
+                <Button
+                  onClick={handleCloseNavMenu}
+                  sx={{
+                    my: 2,
+                    color: colors.primary,
+                    display: "block",
+                    mx: 1.5,
+                  }}
+                >
+                  {page.name}
+                </Button>
+              </Link>
+            ))}
+            {isAdmin && (
+              <Link href="/admin" style={{ textDecoration: "none" }}>
+                <Button
+                  onClick={handleCloseNavMenu}
+                  sx={{
+                    my: 2,
+                    color: colors.primary,
+                    display: "block",
+                    mx: 1.5,
+                  }}
+                >
+                  Admin Dashboard
+                </Button>
+              </Link>
+            )}
+          </Box>
 
           <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, width: 40, height: 40 }}>
-                <Avatar alt="User" src="/user_icon.png" sx={{width: 30, height: 30}}/>
+              <IconButton
+                onClick={handleOpenUserMenu}
+                sx={{ p: 0, width: 40, height: 40 }}
+              >
+                <Avatar
+                  alt="User"
+                  src="/user_icon.png"
+                  sx={{ width: 30, height: 30 }}
+                />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{ mt: '45px' }}
+              sx={{ mt: "45px" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               keepMounted
               transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                vertical: "top",
+                horizontal: "right",
               }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-  <MenuItem 
-    key={setting.label} 
-    onClick={() => {
-      handleCloseUserMenu();
-      setting.onClick();
-    }}
-  >
-    <Typography sx={{ textAlign: 'center' }}>{setting.label}</Typography>
-  </MenuItem>
-))}
+                <MenuItem
+                  key={setting.label}
+                  onClick={() => {
+                    handleCloseUserMenu();
+                    setting.onClick();
+                  }}
+                >
+                  <Typography sx={{ textAlign: "center" }}>
+                    {setting.label}
+                  </Typography>
+                </MenuItem>
+              ))}
             </Menu>
           </Box>
         </Toolbar>

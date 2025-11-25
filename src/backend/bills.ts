@@ -19,6 +19,7 @@ const ALLOWED_BILL_COLUMNS = ['state', 'bill_number', 'title', 'version_date', '
 export const billService = {
   /**
    * Get bill by ID
+   * Accessible to all authenticated users
    */
   async getBill(billId: string): Promise<Bill | null> {
     try {
@@ -47,6 +48,7 @@ export const billService = {
 
   /**
    * Get bill by external_id (legacy support)
+   * Accessible to all authenticated users
    */
   async getBillByExternalId(externalId: string): Promise<Bill | null> {
     try {
@@ -75,6 +77,7 @@ export const billService = {
 
   /**
    * Get bills with pagination, search, and filters
+   * Accessible to all authenticated users
    */
   async getBills(options: {
     page?: number;

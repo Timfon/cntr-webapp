@@ -114,7 +114,7 @@ const teamMembers = [
 // Team Section Component
 function TeamSection() {
   return (
-    <Box sx={{ backgroundColor: colors.background.main, pb: 6, minHeight: '100vh' }}>
+    <Box sx={{ pb: 6, minHeight: '100vh', pt: 0, mt: 0 }}>
       <Container maxWidth="lg">
         <Typography
           variant="h4"
@@ -123,7 +123,7 @@ function TeamSection() {
             textAlign: 'center',
             mb: 2,
             fontWeight: 'bold',
-            color: '#333',
+            color: colors.text.primary,
             pt: 4,
           }}
         >
@@ -135,7 +135,7 @@ function TeamSection() {
           sx={{
             textAlign: 'center',
             mb: 6,
-            color: '#666',
+            color: colors.text.secondary,
           }}
         >
           CNTR AISLE is a collaborative effort of students, researchers, and faculty members.
@@ -163,12 +163,12 @@ function TeamSection() {
                     mb: 2,
                     backgroundImage: member.image ? `url(${member.image})` : 'none',
                     backgroundSize: 'cover',
-                    backgroundColor: '#e0e0e0',
+                    backgroundColor: colors.border.light,
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#666',
+                    color: colors.text.secondary,
                     fontSize: '12px',
                   }}
                 >
@@ -179,7 +179,7 @@ function TeamSection() {
                   sx={{
                     mb: 1,
                     fontWeight: 'bold',
-                    color: '#333',
+                    color: colors.text.primary,
                   }}
                 >
                   {member.name}
@@ -188,7 +188,7 @@ function TeamSection() {
                   variant="subtitle1"
                   sx={{
                     mb: 1.5,
-                    color: '#0C6431',
+                    color: colors.primary,
                   }}
                 >
                   {member.role}
@@ -197,11 +197,11 @@ function TeamSection() {
                   <Link
                     href={`mailto:${member.email}`}
                     sx={{
-                      color: '#1976d2',
+                      color: colors.status.info,
                       textDecoration: 'underline',
                       fontSize: '0.875rem',
                       '&:hover': {
-                        color: '#1565c0',
+                        color: colors.primary,
                       },
                     }}
                   >

@@ -40,10 +40,9 @@ export default function CreateAssignmentSection({
   const [userSearchValue, setUserSearchValue] = useState<string>('');
 // UPDATE CURRENT COHORT WHENEVER SEMESTER CHANGES
   const CURRENT_COHORT = 'Fall 2025';
-  const MAX_ASSIGNEES_PER_BILL = 3;
 
-  // Get bills that have less than max assignees
-  const availableBills = bills.filter(b => b.assignees.length < MAX_ASSIGNEES_PER_BILL);
+  // All bills are available for assignment
+  const availableBills = bills;
 
   // Filter users to only current cohort
   const currentCohortUsers = useMemo(() => {
@@ -84,14 +83,8 @@ export default function CreateAssignmentSection({
       return;
     }
 
-    // Check if bill already has max assignees
-    const selectedBill = bills.find(b => b.id === selectedBillId);
-    if (selectedBill && selectedBill.assignees.length >= MAX_ASSIGNEES_PER_BILL) {
-      alert(`This bill already has ${MAX_ASSIGNEES_PER_BILL} assignees. Maximum is ${MAX_ASSIGNEES_PER_BILL}.`);
-      return;
-    }
-
     // Check if user is already assigned to this bill
+    const selectedBill = bills.find(b => b.id === selectedBillId);
     if (selectedBill && selectedBill.assignees.some(a => a.id === selectedUserId)) {
       alert('This user is already assigned to this bill.');
       return;

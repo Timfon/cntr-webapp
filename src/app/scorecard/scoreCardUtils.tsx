@@ -1,4 +1,5 @@
 import { questionBank } from "../data/questionBank";
+import { colors } from "@/app/theme/colors";
 
 export const getIsInProgress = (sectionId, answers, flags): boolean => {
   const sectionQuestions = questionBank[sectionId] || [];
@@ -14,7 +15,7 @@ export const getIsFlagged = (sectionId, flags, answers): boolean => {
 
 export const getSectionColor = (sectionId, sections) => {
   const section = sections.find((s) => s.id === sectionId);
-  return section ? section.color : "#666";
+  return section ? section.color : colors.text.secondary;
 };
 
 export const validateAllAnswers = (answers) => {

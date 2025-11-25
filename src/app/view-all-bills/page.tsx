@@ -1,26 +1,23 @@
 "use client";
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { billService } from '@/backend/database';
 import ResponsiveAppBar from '@/app/components/ResponsiveAppBar';
 import Footer from '@/app/components/Footer';
 import Loading from '@/app/components/Loading';
+import StateFilter from '@/app/components/filters/StateFilter';
+import DateRangeFilter from '@/app/components/filters/DateRangeFilter';
 import {
   Box,
   Typography,
   Container,
   TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Popover,
   Table,
   TableBody,
   TableCell,
@@ -29,10 +26,16 @@ import {
   TableRow,
   Paper,
   Pagination,
+  InputAdornment,
+  IconButton,
+  Card,
+  CardContent,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import { Bill } from '@/types/database';
 import { colors } from '@/app/theme/colors';
+import { formatDate } from '@/utils/formatters';
 
 const BILLS_PER_PAGE = 30;
 
@@ -41,109 +44,70 @@ export default function ViewAllBillsPage() {
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [bills, setBills] = useState<Bill[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(''); 
+  const [activeSearchTerm, setActiveSearchTerm] = useState(''); 
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [tempStartDate, setTempStartDate] = useState<string>('');
-  const [tempEndDate, setTempEndDate] = useState<string>('');
-  const [datePopupOpen, setDatePopupOpen] = useState(false);
-  const [dateAnchorEl, setDateAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [uniqueStates, setUniqueStates] = useState<string[]>([]);
 
   useEffect(() => {
-    const initialize = async () => {
-      if (authLoading) {
-        return;
+    const loadStates = async () => {
+      try {
+        const result = await billService.getBills({ page: 1, pageSize: 1000 });
+        const states = [...new Set(result.bills.map(b => b.state))].sort();
+        setUniqueStates(states);
+      } catch (error) {
+        console.error('Error loading states:', error);
       }
+    };
+    if (!authLoading) {
+      loadStates();
+    }
+  }, [authLoading]);
 
-      if (!user) {
+  // Load bills with server-side pagination
+  useEffect(() => {
+    const loadBills = async (page: number = 1) => {
+      try {
+        setLoading(true);
+        
+        const result = await billService.getBills({
+          page,
+          pageSize: BILLS_PER_PAGE,
+          search: activeSearchTerm || undefined,
+          state: selectedState || undefined,
+          dateRange: startDate && endDate ? { start: startDate, end: endDate } : undefined,
+          orderBy: 'version_date',
+          ascending: false, // Newest first
+        });
+
+        setBills(result.bills);
+        setTotalCount(result.total);
+        setTotalPages(Math.ceil(result.total / BILLS_PER_PAGE));
+      } catch (error) {
+        console.error('Error loading bills:', error);
+        setBills([]);
+        setTotalCount(0);
+        setTotalPages(1);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      await loadBills();
-      setLoading(false);
     };
 
-    initialize();
-  }, [user, authLoading]);
+    if (authLoading) return;
+    loadBills(currentPage);
+  }, [currentPage, activeSearchTerm, selectedState, startDate, endDate, authLoading]);
 
-  const loadBills = async () => {
-    try {
-      const allBills = await billService.getAllBills();
-      setBills(allBills);
-
-      // Initialize date range to full range
-      const validDates = allBills
-        .map(bill => new Date(bill.version_date || 0).getTime())
-        .filter(time => !isNaN(time) && time > 0);
-
-      if (validDates.length > 0) {
-        const minStr = new Date(Math.min(...validDates)).toISOString().split('T')[0];
-        const maxStr = new Date(Math.max(...validDates)).toISOString().split('T')[0];
-        setStartDate(minStr);
-        setEndDate(maxStr);
-        setTempStartDate(minStr);
-        setTempEndDate(maxStr);
-      }
-    } catch (error) {
-      console.error('Error loading bills:', error);
-      setBills([]);
-    }
-  };
-
-  // Filter and sort bills
-  const filteredBills = useMemo(() => {
-    let filtered = bills.filter(bill => {
-      // Search filter
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const billId = `${bill.state} ${bill.bill_number || ''}`.toLowerCase();
-        const title = (bill.title || '').toLowerCase();
-        const summary = (bill.summary || '').toLowerCase();
-        if (!billId.includes(searchLower) && !title.includes(searchLower) && !summary.includes(searchLower)) {
-          return false;
-        }
-      }
-
-      // State filter
-      if (selectedState && bill.state !== selectedState) return false;
-
-      // Date range filter
-      if (startDate && endDate) {
-        const billTime = new Date(bill.version_date || 0).getTime();
-        const startTime = new Date(startDate).setHours(0, 0, 0, 0);
-        const endTime = new Date(endDate).setHours(23, 59, 59, 999);
-        if (isNaN(billTime) || billTime < startTime || billTime > endTime) return false;
-      }
-
-      return true;
-    });
-
-    // Sort by newest first
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.version_date || 0).getTime();
-      const dateB = new Date( b.version_date || 0).getTime();
-      return dateB - dateA;
-    });
-
-    return filtered;
-  }, [bills, searchTerm, selectedState, startDate, endDate]);
-
-  // Reset to first page when filters change
+  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedState, startDate, endDate]);
-
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredBills.length / BILLS_PER_PAGE);
-  const currentBills = filteredBills.slice(
-    (currentPage - 1) * BILLS_PER_PAGE,
-    currentPage * BILLS_PER_PAGE
-  );
+  }, [activeSearchTerm, selectedState, startDate, endDate]);
 
   const handlePageChange = (_: unknown, value: number) => {
     setCurrentPage(value);
@@ -152,37 +116,33 @@ export default function ViewAllBillsPage() {
 
   const formatBillId = (bill: Bill) => `${bill.state} ${bill.bill_number || ''}`;
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric'
-    });
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setActiveSearchTerm(searchTerm);
+    }
   };
 
-  const formatDateRangeDisplay = () => {
-    if (!startDate || !endDate) return 'Select Date Range';
-    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  const handleSearchClick = () => {
+    setActiveSearchTerm(searchTerm);
   };
 
-  const handleSearch = () => {
-    setStartDate(tempStartDate);
-    setEndDate(tempEndDate);
-    setDatePopupOpen(false);
-    setDateAnchorEl(null);
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setActiveSearchTerm('');
   };
 
-  const handleDatePopupOpen = (e: React.MouseEvent<HTMLElement>) => {
-    setTempStartDate(startDate);
-    setTempEndDate(endDate);
-    setDateAnchorEl(e.currentTarget);
-    setDatePopupOpen(true);
+  const handleDateRangeChange = (start: string, end: string) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const handleDateRangeClear = () => {
+    setStartDate('');
+    setEndDate('');
   };
 
 
-  if (loading || authLoading) {
+  if (loading) {
     return <Loading />;
   }
 
@@ -190,14 +150,17 @@ export default function ViewAllBillsPage() {
     <Box sx={{ minHeight: '100vh', backgroundColor: colors.background.main }}>
       <ResponsiveAppBar />
       <Container maxWidth={false} sx={{ py: 6, px: 4 }}>
-        {/* Search and Filter Bar */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', maxWidth: '1200px', mx: 'auto' }}>
+        <Card sx={{ backgroundColor: colors.background.white, boxShadow: '0px 1px 3px rgba(0,0,0,0.1)' }}>
+          <CardContent>
+            {/* Search and Filter Bar */}
+            <Box sx={{ display: 'flex', gap: 2, mb: 4, mt: 2, flexWrap: 'wrap' }}>
           <TextField
-            placeholder="Search bills"
+            placeholder="Search bills (press Enter to search)"
             variant="outlined"
             size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={handleSearchKeyPress}
             sx={{
               flexGrow: 1,
               minWidth: '200px',
@@ -206,201 +169,120 @@ export default function ViewAllBillsPage() {
               },
             }}
             InputProps={{
-              startAdornment: <SearchIcon sx={{ color: colors.text.secondary, mr: 1 }} />,
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: colors.text.tertiary }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchTerm ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={handleClearSearch}
+                    sx={{ color: colors.text.tertiary }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
             }}
           />
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>State</InputLabel>
-            <Select
-              value={selectedState || ''}
-              label="State"
-              onChange={(e) => setSelectedState(e.target.value || null)}
-              sx={{ backgroundColor: colors.background.white }}
-            >
-              <MenuItem value="">All States</MenuItem>
-              {[...new Set(bills.map(b => b.state))].sort().map(state => (
-                <MenuItem key={state} value={state}>{state}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Date</InputLabel>
-            <Select
-              value={formatDateRangeDisplay()}
-              label="Date"
-              onClick={handleDatePopupOpen}
-              sx={{ backgroundColor: colors.background.white }}
-              open={false}
-              renderValue={() => formatDateRangeDisplay()}
-            >
-              <MenuItem value="">Select Date Range</MenuItem>
-            </Select>
-          </FormControl>
+
+          <Button
+            variant="contained"
+            onClick={handleSearchClick}
+            sx={{
+              backgroundColor: colors.primary,
+              color: colors.text.white,
+              '&:hover': {
+                backgroundColor: colors.primaryHover,
+              },
+            }}
+          >
+            Search
+          </Button>
+          <StateFilter
+            selectedState={selectedState}
+            onStateChange={setSelectedState}
+            uniqueStates={uniqueStates}
+            minWidth={120}
+          />
+          <DateRangeFilter
+            startDate={startDate}
+            endDate={endDate}
+            onDateRangeChange={handleDateRangeChange}
+            onClear={handleDateRangeClear}
+            minWidth={120}
+          />
         </Box>
 
-        {/* Date Popup - Attached to Date field */}
-        <Popover
-          open={datePopupOpen}
-          anchorEl={dateAnchorEl}
-          onClose={() => {
-            setDatePopupOpen(false);
-            setDateAnchorEl(null);
-          }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'left',
-          }}
-          sx={{
-            mt: 0.5,
-          }}
-        >
-          <Box 
-            sx={{ 
-              width: '400px',
-              p: 3, 
-              backgroundColor: colors.background.white, 
-            }}
-          >
-            <Typography variant="body1" sx={{ mb: 3, color: colors.text.primary, fontWeight: 'bold' }}>
-              Filter by Date
-            </Typography>
-            
-            {/* Start to End Date Section */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body2" sx={{ mb: 1.5, color: colors.text.secondary, fontWeight: 'medium' }}>
-                Start to End
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                  type="date"
-                  label="Start Date"
-                  value={tempStartDate}
-                  onChange={(e) => setTempStartDate(e.target.value)}
-                  size="small"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  sx={{
-                    flex: 1,
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: colors.background.white,
-                    },
-                  }}
-                />
-                <TextField
-                  type="date"
-                  label="End Date"
-                  value={tempEndDate}
-                  onChange={(e) => setTempEndDate(e.target.value)}
-                  size="small"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  sx={{
-                    flex: 1,
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: colors.background.white,
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
 
-            {/* Search Button */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="contained"
-                onClick={handleSearch}
-                sx={{
-                  backgroundColor: colors.primary,
-                  color: colors.text.white,
-                  '&:hover': {
-                    backgroundColor: colors.primaryHover,
-                  },
-                }}
-              >
-                Search
-              </Button>
-            </Box>
-          </Box>
-        </Popover>
-
-        {/* Bills Table */}
-        <Box sx={{ maxWidth: '1200px', mx: 'auto', mt: 2 }}>
-          <TableContainer 
-            component={Paper} 
-            sx={{ 
-              backgroundColor: colors.background.white, 
-              boxShadow: '0px 2px 8px rgba(0,0,0,0.1)',
-              borderRadius: 2,
-              overflow: 'hidden',
-            }}
-          >
+            {/* Bills Table */}
+            <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ backgroundColor: colors.neutral.gray100 }}>
-                  <TableCell sx={{ fontWeight: 'bold', color: colors.text.primary, fontSize: '0.95rem', py: 2 }}>
-                    Bill ID
+                <TableRow sx={{ backgroundColor: colors.neutral.gray50 }}>
+                  <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
+                    Bill
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', color: colors.text.primary, fontSize: '0.95rem', py: 2 }}>
+                  <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
                     Date
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', color: colors.text.primary, fontSize: '0.95rem', py: 2 }}>
+                  <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
                     Action
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {currentBills.length === 0 ? (
+                {bills.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={3} sx={{ textAlign: 'center', py: 4 }}>
-                      <Typography sx={{ color: colors.text.secondary }}>No bills found</Typography>
+                      <Typography variant="body2" sx={{ color: colors.text.secondary }}>
+                        No bills found
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  currentBills.map((bill) => (
-                    <TableRow
-                      key={bill.id}
-                      sx={{
-                        '&:hover': {
-                          backgroundColor: colors.neutral.gray50,
-                        },
-                      }}
-                    >
-                      <TableCell sx={{
-                        fontWeight: 'bold',
-                        color: colors.text.primary,
-                        fontSize: '1.05rem',
-                        py: 2,
-                      }}>
-                        {formatBillId(bill)}
+                  bills.map((bill) => (
+                    <TableRow key={bill.id} hover>
+                      <TableCell>
+                        <Box>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: colors.text.primary, fontWeight: 500 }}
+                          >
+                            {bill.title || 'N/A'}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: colors.text.secondary, fontSize: '0.75rem' }}
+                          >
+                            {formatBillId(bill)}
+                          </Typography>
+                        </Box>
                       </TableCell>
-                      <TableCell sx={{
-                        color: colors.text.primary,
-                        fontSize: '0.95rem',
-                        py: 2,
-                      }}>
-                        {formatDate(bill.version_date)}
+                      <TableCell>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: colors.text.primary }}
+                        >
+                          {formatDate(bill.version_date)}
+                        </Typography>
                       </TableCell>
-                      <TableCell sx={{ py: 2 }}>
+                      <TableCell>
                         <Button
-                          variant="outlined"
+                          variant="text"
                           size="small"
                           onClick={() => {
                             setSelectedBill(bill);
                             setDialogOpen(true);
                           }}
                           sx={{
-                            borderColor: colors.primary,
                             color: colors.primary,
+                            textTransform: 'none',
                             fontWeight: 500,
                             '&:hover': {
-                              borderColor: colors.primaryHover,
-                              backgroundColor: colors.primaryLight,
+                              backgroundColor: colors.primaryLighter,
                             },
                           }}
                         >
@@ -415,8 +297,11 @@ export default function ViewAllBillsPage() {
           </TableContainer>
           
           {/* Pagination */}
-          {filteredBills.length > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+              <Typography variant="body2" sx={{ color: colors.text.secondary }}>
+                Showing {((currentPage - 1) * BILLS_PER_PAGE) + 1}-{Math.min(currentPage * BILLS_PER_PAGE, totalCount)} of {totalCount}
+              </Typography>
               <Pagination
                 count={totalPages}
                 page={currentPage}
@@ -440,8 +325,8 @@ export default function ViewAllBillsPage() {
               />
             </Box>
           )}
-        </Box>
-
+          </CardContent>
+        </Card>
       </Container>
 
       {/* Bill Details Dialog */}

@@ -19,19 +19,12 @@ import {
 import { colors } from '@/app/theme/colors';
 import { adminService } from '@/backend/admin';
 import { assignmentService } from '@/backend/database';
-import { UserWithCohort, UserRole, UserBillAssignmentWithBill } from '@/types/database';
-
-interface UserWithProgress extends UserWithCohort {
-  progress: {
-    total: number;
-    completed: number;
-  };
-}
+import { UserWithStatistics, UserRole, UserBillAssignmentWithBill } from '@/types/database';
 
 interface UserProfileDialogProps {
   open: boolean;
   onClose: () => void;
-  user: UserWithProgress;
+  user: UserWithStatistics;
   currentUserId: string;
   onUserUpdated: () => void;
 }

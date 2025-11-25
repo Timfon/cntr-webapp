@@ -33,7 +33,7 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
           textAlign: "center",
           mb: 2,
           fontWeight: "bold",
-          color: "#333",
+          color: colors.text.primary,
           pt: 4,
         }}
       >
@@ -46,6 +46,7 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
           mb: 4,
           borderRadius: 3,
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          backgroundColor: colors.background.white,
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -56,7 +57,7 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
               alignItems: "center",
             }}
           >
-            <Typography sx={{ fontWeight: 500 }}>
+            <Typography sx={{ fontWeight: 500, color: colors.text.primary }}>
               Total Sections Completed:
             </Typography>
             <Chip
@@ -75,7 +76,7 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
               alignItems: "center",
             }}
           >
-            <Typography sx={{ fontWeight: 500 }}>
+            <Typography sx={{ fontWeight: 500, color: colors.text.primary }}>
               Questions Answered:
             </Typography>
             <Chip
@@ -94,7 +95,7 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
               alignItems: "center",
             }}
           >
-            <Typography sx={{ fontWeight: 500 }}>Questions Flagged:</Typography>
+            <Typography sx={{ fontWeight: 500, color: colors.text.primary }}>Questions Flagged:</Typography>
             <Chip
               label={flaggedQuestions}
               color={flaggedQuestions === 0 ? "success" : "warning"}
@@ -107,7 +108,7 @@ const ScoringSummary: React.FC<ScoringSummaryProps> = ({
               alignItems: "center",
             }}
           >
-            <Typography sx={{ fontWeight: 500 }}>Notes Added:</Typography>
+            <Typography sx={{ fontWeight: 500, color: colors.text.primary }}>Notes Added:</Typography>
             <Chip label={sectionsWithNotes} color="info" />
           </Box>
         </Box>

@@ -8,10 +8,11 @@ import {
   Grid,
 } from '@mui/material';
 import "@fontsource/rubik";
+import { colors } from '@/app/theme/colors';
 
 export default function Footer() {
   return (
-    <Box sx={{ backgroundColor: '#07361B', color: 'white', py: 6 }}>
+    <Box sx={{ backgroundColor: colors.primaryDark, color: colors.text.white, py: 6 }}>
       <Container maxWidth="lg">
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, md: 6 }}>

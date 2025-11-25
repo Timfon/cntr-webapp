@@ -85,27 +85,7 @@ export default function AdminDashboard() {
     <Box sx={{ minHeight: '100vh', backgroundColor: colors.background.main }}>
       <ResponsiveAppBar />
       <Container maxWidth={false} sx={{ py: 4, px: 4 }}>
-        <Typography
-          variant="h4"
-          sx={{
-            color: colors.text.primary,
-            fontWeight: 'bold',
-            mb: 1,
-          }}
-        >
-          Admin Dashboard
-        </Typography>
-        <Typography
-          variant="body1"
-          sx={{
-            color: colors.text.secondary,
-            mb: 4,
-          }}
-        >
-          Manage users and assignments
-        </Typography>
-
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0.2 }}>
           <Tabs
             value={currentTab}
             onChange={handleTabChange}

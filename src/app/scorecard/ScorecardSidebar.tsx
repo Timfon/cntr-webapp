@@ -6,6 +6,7 @@ import { questionBank } from "@/app/data/questionBank";
 import { getIsFlagged, getIsInProgress, filterQuestionsByDependencies } from "@/app/scorecard/scoreCardUtils";
 import { TbProgress } from "react-icons/tb";
 import { FaCheck } from "react-icons/fa6";
+import { colors } from "@/app/theme/colors";
 
 const ScorecardSidebar = ({
   currentSection,
@@ -27,40 +28,40 @@ const ScorecardSidebar = ({
     
     // 1. If section has not been started yet, grey circle
     if (!hasAnswers) {
-      return <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#e0e0e0' }}></div>;
+      return <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: colors.border.light }}></div>;
     }
     
     // 2. If user flagged 1 or more questions, red exclamation point
     if (hasFlagged) {
-      return <ErrorOutlineIcon sx={{ color: "#d32f2f", fontSize: "1.25rem" }} />;
+      return <ErrorOutlineIcon sx={{ color: colors.status.error, fontSize: "1.25rem" }} />;
     }
     
     // 3. If user did not answer all questions, incomplete logo (progress icon)
     if (inProgress) {
-      return <TbProgress size={20} color="#afafaf" />;
+      return <TbProgress size={20} color={colors.text.tertiary} />;
     }
     
     // 4. If all questions have been answered, green check
-    return <FaCheck size={20} color="#1d8f3b" />;
+    return <FaCheck size={20} color={colors.status.success} />;
   };
   return (
-    <Paper
-      sx={{
-        mr: 6,
-        position: "sticky",
-        top: 200,
-        left: 24,
-        width: 300,
-        height: "calc(100vh - 230px)", //Adjust height to account for top offset and bottom margin
-        backgroundColor: "white",
-        borderRadius: 3,
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        overflow: "hidden",
-        zIndex: 1000,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+      <Paper
+        sx={{
+          mr: 6,
+          position: "sticky",
+          top: 200,
+          left: 24,
+          width: 300,
+          height: "calc(100vh - 230px)", //Adjust height to account for top offset and bottom margin
+          backgroundColor: colors.background.white,
+          borderRadius: 3,
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+          overflow: "hidden",
+          zIndex: 1000,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
       <Box
         sx={{
           flex: 1,
@@ -88,7 +89,7 @@ const ScorecardSidebar = ({
               py: 2.5,
               cursor: "pointer",
               backgroundColor:
-                currentSection === section.id ? "#CEE7BD" : "transparent",
+                currentSection === section.id ? colors.sidebar.activeBackground : "transparent",
               borderRadius: "12px",
               margin: "5px 19px",
               position: "relative",
@@ -96,11 +97,11 @@ const ScorecardSidebar = ({
               "&:hover": {
                 backgroundColor:
                   currentSection === section.id
-                    ? "#CEE7BD"
-                    : "rgba(0, 0, 0, 0.02)",
+                    ? colors.sidebar.activeBackground
+                    : colors.primaryLighter,
               },
               "&:active": {
-                backgroundColor: "rgba(0, 0, 0, 0.04)",
+                backgroundColor: colors.primaryLight,
               },
               display: "flex",
               alignItems: "center",
@@ -118,7 +119,7 @@ const ScorecardSidebar = ({
               sx={{
                 fontSize: "0.9rem",
                 fontWeight: 500,
-                color: currentSection === section.id ? "#1b5e20" : "inherit",
+                color: currentSection === section.id ? colors.sidebar.activeText : "inherit",
               }}
             >
               {section.name}

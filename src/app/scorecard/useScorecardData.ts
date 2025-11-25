@@ -283,7 +283,7 @@ export function useScorecardData(): UseScorecardDataResult {
 
       alert('Form submitted!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      router.push('/dashboard');
+      router.push(`/scorecard/view-submission?bill=${encodeURIComponent(decodedBill)}`);
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Failed to submit form. Please try again.');

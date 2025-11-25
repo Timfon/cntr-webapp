@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { glossary, searchGlossary } from '@/app/data/glossary';
+import { colors } from '@/app/theme/colors';
 
 interface GlossaryPanelProps {
   open: boolean;
@@ -52,17 +53,17 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
           sx={{
             p: 3,
             pt: 2,
-            borderBottom: '1px solid #e0e0e0',
+            borderBottom: `1px solid ${colors.border.light}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#F6FBF7',
+            backgroundColor: colors.background.main,
           }}
         >
           <Typography
             variant="h5"
             sx={{
-              color: '#0C6431',
+              color: colors.primary,
               fontWeight: 'bold',
             }}
           >
@@ -71,7 +72,7 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
         </Box>
 
         {/* Search Bar */}
-        <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+        <Box sx={{ p: 2, borderBottom: `1px solid ${colors.border.light}` }}>
           <TextField
             fullWidth
             placeholder="Search for terms..."
@@ -80,18 +81,18 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#666' }} />
+                  <SearchIcon sx={{ color: colors.text.secondary }} />
                 </InputAdornment>
               ),
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: 'white',
+                backgroundColor: colors.background.white,
                 '&:hover fieldset': {
-                  borderColor: '#0C6431',
+                  borderColor: colors.primary,
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#0C6431',
+                  borderColor: colors.primary,
                 },
               },
             }}
@@ -103,7 +104,7 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
           {filteredTerms.length === 0 ? (
             <Typography
               sx={{
-                color: '#999',
+                color: colors.text.tertiary,
                 textAlign: 'center',
                 mt: 4,
               }}
@@ -117,7 +118,7 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                 sx={{
                   p: 2.5,
                   mb: 2,
-                  backgroundColor: 'white',
+                  backgroundColor: colors.background.white,
                   borderRadius: 2,
                   boxShadow: '0px 1px 3px rgba(0,0,0,0.1)',
                 }}
@@ -125,7 +126,7 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                 <Typography
                   variant="h6"
                   sx={{
-                    color: '#000000',
+                    color: colors.text.primary,
                     fontWeight: 'bold',
                     mb: 1.5,
                     fontSize: '1.1rem',
@@ -139,7 +140,7 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#333',
+                    color: colors.text.primary,
                     mb: 1.5,
                     lineHeight: 1.6,
                   }}
@@ -151,7 +152,7 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: '#666',
+                      color: colors.text.secondary,
                       mb: 0.5,
                       display: 'block',
                     }}
@@ -165,8 +166,8 @@ export default function GlossaryPanel({ open, onClose }: GlossaryPanelProps) {
                         label={cat}
                         size="small"
                         sx={{
-                          backgroundColor: '#E8F5E9',
-                          color: '#2e7d32',
+                          backgroundColor: colors.primaryLight,
+                          color: colors.primaryDark,
                           fontSize: '0.75rem',
                           height: '24px',
                         }}

@@ -26,25 +26,18 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import { colors } from '@/app/theme/colors';
 import { adminService } from '@/backend/admin';
-import { UserWithCohort, UserRole, Cohort } from '@/types/database';
+import { UserWithStatistics, UserRole, Cohort } from '@/types/database';
 import { authService } from '@/backend/auth';
 import UserProfileDialog from './UserProfileDialog';
 
-interface UserWithProgress extends UserWithCohort {
-  progress: {
-    total: number;
-    completed: number;
-  };
-}
-
 export default function UserManagement() {
-  const [users, setUsers] = useState<UserWithProgress[]>([]);
+  const [users, setUsers] = useState<UserWithStatistics[]>([]);
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [cohortFilter, setCohortFilter] = useState<string>('all');
-  const [selectedUser, setSelectedUser] = useState<UserWithProgress | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithStatistics | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -68,7 +61,7 @@ export default function UserManagement() {
             return acc;
           }, [] as Cohort[]);
 
-        setUsers(usersWithProgress as UserWithProgress[]);
+        setUsers(usersWithProgress);
         setCohorts(uniqueCohorts);
       } catch (error) {
         console.error('Error loading user management data:', error);
@@ -97,7 +90,7 @@ export default function UserManagement() {
     });
   }, [users, searchTerm, roleFilter, cohortFilter]);
 
-  const handleViewProfile = (user: UserWithProgress) => {
+  const handleViewProfile = (user: UserWithStatistics) => {
     setSelectedUser(user);
     setDialogOpen(true);
   };
@@ -111,7 +104,7 @@ export default function UserManagement() {
     // Reload users after update
     try {
       const usersWithProgress = await adminService.getUsersWithProgress();
-      setUsers(usersWithProgress as UserWithProgress[]);
+      setUsers(usersWithProgress);
     } catch (error) {
       console.error('Error reloading users:', error);
     }
@@ -133,22 +126,12 @@ export default function UserManagement() {
     <Box>
       <Card sx={{ backgroundColor: colors.background.white, boxShadow: '0px 1px 3px rgba(0,0,0,0.1)' }}>
         <CardContent>
-          <Typography
-            variant="h6"
-            sx={{
-              color: colors.text.primary,
-              fontWeight: 600,
-              mb: 3,
-            }}
-          >
-            User Management
-          </Typography>
-
           <Box
             sx={{
               display: 'flex',
               gap: 2,
               mb: 3,
+              mt: 2,
               flexWrap: 'wrap',
             }}
           >
@@ -293,7 +276,9 @@ export default function UserManagement() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" sx={{ color: colors.text.secondary }}>
-                          {user.progress.completed}/{user.progress.total} bills
+                          {user.statistics
+                            ? `${user.statistics.bills_completed}/${user.statistics.total_bills_assigned} bills`
+                            : '0/0 bills'}
                         </Typography>
                       </TableCell>
                       <TableCell>

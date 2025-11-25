@@ -154,18 +154,18 @@ export default function BillBox({
                 }
               }}
               sx={{
-                backgroundColor: bill.status === 'inProgress' ? colors.status.success : colors.background.white,
-                color: bill.status === 'inProgress' ? colors.text.white : colors.text.secondary,
-                borderColor: bill.status === 'inProgress' ? 'transparent' : colors.border.light,
-                fontWeight: 'bold',
-                py: 1,
-                px: 2.5,
-                textTransform: 'uppercase',
-                fontSize: '0.75rem',
+                backgroundColor: bill.status === 'inProgress' ? colors.primary : 'transparent',
+                color: bill.status === 'inProgress' ? colors.text.white : colors.primary,
+                borderColor: bill.status === 'inProgress' ? 'transparent' : colors.primary,
+                fontWeight: bill.status === 'inProgress' ? 'bold' : 500,
+                py: bill.status === 'inProgress' ? 1 : undefined,
+                px: bill.status === 'inProgress' ? 2.5 : undefined,
+                textTransform: bill.status === 'inProgress' ? 'uppercase' : 'none',
+                fontSize: bill.status === 'inProgress' ? '0.75rem' : undefined,
                 minWidth: 'auto',
                 '&:hover': {
-                  backgroundColor: bill.status === 'inProgress' ? colors.status.successDark : colors.neutral.gray100,
-                  borderColor: bill.status === 'inProgress' ? 'transparent' : colors.border.default,
+                  backgroundColor: bill.status === 'inProgress' ? colors.primaryHover : colors.primaryLight,
+                  borderColor: bill.status === 'inProgress' ? 'transparent' : colors.primaryHover,
                 },
               }}
             >

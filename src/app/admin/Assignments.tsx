@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -16,15 +16,23 @@ import {
   Chip,
   Paper,
   Pagination,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import { colors } from '@/app/theme/colors';
 import { billService, assignmentService } from '@/backend/database';
 import { adminService } from '@/backend/admin';
-import { Bill, UserWithCohort } from '@/types/database';
+import { Bill, UserWithStatistics } from '@/types/database';
 import AssignBillDialog from './AssignBillDialog';
 import CreateAssignmentSection from './CreateAssignmentSection';
+import StateFilter from '@/app/components/filters/StateFilter';
+import DateRangeFilter from '@/app/components/filters/DateRangeFilter';
 
 interface BillWithAssignee extends Bill {
   assignees: Array<{
@@ -35,112 +43,88 @@ interface BillWithAssignee extends Bill {
   }>;
 }
 
-type SearchByType = 'users' | 'title' | 'number' | 'year';
 type BillFilterType = 'all' | 'assigned' | 'unassigned';
 
 const BILLS_PER_PAGE = 10;
-const MAX_ASSIGNEES_PER_BILL = 3;
 
 export default function Assignments() {
   const [bills, setBills] = useState<BillWithAssignee[]>([]);
-  const [users, setUsers] = useState<UserWithCohort[]>([]);
+  const [users, setUsers] = useState<UserWithStatistics[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchBy, setSearchBy] = useState<SearchByType>('users');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(''); 
+  const [activeSearchTerm, setActiveSearchTerm] = useState(''); 
   const [billFilter, setBillFilter] = useState<BillFilterType>('all');
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [assignedUserId, setAssignedUserId] = useState<string | null>(null);
+  const [uniqueStates, setUniqueStates] = useState<string[]>([]);
   const [selectedBill, setSelectedBill] = useState<BillWithAssignee | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const loadData = async () => {
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const allUsersWithProgress = await adminService.getUsersWithProgress();
+        setUsers(allUsersWithProgress);
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    };
+    loadUsers();
+  }, []);
+
+  useEffect(() => {
+    const loadStates = async () => {
+      try {
+        const result = await billService.getBills({ page: 1, pageSize: 1000 });
+        const states = [...new Set(result.bills.map(b => b.state))].sort();
+        setUniqueStates(states);
+      } catch (error) {
+        console.error('Error loading states:', error);
+      }
+    };
+    loadStates();
+  }, []);
+
+  const loadData = useCallback(async (page: number = 1) => {
     try {
       setLoading(true);
-      const [allBills, allUsersWithProgress, allAssignments] = await Promise.all([
-        billService.getAllBills(),
-        adminService.getUsersWithProgress(),
-        adminService.getAllAssignmentsWithUsers(),
-      ]);
-
-      // Group assignments by bill ID
-      const assignmentsByBill = new Map<string, typeof allAssignments>();
-      allAssignments.forEach(a => {
-        if (!assignmentsByBill.has(a.billId)) {
-          assignmentsByBill.set(a.billId, []);
-        }
-        assignmentsByBill.get(a.billId)!.push(a);
+      
+      const result = await adminService.getBillsWithAssignments({
+        page,
+        pageSize: BILLS_PER_PAGE,
+        searchTerm: activeSearchTerm || undefined,
+        state: selectedState || undefined,
+        dateRange: startDate && endDate ? { start: startDate, end: endDate } : undefined,
+        assignedUserId: assignedUserId || undefined,
+        billFilter: billFilter,
       });
 
-      // Combine bills with assignee info
-      const billsWithAssignee: BillWithAssignee[] = allBills.map(bill => {
-        const assignments = assignmentsByBill.get(bill.id) || [];
-        return {
-          ...bill,
-          assignees: assignments.map(a => ({
-            id: a.userId,
-            name: a.userName,
-            email: a.userEmail,
-            assignmentId: a.assignmentId,
-          })),
-        };
-      });
-
-      setBills(billsWithAssignee);
-      setUsers(allUsersWithProgress);
+      setBills(result.bills as BillWithAssignee[]);
+      setTotalPages(result.totalPages);
+      setTotalCount(result.total);
     } catch (error) {
       console.error('Error loading assignments data:', error);
+      setBills([]);
+      setTotalPages(1);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeSearchTerm, selectedState, startDate, endDate, assignedUserId, billFilter]);
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  const filteredBills = useMemo(() => {
-    return bills.filter((bill) => {
-      // Filter by assigned/unassigned
-      if (billFilter === 'assigned' && bill.assignees.length === 0) return false;
-      if (billFilter === 'unassigned' && bill.assignees.length > 0) return false;
-
-      // Search filtering
-      if (!searchTerm) return true;
-
-      const searchLower = searchTerm.toLowerCase();
-
-      switch (searchBy) {
-        case 'users':
-          if (bill.assignees.length > 0) {
-            return bill.assignees.some(assignee =>
-              assignee.name.toLowerCase().includes(searchLower) ||
-              assignee.email.toLowerCase().includes(searchLower)
-            );
-          }
-          return false;
-        case 'title':
-          return bill.title.toLowerCase().includes(searchLower);
-        case 'number':
-          // Search by full bill ID: "PA 352" or "PA SB293"
-          const billId = `${bill.state} ${bill.bill_number}`.toLowerCase();
-          return billId.includes(searchLower);
-        case 'year':
-          return bill.year.toString().includes(searchTerm);
-        default:
-          return true;
-      }
-    });
-  }, [bills, searchBy, searchTerm, billFilter]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredBills.length / BILLS_PER_PAGE);
-  const startIndex = (currentPage - 1) * BILLS_PER_PAGE;
-  const endIndex = startIndex + BILLS_PER_PAGE;
-  const paginatedBills = filteredBills.slice(startIndex, endIndex);
+    loadData(currentPage);
+  }, [currentPage, loadData]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchBy, searchTerm, billFilter]);
+  }, [activeSearchTerm, selectedState, startDate, endDate, assignedUserId, billFilter]);
 
   const handleAssignBill = (bill: BillWithAssignee) => {
     setSelectedBill(bill);
@@ -153,7 +137,33 @@ export default function Assignments() {
   };
 
   const handleAssignmentCreated = async () => {
-    await loadData();
+    // Reload current page to refresh data
+    await loadData(currentPage);
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setActiveSearchTerm(searchTerm);
+    }
+  };
+
+  const handleSearchClick = () => {
+    setActiveSearchTerm(searchTerm);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setActiveSearchTerm('');
+  };
+
+  const handleDateRangeChange = (start: string, end: string) => {
+    setStartDate(start);
+    setEndDate(end);
+  };
+
+  const handleDateRangeClear = () => {
+    setStartDate('');
+    setEndDate('');
   };
 
   if (loading) {
@@ -171,50 +181,22 @@ export default function Assignments() {
       {/* Bill Management Section */}
       <Card sx={{ backgroundColor: colors.background.white, boxShadow: '0px 1px 3px rgba(0,0,0,0.1)', mb: 3 }}>
         <CardContent>
-          <Typography
-            variant="h6"
-            sx={{
-              color: colors.text.primary,
-              fontWeight: 600,
-              mb: 3,
-            }}
-          >
-            Bill Management
-          </Typography>
-
           <Box
             sx={{
               display: 'flex',
               gap: 2,
               mb: 3,
+              mt: 2,
               flexWrap: 'wrap',
-              alignItems: 'center',
             }}
           >
-            <Typography variant="body2" sx={{ color: colors.text.primary, fontWeight: 500 }}>
-              Search by:
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <Select
-                value={searchBy}
-                onChange={(e) => setSearchBy(e.target.value as SearchByType)}
-                sx={{
-                  backgroundColor: colors.background.white,
-                }}
-              >
-                <MenuItem value="users">Users</MenuItem>
-                <MenuItem value="title">Title</MenuItem>
-                <MenuItem value="number">Number</MenuItem>
-                <MenuItem value="year">Year</MenuItem>
-              </Select>
-            </FormControl>
-
             <TextField
-              placeholder="Search"
+              placeholder="Search bills (press Enter to search)"
               variant="outlined"
               size="small"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={handleSearchKeyPress}
               sx={{
                 flexGrow: 1,
                 minWidth: '200px',
@@ -223,22 +205,71 @@ export default function Assignments() {
                 },
               }}
               InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: colors.text.tertiary }} />
+                  </InputAdornment>
+                ),
                 endAdornment: searchTerm ? (
                   <InputAdornment position="end">
                     <IconButton
                       size="small"
-                      onClick={() => setSearchTerm('')}
+                      onClick={handleClearSearch}
                       sx={{ color: colors.text.tertiary }}
                     >
                       <ClearIcon fontSize="small" />
                     </IconButton>
                   </InputAdornment>
-                ) : (
-                  <InputAdornment position="end">
-                    <SearchIcon sx={{ color: colors.text.tertiary }} />
-                  </InputAdornment>
-                ),
+                ) : null,
               }}
+            />
+
+            <Button
+              variant="contained"
+              onClick={handleSearchClick}
+              sx={{
+                backgroundColor: colors.primary,
+                color: colors.text.white,
+                '&:hover': {
+                  backgroundColor: colors.primaryHover,
+                },
+              }}
+            >
+              Search
+            </Button>
+
+            <StateFilter
+              selectedState={selectedState}
+              onStateChange={setSelectedState}
+              uniqueStates={uniqueStates}
+              minWidth={150}
+            />
+
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Assigned User</InputLabel>
+              <Select
+                value={assignedUserId || ''}
+                label="Assigned User"
+                onChange={(e) => setAssignedUserId(e.target.value || null)}
+                sx={{
+                  backgroundColor: colors.background.white,
+                }}
+              >
+                <MenuItem value="">All Users</MenuItem>
+                {users.map((user) => (
+                  <MenuItem key={user.id} value={user.id}>
+                    {user.name || user.email}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <DateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onDateRangeChange={handleDateRangeChange}
+              onClear={handleDateRangeClear}
+              minWidth={120}
             />
 
             <FormControl size="small" sx={{ minWidth: 150 }}>
@@ -258,57 +289,80 @@ export default function Assignments() {
             </FormControl>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {paginatedBills.length === 0 ? (
-              <Typography variant="body2" sx={{ color: colors.text.secondary, py: 4, textAlign: 'center' }}>
-                No bills found
-              </Typography>
-            ) : (
-              paginatedBills.map((bill) => (
-                <Paper
-                  key={bill.id}
-                  sx={{
-                    p: 2,
-                    backgroundColor: bill.assignees.length > 0 ? colors.background.main : colors.neutral.gray100,
-                    borderRadius: 1,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 600, color: colors.text.primary, mb: 0.5 }}>
-                      {bill.title}
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <Typography
-                        variant="body2"
-                        component="span"
-                        sx={{
-                          color: colors.primary,
-                          textDecoration: 'underline',
-                          fontWeight: 500,
-                        }}
-                      >
-                        {bill.state} {bill.bill_number}
+          <TableContainer component={Paper} sx={{ boxShadow: 'none' }}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: colors.neutral.gray50 }}>
+                  <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
+                    Bill
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
+                    Assignees
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: colors.text.primary }}>
+                    Action
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bills.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} sx={{ textAlign: 'center', py: 4 }}>
+                      <Typography variant="body2" sx={{ color: colors.text.secondary }}>
+                        No bills found
                       </Typography>
-                      {bill.assignees.length > 0 ? (
-                        <>
-                          {bill.assignees.map((assignee) => (
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  bills.map((bill) => (
+                    <TableRow key={bill.id} hover>
+                      <TableCell>
+                        <Box>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: colors.text.primary, fontWeight: 500 }}
+                          >
+                            {bill.title}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: colors.text.secondary, fontSize: '0.75rem' }}
+                          >
+                            {bill.state} {bill.bill_number}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          {bill.assignees.length > 0 ? (
+                            <>
+                              {bill.assignees.slice(0, 3).map((assignee) => (
+                                <Chip
+                                  key={assignee.id}
+                                  label={assignee.name}
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: colors.sidebar.activeBackground,
+                                    color: colors.text.primary,
+                                    fontSize: '0.75rem',
+                                  }}
+                                />
+                              ))}
+                              {bill.assignees.length > 3 && (
+                                <Chip
+                                  label={`+${bill.assignees.length - 3} more`}
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: colors.neutral.gray200,
+                                    color: colors.text.secondary,
+                                    fontSize: '0.75rem',
+                                  }}
+                                />
+                              )}
+                            </>
+                          ) : (
                             <Chip
-                              key={assignee.id}
-                              label={assignee.name}
-                              size="small"
-                              sx={{
-                                backgroundColor: colors.sidebar.activeBackground,
-                                color: colors.text.primary,
-                                fontSize: '0.75rem',
-                              }}
-                            />
-                          ))}
-                          {bill.assignees.length < MAX_ASSIGNEES_PER_BILL && (
-                            <Chip
-                              label={`${bill.assignees.length}/${MAX_ASSIGNEES_PER_BILL}`}
+                              label="No Assignee"
                               size="small"
                               sx={{
                                 backgroundColor: colors.neutral.gray200,
@@ -317,45 +371,38 @@ export default function Assignments() {
                               }}
                             />
                           )}
-                        </>
-                      ) : (
-                        <Chip
-                          label="No Assignee"
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="text"
                           size="small"
+                          onClick={() => handleAssignBill(bill)}
                           sx={{
-                            backgroundColor: colors.neutral.gray200,
-                            color: colors.text.secondary,
-                            fontSize: '0.75rem',
+                            color: colors.primary,
+                            textTransform: 'none',
+                            fontWeight: 500,
+                            '&:hover': {
+                              backgroundColor: colors.primaryLighter,
+                            },
                           }}
-                        />
-                      )}
-                    </Box>
-                  </Box>
-                  {bill.assignees.length < MAX_ASSIGNEES_PER_BILL && (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleAssignBill(bill)}
-                      sx={{
-                        backgroundColor: colors.primary,
-                        color: colors.text.white,
-                        ml: 2,
-                        '&:hover': {
-                          backgroundColor: colors.primaryHover,
-                        },
-                      }}
-                    >
-                      Assign Bill
-                    </Button>
-                  )}
-                </Paper>
-              ))
-            )}
-          </Box>
+                        >
+                          Assign Bill
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+              <Typography variant="body2" sx={{ color: colors.text.secondary }}>
+                Showing {((currentPage - 1) * BILLS_PER_PAGE) + 1}-{Math.min(currentPage * BILLS_PER_PAGE, totalCount)} of {totalCount}
+              </Typography>
               <Pagination
                 count={totalPages}
                 page={currentPage}

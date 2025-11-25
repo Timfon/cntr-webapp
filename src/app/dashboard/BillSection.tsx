@@ -42,7 +42,7 @@ export default function BillSection({
             <BillBox
               key={bill.id}
               bill={bill}
-              isInProgress={true}
+              isInProgress={true} 
               onContinue={onContinue}
               onScoreBill={onScoreBill}
               onViewBill={onViewBill}
@@ -56,7 +56,7 @@ export default function BillSection({
       {assignedBills.length > 0 && (
         <Box sx={{ mb: 5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" sx={{ color: '#333', fontSize: '1.25rem' }}>
+            <Typography variant="h6" sx={{ color: colors.text.primary, fontSize: '1.25rem' }}>
               Assigned
             </Typography>
           </Box>
@@ -80,7 +80,7 @@ export default function BillSection({
       {scoredBills.length > 0 && (
         <Box sx={{ mb: 5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" sx={{ color: '#333', fontSize: '1.25rem' }}>
+            <Typography variant="h6" sx={{ color: colors.text.primary, fontSize: '1.25rem' }}>
               Scored
             </Typography>
           </Box>

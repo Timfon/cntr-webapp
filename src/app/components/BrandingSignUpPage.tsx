@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import NextLink from 'next/link';
 import "@fontsource/rubik";
+import { colors } from '@/app/theme/colors';
 
 const BRANDING = {
   logo: (
@@ -58,11 +59,13 @@ export default function BrandingSignUpPage() {
     <Card sx={{ maxWidth: 400, width: '100%', mx: 2 }}>
       <CardContent sx={{ p: 4, textAlign: 'center' }}>
         {/* Logo */}
-        {BRANDING.logo}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          {BRANDING.logo}
+        </Box>
         
         {/* Title */}
           <Typography variant="h4" sx={{ 
-            color: '#0C6431', 
+            color: colors.primary, 
             mb: 1,
           mt: 2 
         }}>
@@ -71,7 +74,7 @@ export default function BrandingSignUpPage() {
         
         {/* Description */}
         <Typography variant="body1" sx={{ 
-          color: '#666', 
+          color: colors.text.secondary, 
           mb: 3 
         }}>
           {BRANDING.description}
@@ -119,7 +122,7 @@ export default function BrandingSignUpPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', my: 1 }}>
             <Divider sx={{ flex: 1 }} />
             <Typography variant="body2" sx={{ 
-              color: '#666', 
+              color: colors.text.secondary, 
               px: 2 
             }}>
               or
@@ -132,10 +135,10 @@ export default function BrandingSignUpPage() {
             variant="contained"
             onClick={handleEmailSignUp}
             sx={{
-              backgroundColor: '#0C6431',
+              backgroundColor: colors.primary,
               py: 1.5,
               '&:hover': {
-                backgroundColor: '#0A4F28',
+                backgroundColor: colors.primaryHover,
               }
             }}
           >
@@ -146,14 +149,14 @@ export default function BrandingSignUpPage() {
         {/* Sign In Link */}
         <Typography variant="body2" sx={{ 
           mt: 3,
-          color: '#666'
+          color: colors.text.secondary
         }}>
           Already have an account?{' '}
           <Link 
             component={NextLink} 
             href="/signin"
             sx={{ 
-              color: '#0C6431',
+              color: colors.primary,
               textDecoration: 'none',
               fontWeight: 500,
               '&:hover': { textDecoration: 'underline' }
